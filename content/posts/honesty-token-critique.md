@@ -5,6 +5,7 @@ date = "2026-05-14"
 categories = ["opinion"]
 menu = "main"
 bookToc = true
+draft = true
 +++
 
 ## The Viral Moment
