@@ -2,6 +2,7 @@ baseURL = 'https://brambles.joshuapritikin.com/'
 languageCode = 'en-us'
 title = 'Brambles'
 theme = "hugo-book"
+googleAnalytics = 'G-XCN2TL15S9'
 
 disablePathToLower = true
 enableGitInfo = true
