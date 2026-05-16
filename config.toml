@@ -1,0 +1,24 @@
+baseURL = 'https://brambles.joshuapritikin.com/'
+languageCode = 'en-us'
+title = 'Brambles'
+theme = "hugo-book"
+
+disablePathToLower = true
+enableGitInfo = true
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.parser]
+      [markup.goldmark.parser.attribute]
+        block = true
+    [markup.goldmark.renderer]
+      unsafe= true
+
+[params]
+  BookTheme = 'light'
+  BookRepo = 'https://github.com/jpritikin/brambles'
+  BookSearch = false
+
+[Author]
+    name = "Joshua N. Pritikin"
+    email = "jpritikin73@gmail.com"

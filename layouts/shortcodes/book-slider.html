@@ -1,0 +1,13 @@
+<div class="book-slider-container" style="position:relative;width:fit-content;max-width:100%;user-select:none;display:inline-block;line-height:0;">
+  <img src="{{ .Get "base" }}" alt="{{ .Get "base-alt" }}" class="book-slider-base" style="display:block;max-width:100%;height:auto;">
+  <img src="{{ .Get "overlay" }}" alt="{{ .Get "overlay-alt" }}" class="book-slider-overlay-img" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;clip-path:inset(0 50% 0 0);">
+  <div class="book-slider-bar" style="position:absolute;top:0;left:50%;width:4px;height:100%;background:white;z-index:10;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+      <svg width="24" height="24" viewBox="0 0 30 30" style="pointer-events:none;">
+        <path d="M10 5 L5 15 L10 25" stroke="#333" stroke-width="3" fill="none"/>
+        <path d="M20 5 L25 15 L20 25" stroke="#333" stroke-width="3" fill="none"/>
+      </svg>
+    </div>
+  </div>
+</div>
+<script type="module" src="/js/bookSlider.js"></script>

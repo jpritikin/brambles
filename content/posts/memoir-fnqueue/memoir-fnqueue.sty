@@ -1,0 +1,136 @@
+% memoir-fnqueue.sty
+% General footnote queue for memoir: collect footnotes, emit N at a time.
+%
+% \MFQbegin       -- start queuing (wraps current \@footnotetext)
+% \MFQemit{N}    -- flush first N queued footnotes to the page now
+% \MFQflush      -- flush all remaining queued footnotes
+% \MFQcount      -- expands to number of footnotes currently queued
+% \MFQdebugtrue  -- enable diagnostic logging
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{memoir-fnqueue}[2024/01/01 v1.0 Memoir footnote queue]
+
+\RequirePackage{etoolbox}
+\RequirePackage{luacode}
+
+\newif\ifMFQ@active
+\MFQ@activefalse
+
+% Public debug toggle -- syncs to Lua on each use
+\newif\ifMFQ@debug
+\MFQ@debugfalse
+\def\MFQdebugtrue{\MFQ@debugtrue\directlua{MFQ.debug=true}}
+\def\MFQdebugfalse{\MFQ@debugfalse\directlua{MFQ.debug=false}}
+
+\begin{luacode*}
+MFQ = MFQ or {}
+MFQ.debug = false
+-- Queue of box numbers, each holding one formatted \footinsv@r insert body.
+MFQ.boxes = {}
+
+function MFQ.log(msg)
+  if MFQ.debug then texio.write_nl("[MFQ] " .. msg) end
+end
+
+function MFQ.reset()
+  MFQ.boxes = {}
+  MFQ.log("Queue reset")
+end
+
+-- Called from TeX: push a box number onto the queue.
+function MFQ.push(boxnum)
+  table.insert(MFQ.boxes, boxnum)
+  MFQ.log("Pushed box " .. boxnum .. " (queue length=" .. #MFQ.boxes .. ")")
+end
+
+-- Emit n items (or all if n >= queue length) by sprinting \insert\footinsv@r{\box<n>}.
+function MFQ.emit(n)
+  MFQ.log("emit(" .. n .. "): queue length=" .. #MFQ.boxes)
+  local count = math.min(n, #MFQ.boxes)
+  for i = 1, count do
+    local boxnum = table.remove(MFQ.boxes, 1)
+    MFQ.log("Emitting box " .. boxnum .. " (" .. (#MFQ.boxes) .. " remaining)")
+    tex.sprint(luatexbase.catcodetables['latex-package'],
+      "\\MFQ@primitive@insert\\footinsv@r{\\unvbox" .. boxnum .. "}")
+  end
+  MFQ.log("emit done: " .. #MFQ.boxes .. " remaining")
+end
+
+function MFQ.flush()
+  MFQ.log("flush: queue length=" .. #MFQ.boxes)
+  MFQ.emit(#MFQ.boxes)
+end
+
+function MFQ.count()
+  return #MFQ.boxes
+end
+\end{luacode*}
+
+% Permanent alias to the \insert primitive, saved before any redefinition.
+\let\MFQ@primitive@insert\insert
+
+% \MFQ@intercepted@fntext: replaces \@footnotetext while queuing is active.
+% Redirects \insert\footinsv@r into a newly allocated box stored in the Lua queue.
+% All other \insert targets pass through unchanged.
+\def\MFQ@intercepted@fntext#1{%
+  \ifMFQ@active
+    \ifMFQ@debug\typeout{[MFQ] Intercepting footnote (mark=\@thefnmark)}\fi
+    \begingroup
+      \def\insert##1##2{%
+        \ifnum##1=\footinsv@r
+          \ifMFQ@debug\typeout{[MFQ] Capturing \string\insert\string\footinsv@r}\fi
+          % Allocate a new box, save the insert body into it, push box number to Lua.
+          \newbox\MFQ@tmpbox
+          \global\setbox\MFQ@tmpbox\vbox{##2}%
+          \directlua{MFQ.push(\the\MFQ@tmpbox)}%
+        \else
+          \MFQ@primitive@insert##1{##2}%
+        \fi
+      }%
+      \MFQ@saved@fntext{#1}%
+    \endgroup
+  \else
+    \MFQ@saved@fntext{#1}%
+  \fi
+}
+
+% Public interface
+
+\def\MFQbegin{%
+  \ifMFQ@active
+    \ifMFQ@debug\typeout{[MFQ] MFQbegin: already active, ignoring}\fi
+  \else
+    \ifMFQ@debug\typeout{[MFQ] MFQbegin: activating}\fi
+    \directlua{MFQ.reset()}%
+    \global\MFQ@activetrue
+    % Only wrap \@footnotetext if memoir-tcolorbox is NOT loaded;
+    % when loaded, \MFS@hyper@fntext@impl handles \ifMFQ@active directly.
+    \@ifundefined{MFS@hyper@fntext@impl}{%
+      \let\MFQ@saved@fntext\@footnotetext
+      \let\@footnotetext\MFQ@intercepted@fntext
+      \ifMFQ@debug\typeout{[MFQ] MFQbegin: \string\@footnotetext\space wrapped}\fi
+    }{}%
+  \fi
+}
+
+\def\MFQemit#1{%
+  \ifMFQ@debug\typeout{[MFQ] MFQemit{#1}}\fi
+  \directlua{MFQ.emit(#1)}%
+}
+
+\def\MFQflush{%
+  \ifMFQ@debug\typeout{[MFQ] MFQflush}\fi
+  \directlua{MFQ.flush()}%
+  \ifMFQ@active
+    \global\MFQ@activefalse
+    \@ifundefined{MFS@hyper@fntext@impl}{%
+      \let\@footnotetext\MFQ@saved@fntext
+      \ifMFQ@debug\typeout{[MFQ] MFQflush: \string\@footnotetext\space restored}\fi
+    }{}%
+  \fi
+}
+
+% Expands to the number of footnotes currently queued.
+\def\MFQcount{\directlua{tex.sprint(MFQ.count())}}
+
+\endinput

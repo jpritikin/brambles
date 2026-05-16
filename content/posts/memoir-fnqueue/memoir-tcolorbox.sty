@@ -1,0 +1,449 @@
+% memoir-tcolorbox.sty
+% Forces ALL footnotes to use main footnote numbering and paragraph formatting
+% Complete rewrite based on footnotehyper but adapted for memoir paragraph footnotes
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{memoir-tcolorbox}[2024/01/01 v3.0 Memoir paragraph footnote fix with full hyperref]
+
+% Use etoolbox for robust patching
+\RequirePackage{etoolbox}
+\RequirePackage{memoir-fnqueue}
+
+% Debug mode with extensive logging
+\newif\ifMFS@debug
+\MFS@debugfalse % Disable debug for production
+\def\MFS@debug#1{\ifMFS@debug\typeout{[MFS] #1}\fi}
+\def\MFS@debugmark#1{\ifMFS@debug\typeout{[MFS-MARK] #1}\fi}
+\def\MFS@debugtext#1{\ifMFS@debug\typeout{[MFS-TEXT] #1}\fi}
+\def\MFS@debughref#1{\ifMFS@debug\typeout{[MFS-HREF] #1}\fi}
+
+% Only works with memoir
+\@ifclassloaded{memoir}{}{%
+  \PackageError{memoir-tcolorbox}{This package requires the memoir class}{}%
+}
+
+% Storage for saved footnotes
+\newbox\MFS@notes
+\newcount\MFS@qbox@seq
+\newdimen\MFS@width
+\newdimen\MFS@notes@height % Track accumulated footnote height for tcolorbox
+\newif\ifMFS@savingnotes
+\newif\ifMFS@globalmode % New flag for global save mode
+
+% Track column width
+\let\MFS@colwidth\columnwidth
+
+% Storage for footnote counter state
+\newcount\MFS@footnote@count
+\newcount\MFS@mpfootnote@count
+
+% Track hyperref state
+\newif\ifMFS@hyperref
+\newif\ifMFS@hyperfootnotes
+
+% Flag to control footnote space reservation
+\newif\ifMFS@reserve@space
+\MFS@reserve@spacefalse % default: do not reserve space
+
+% \MFSflushfootnotes: flush deferred footnotes (public alias for \MFQflush)
+\let\MFSflushfootnotes\MFQflush
+
+% Debug output after tcolorbox (deferred to avoid expansion issues)
+\def\MFS@debug@after{%
+  \@ifundefined{ifdebugvspace}{}{%
+    \ifdebugvspace\typeout{TCOLORBOX-AFTER: page=\thepage, pagetotal=\the\pagetotal, pagegoal=\the\pagegoal, savingnotes=\ifMFS@savingnotes true\else false\fi, queued=\MFQcount, notes=\ifvoid\MFS@notes void\else\the\ht\MFS@notes\fi}\fi
+  }%
+}
+
+\AtBeginDocument{%
+    \MFS@debug{=== MFS Setup Starting ===}%
+    
+    % Save original commands BEFORE any modifications
+    \let\MFS@latex@footnote\footnote
+    \let\MFS@latex@footnotetext\footnotetext
+    \let\MFS@H@@footnotetext\@footnotetext
+    \let\MFS@H@@mpfootnotetext\@mpfootnotetext
+    
+    % Save memoir's paragraph footnote command
+    \let\MFS@memoir@@parafootnotetext\@parafootnotetext
+    
+    % Check for hyperref
+    \@ifpackageloaded{hyperref}{%
+        \MFS@hyperreftrue
+        \MFS@debug{Hyperref detected}%
+        \ifHy@hyperfootnotes
+            \MFS@hyperfootnotestrue
+            \MFS@debug{Hyperref footnotes enabled}%
+            % Save hyperref's versions if they exist
+            \@ifundefined{H@@footnotetext}{}{%
+                \let\MFS@H@@footnotetext\H@@footnotetext
+                \let\MFS@H@@mpfootnotetext\H@@mpfootnotetext
+            }%
+        \else
+            \MFS@debug{Hyperref footnotes disabled}%
+        \fi
+    }{%
+        \MFS@debug{No hyperref}%
+    }%
+    
+    % CRITICAL: Enable global save mode to process ALL footnotes
+    % This ensures hyperref links work for all footnotes
+    \MFS@globalmodetrue
+    \MFS@begin@global@mode
+    
+    \MFS@debug{=== MFS Setup Complete ===}%
+}
+
+% ============================================================================
+% Global mode - process ALL footnotes through save/restore
+% ============================================================================
+
+\def\MFS@begin@global@mode{%
+    \MFS@debug{Enabling global footnote processing mode}%
+    % Replace the main footnote commands
+    \let\footnote\MFS@footnote
+    \let\footnotetext\MFS@footnotetext
+    % Replace low-level commands
+    \let\@footnotetext\MFS@hyper@fntext
+    \let\@mpfootnotetext\MFS@hyper@fntext
+}
+
+% ============================================================================
+% Core save/restore mechanism (based on footnotehyper)
+% ============================================================================
+
+% Main wrapper to check amsmath measuring
+\def\MFS@fntext#1{%
+    \ifx\ifmeasuring@\@undefined
+        \expandafter\@secondoftwo
+    \else
+        \expandafter\@firstofone
+    \fi
+    {\ifmeasuring@\expandafter\@gobbletwo\fi}#1%
+}
+
+% Main processing function with hyperref
+\def\MFS@hyper@fntext{\MFS@fntext\MFS@hyper@fntext@impl}
+\def\MFS@nohyp@fntext{\MFS@fntext\MFS@nohyp@fntext@impl}
+
+% Store with hyperref support - format as memoir paragraph footnote
+\long\def\MFS@hyper@fntext@impl#1{%
+    \MFS@debughref{Processing footnote \@thefnmark, href=\Hy@footnote@currentHref}%
+    \@ifundefined{ifdebugvspace}{}{\ifdebugvspace\typeout{MFS-HYPER-FNTEXT: page=\thepage, saving=\ifMFS@savingnotes true\else false\fi, queued=\MFQcount}\fi}%
+    \ifMFS@savingnotes
+        \MFS@store@footnote@impl{#1}%
+    \else
+        \ifMFQ@active
+            \MFS@store@footnote@impl{#1}%
+        \else
+        % Directly insert formatted paragraph footnote
+        \insert\footinsv@r{%
+            \def\baselinestretch{\m@m@footnote@spacing}%
+            \reset@font\foottextfont
+            \@preamfntext
+            \protected@edef\@currentlabel{%
+                \csname p@footnote\endcsname\@thefnmark}%
+            \setbox0=\vbox{\hsize=\maxdimen
+                \color@begingroup
+                \noindent\@parafootfmt{%
+                    \ifMFS@hyperfootnotes
+                        \ifHy@nesting
+                            \expandafter\ltx@firstoftwo
+                        \else
+                            \expandafter\ltx@secondoftwo
+                        \fi
+                        {\expandafter\hyper@@anchor\expandafter{\Hy@footnote@currentHref}{#1}}%
+                        {\Hy@raisedlink{%
+                            \expandafter\hyper@@anchor\expandafter{\Hy@footnote@currentHref}{\relax}%
+                        }%
+                        \let\@currentHref\Hy@footnote@currentHref
+                        \let\@currentlabelname\@empty
+                        #1}%
+                    \else
+                        #1%
+                    \fi
+                }%
+                \color@endgroup
+            }%
+            \m@mungebox
+        }%
+        \m@mmf@prepare
+        \fi% end \ifMFQ@active
+    \fi
+}
+
+% Store without hyperref - format as memoir paragraph footnote
+\long\def\MFS@nohyp@fntext@impl#1{%
+    \MFS@debugtext{Processing footnote without hyperref}%
+    \insert\footinsv@r{%
+        \def\baselinestretch{\m@m@footnote@spacing}%
+        \reset@font\foottextfont
+        \@preamfntext
+        \protected@edef\@currentlabel{%
+            \csname p@footnote\endcsname\@thefnmark}%
+        \setbox0=\vbox{\hsize=\maxdimen
+            \color@begingroup
+            \noindent\@parafootfmt{#1}%
+            \color@endgroup
+        }%
+        \m@mungebox
+    }%
+    \m@mmf@prepare
+}
+
+% Main footnote command that works everywhere
+\def\MFS@footnote{%
+    \@ifnextchar[%
+        {\MFS@footnote@opt}%
+        {\MFS@footnote@noopt}%
+}
+
+\def\MFS@footnote@opt[#1]{%
+    \MFS@debugmark{footnote[#1] called, savingnotes=\ifMFS@savingnotes true\else false\fi}%
+    \ifMFS@savingnotes
+        % In save mode: store for later
+        \footnotemark[#1]%
+        \MFS@store@footnote@opt[#1]%
+    \else
+        % Normal mode but still process through our system
+        \MFS@latex@footnote[#1]%
+    \fi
+}
+
+\def\MFS@footnote@noopt#1{%
+    \MFS@debugmark{footnote{...} called, savingnotes=\ifMFS@savingnotes true\else false\fi}%
+    \ifMFS@savingnotes
+        % In save mode: store for later
+        \footnotemark
+        \MFS@store@footnote@noopt{#1}%
+    \else
+        % Normal mode but still process through our system
+        \MFS@latex@footnote{#1}%
+    \fi
+}
+
+% Main footnotetext command
+\def\MFS@footnotetext{%
+    \@ifnextchar[%
+        {\MFS@footnotetext@opt}%
+        {\MFS@footnotetext@noopt}%
+}
+
+\def\MFS@footnotetext@opt[#1]{%
+    \MFS@debugtext{footnotetext[#1] called}%
+    \ifMFS@savingnotes
+        \MFS@store@footnote@opt[#1]%
+    \else
+        \MFS@latex@footnotetext[#1]%
+    \fi
+}
+
+\def\MFS@footnotetext@noopt#1{%
+    \MFS@debugtext{footnotetext{...} called}%
+    \ifMFS@savingnotes
+        \MFS@store@footnote@noopt{#1}%
+    \else
+        \MFS@latex@footnotetext{#1}%
+    \fi
+}
+
+% Store footnote for later (save mode)
+\def\MFS@store@footnote@opt[#1]#2{%
+    \begingroup
+    \csname c@\@mpfn\endcsname #1\relax
+    \unrestored@protected@xdef\@thefnmark{\thempfn}%
+    \endgroup
+    \MFS@store@footnote@impl{#2}%
+}
+
+\def\MFS@store@footnote@noopt#1{%
+    \MFS@store@footnote@impl{#1}%
+}
+
+\long\def\MFS@store@footnote@impl#1{%
+    \MFS@debugtext{Storing footnote \@thefnmark for later}%
+    \ifMFQ@active
+        % Queue active: capture each footnote individually into a new box
+        % and push it to the Lua queue for deferred emission.
+        \MFS@debugtext{Routing footnote \@thefnmark to MFQ queue}%
+        \global\advance\MFS@qbox@seq by 1\relax
+        \expandafter\newbox\csname MFS@qbox@\the\MFS@qbox@seq\endcsname
+        \global\expandafter\setbox\csname MFS@qbox@\the\MFS@qbox@seq\endcsname\vbox{%
+            \setbox0=\vbox{\hsize=\maxdimen
+                \color@begingroup
+                \noindent\@parafootfmt{%
+                    \ifMFS@hyperfootnotes
+                        \ifHy@nesting
+                            \expandafter\ltx@firstoftwo
+                        \else
+                            \expandafter\ltx@secondoftwo
+                        \fi
+                        {\expandafter\hyper@@anchor\expandafter{\Hy@footnote@currentHref}{#1}}%
+                        {\Hy@raisedlink{%
+                            \expandafter\hyper@@anchor\expandafter{\Hy@footnote@currentHref}{\relax}%
+                        }%
+                        \let\@currentHref\Hy@footnote@currentHref
+                        \let\@currentlabelname\@empty
+                        #1}%
+                    \else
+                        #1%
+                    \fi
+                }%
+                \color@endgroup
+            }%
+            \setbox0=\hbox{\m@munvxh0}%
+            \dp0=\z@
+            \ht0=\footfudgefactor\wd0
+            \box0
+            \penalty0
+        }%
+        \directlua{MFQ.push(\the\csname MFS@qbox@\the\MFS@qbox@seq\endcsname)}%
+    \else
+        % Normal save mode: accumulate into MFS@notes vbox
+        \global\setbox\MFS@notes\vbox{%
+            \unvbox\MFS@notes
+            \setbox0=\vbox{\hsize=\maxdimen
+                \color@begingroup
+                \noindent\@parafootfmt{%
+                    \ifMFS@hyperfootnotes
+                        \ifHy@nesting
+                            \expandafter\ltx@firstoftwo
+                        \else
+                            \expandafter\ltx@secondoftwo
+                        \fi
+                        {\expandafter\hyper@@anchor\expandafter{\Hy@footnote@currentHref}{#1}}%
+                        {\Hy@raisedlink{%
+                            \expandafter\hyper@@anchor\expandafter{\Hy@footnote@currentHref}{\relax}%
+                        }%
+                        \let\@currentHref\Hy@footnote@currentHref
+                        \let\@currentlabelname\@empty
+                        #1}%
+                    \else
+                        #1%
+                    \fi
+                }%
+                \color@endgroup
+            }%
+            \setbox0=\hbox{\m@munvxh0}%
+            \dp0=\z@
+            \ht0=\footfudgefactor\wd0
+            \box0
+            \penalty0
+        }%
+        \global\MFS@notes@height=\ht\MFS@notes
+        \MFS@debug{Accumulated footnote height: \the\MFS@notes@height}%
+    \fi
+}
+
+% Save notes mode (for tcolorbox)
+% Public alias for use in tcbset where @ may not be a letter
+\def\MFSsavenotes{\MFS@savenotes}
+
+% Deferred restore: end save mode -- footnotes already in queue via store@impl
+\def\MFS@deferred@restorenotes{%
+    \MFS@debug{<<< DEFERRED-RESTORENOTES called (queue has \MFQcount\space items)}%
+    \@ifundefined{ifdebugvspace}{}{\ifdebugvspace\typeout{MFS-DEFERRED-RESTORE: page=\thepage, pagetotal=\the\pagetotal, pagegoal=\the\pagegoal, saving=\ifMFS@savingnotes true\else false\fi, queued=\MFQcount}\fi}%
+    \ifMFS@savingnotes
+        \global\MFS@savingnotesfalse
+        \let\thempfn\MFS@thempfn
+        \let\@mpfn\MFS@mpfn
+        \c@footnote=\MFS@footnote@count
+        \c@mpfootnote=\MFS@mpfootnote@count
+    \fi
+    \global\MFS@notes@height=0pt
+}
+\def\MFS@savenotes{%
+    \MFS@debug{>>> SAVENOTES called}%
+    \@ifundefined{ifdebugvspace}{}{\ifdebugvspace\typeout{MFS-SAVENOTES: page=\thepage, pagetotal=\the\pagetotal, already=\ifMFS@savingnotes true\else false\fi, queued=\MFQcount}\fi}%
+    \ifMFS@savingnotes
+        \MFS@debug{Already in save mode}%
+    \else
+        \global\MFS@savingnotestrue
+
+        % Save counter values
+        \MFS@footnote@count=\c@footnote
+        \MFS@mpfootnote@count=\c@mpfootnote
+
+        % Initialize storage
+        \MFS@width\columnwidth
+        \let\MFS@colwidth\MFS@width
+        \global\setbox\MFS@notes\box\voidb@x
+        \global\MFS@notes@height=0pt % Reset accumulated footnote height
+
+        % Save minipage state
+        \let\MFS@thempfn\thempfn
+        \let\MFS@mpfn\@mpfn
+
+        % Force main footnote counter
+        \def\@mpfn{footnote}%
+        \let\thempfn\thefootnote
+
+        \MFS@debug{Save mode activated}%
+    \fi
+}
+
+% Restore notes mode (for tcolorbox)
+\def\MFS@restorenotes{%
+    \MFS@debug{<<< RESTORENOTES called}%
+    \@ifundefined{ifdebugvspace}{}{\ifdebugvspace\typeout{MFS-RESTORE: page=\thepage, pagetotal=\the\pagetotal, pagegoal=\the\pagegoal, saving=\ifMFS@savingnotes true\else false\fi, notes=\ifvoid\MFS@notes void\else\the\ht\MFS@notes\fi}\fi}%
+    \ifMFS@savingnotes
+        \global\MFS@savingnotesfalse
+
+        % Restore minipage state
+        \let\thempfn\MFS@thempfn
+        \let\@mpfn\MFS@mpfn
+
+        % Restore counters
+        \c@footnote=\MFS@footnote@count
+        \c@mpfootnote=\MFS@mpfootnote@count
+
+        \MFS@debug{Save mode deactivated}%
+    \fi
+
+    % Output saved notes
+    \ifvoid\MFS@notes
+        \MFS@debug{No notes to output}%
+    \else
+        \MFS@debug{Outputting saved notes to footinsv@r}%
+        \insert\footinsv@r{\unvbox\MFS@notes}%
+    \fi
+    % Reset accumulated height
+    \global\MFS@notes@height=0pt
+}
+
+% ============================================================================
+% Hook into tcolorbox
+% ============================================================================
+
+\AtBeginDocument{%
+    \@ifpackageloaded{tcolorbox}{%
+        \MFS@debug{Configuring tcolorbox integration}%
+        \tcbset{%
+            before upper={\MFS@savenotes},
+            after={\ifMFQ@active\MFS@deferred@restorenotes\else\MFS@restorenotes\fi\MFS@debug@after},
+            reserve footnote space/.is if=MFS@reserve@space,
+            defer footnote restore/.code={\MFQbegin},
+        }%
+        % Patch tcb@comp@h@page to account for accumulated footnote height
+        % This ensures breakable boxes reserve space for footnotes
+        \@ifundefined{tcb@comp@h@page}{}{%
+            \MFS@debug{Patching tcb@comp@h@page for footnote awareness}%
+            \let\MFS@orig@tcb@comp@h@page\tcb@comp@h@page
+            \def\tcb@comp@h@page{%
+                \MFS@orig@tcb@comp@h@page
+                % Only reserve space if flag is enabled
+                \ifMFS@reserve@space
+                    \ifdim\MFS@notes@height>0pt\relax
+                        \tcbdimto\tcb@h@page{\tcb@h@page-\MFS@notes@height-\skip\footinsv@r}%
+                        \MFS@debug{Reduced tcb@h@page by \the\MFS@notes@height\space for footnotes}%
+                    \fi
+                \fi
+            }%
+        }%
+        \MFS@debug{tcolorbox configured}%
+    }{%
+        \MFS@debug{tcolorbox not loaded}%
+    }%
+}
+
+\endinput

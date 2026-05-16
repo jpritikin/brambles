@@ -1,0 +1,71 @@
+\documentclass[12pt]{memoir}
+\usepackage{etoolbox}
+\usepackage{luacode}
+\usepackage{luatexbase}
+\usepackage{xcolor}
+\usepackage{lipsum}
+\usepackage[hidelinks,luatex,unicode]{hyperref}
+\usepackage{memhfixc}
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable,skins}
+\usepackage{memoir-tcolorbox} % loads memoir-fnqueue
+
+\paragraphfootnotes
+\renewcommand{\footnoterule}{}
+
+\begin{document}
+
+% -----------------------------------------------------------------------
+% Test 1: plain queue -- emit 2 now, hold rest for later
+% -----------------------------------------------------------------------
+\section*{Test 1: \texttt{\textbackslash MFQbegin} / \texttt{\textbackslash MFQemit}}
+
+\MFQbegin
+\lipsum[1]
+Five footnotes queued here.\footnote{Alpha -- emitted after paragraph two.}%
+\footnote{Beta -- emitted after paragraph two.}%
+\footnote{Gamma -- emitted with flush.}%
+\footnote{Delta -- emitted with flush.}%
+\footnote{Epsilon -- emitted with flush.}
+
+\MFQemit{2}% emit Alpha and Beta now
+
+\lipsum[2] One more queued.\footnote{Zeta -- emitted with flush.}
+
+\MFQflush % emit Gamma, Delta, Epsilon, Zeta
+
+\lipsum[3]
+
+\clearpage
+
+% -----------------------------------------------------------------------
+% Test 2: tcolorbox with defer footnote restore
+% -----------------------------------------------------------------------
+\section*{Test 2: tcolorbox \texttt{defer footnote restore}}
+
+\begin{tcolorbox}[defer footnote restore]
+\lipsum[4]
+Two footnotes deferred.\footnote{Box note one -- should appear after flush below.}%
+\footnote{Box note two -- should appear after flush below.}
+\end{tcolorbox}
+
+\lipsum[5]
+
+\MFQflush % footnotes from the box appear here
+
+\lipsum[6]
+
+\clearpage
+
+% -----------------------------------------------------------------------
+% Test 3: emit more than queued (should not crash)
+% -----------------------------------------------------------------------
+\section*{Test 3: \texttt{\textbackslash MFQemit} with excess count}
+
+\MFQbegin
+\lipsum[7] One queued footnote.\footnote{Solo -- emitting 5 should not crash.}
+\MFQemit{5} % only 1 available, rest is no-op
+
+\lipsum[8]
+
+\end{document}
