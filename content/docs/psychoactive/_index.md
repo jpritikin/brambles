@@ -109,6 +109,7 @@ I have first-hand experience with
 *   5-MAPB (5-(2-methylaminopropyl)benzofuran), 80mg single occasion
 *   [Metocin]({{< relref "metocin" >}}) (4-HO-MET)
 *   5-MeO-DMT
+*   Tetrahydroharmine[^stahl2026]
 
 In general, I use psychoactive substances as [entheogens](https://en.wikipedia.org/wiki/Entheogen).
 My preferred substances generally align with the opinions of the 1972 Church of the Tree of Life.[^bigwood2024]
@@ -362,3 +363,5 @@ Share your results with a friend.
 [^sabe2024]: Sabé, M., Sulstarova, A., Glangetas, A., De Pieri, M., Mallet, L., Curtis, L., ... & Kirschner, M. (2024). Reconsidering evidence for psychedelic-induced psychosis: an overview of reviews, a systematic review, and meta-analysis of human studies. *Molecular Psychiatry*, 1-33.
 
 [^tart2001-trip]: See pp. 150-151: Tart, C. T. (2001). *States of Consciousness.* iUniverse.
+
+[^stahl2026]: Stahl, M. (2026). *LSI, Ancient LSD, Secrets of the Eleusis Kykeon and Vedic SOMA.* Sacred Forest Botanicals.
