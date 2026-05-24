@@ -21,6 +21,20 @@ While traditional use of ayahuasca often emphasizes individual exploration, Sant
 I've attended Santo Daime works since Dec 2021.
 There are a number of areas that I think could be improved.
 
+### Active Compounds
+
+Before suggesting improvements, let's talk about Daime.
+
+Daime contains three psychoactive substances with different durations. This makes it possible to attribute what you feel to specific compounds.
+
+**DMT** produces the acute visionary experience. It is metabolized quickly: onset within 30–60 minutes of ingestion, fully resolved within 2–3 hours.
+
+**Harmine** is a monoamine oxidase inhibitor (MAOI) that makes oral DMT active by blocking its gut metabolism. It is also the primary cause of nausea, as it stimulates serotonin receptors in the gut.
+
+**Tetrahydroharmine (THH)** is a serotonin reuptake inhibitor with effects lasting 36–48 hours. If you feel unusually reflective, emotionally open, or have disrupted sleep the day after a work, that is likely THH.
+
+People sometimes wonder how ayahuasca was ever discovered. The Amazon contains tens of thousands of plant species, and the odds of randomly combining *Banisteriopsis caapi* with *Psychotria viridis* seem vanishingly small. But the puzzle dissolves if you consider that THH alone—from *B. caapi*—produces subtle but noticeable psychoactive effects. That experience would have made *B. caapi* a well-known and widely experimented-with plant long before ayahuasca was formulated. Combining it with other plants to explore synergies would have been a natural next step.
+
 ### Group Experience
 
 Before suggesting improvements, I want to underline what is revolutionary about Santo Daime: the group experience.
