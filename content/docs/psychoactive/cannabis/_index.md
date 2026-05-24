@@ -640,6 +640,18 @@ Here's how I think about designing recipes. You look at each pie chart separatel
 | Δ8-THC:CBN with both CBC and CBT? | How do they interact? |
 | Δ8-THC:Δ9-THCV:CBT 25:6:6 | I doubt I'm going to like it, but I'm curious to feel THCV from another vantage point. |
 
+## Emergency Rescue
+
+Tetrahydroharmine (THH) smothers the effects of cannabinoids.
+If a dose turns overwhelming, THH can help restore a baseline state.
+
+Obviously, before relying on THH as a rescue, first explore it in
+combination with familiar, well-tolerated cannabinoids—ones you know
+won't push you too far on their own.  You don't want to encounter THH
+for the first time in a distressed state.  A good starting point is a
+familiar blend at a comfortable dose. Layer on a modest dose of THH and
+note how it attenuates the effect.
+
 ## Storage
 
 Acetylated cannabinoids are particularly vulnerable to thermal degradation.
