@@ -114,7 +114,7 @@ I have first-hand experience with
 In general, I use psychoactive substances as [entheogens](https://en.wikipedia.org/wiki/Entheogen).
 My preferred substances generally align with the opinions of the 1972 Church of the Tree of Life.[^bigwood2024]
 
-I'm curious to try 2C-B.
+[Erowid](https://www.erowid.org/) contains a large number of candidate substances. I'm curious to try 2C-B.
 
 ### In film 📽️
 
