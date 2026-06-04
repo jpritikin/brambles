@@ -152,7 +152,7 @@ There is likely cross-tolerance because both substances are [CB1](https://en.wik
 | H4CBD | CBC | Marvelous combo. The seriousness of H4CBD is balanced by the levity of CBC. CBT offers levity too, but are both yin. The yang of CBC is a better complement to the yin of H4CBD. |
 | CBDV | Daime | Clashes. CBDV is too stabilizing. |
 | H4CBD | Δ9-THC-B | Nice combo, but Δ9-THC-B cancels H4CBD's antiemetic effect. |
-| CBN-P | THC | Resembles CBN:THC but much stronger. Not good for sleep. It's not clear whether this is a useful combination for blends. Maybe tiny amounts like 0.1mg CBN-P could be interesting? |
+| CBN-P | THC | Resembles CBN:THC but much stronger. Not good for sleep. It's not clear whether this is a useful combination for blends. Maybe tiny amounts like 0.1mg CBN-P could be interesting? Or maybe tiny amounts of THC? |
 
 #### Munchies
 
@@ -639,6 +639,8 @@ Here's how I think about designing recipes. You look at each pie chart separatel
 | Δ10-THC:CBN:CBC:CBT 50:15:4:4 | Both CBC and CBT? |
 | Δ8-THC:CBN with both CBC and CBT? | How do they interact? |
 | Δ8-THC:Δ9-THCV:CBT 25:6:6 | I doubt I'm going to like it, but I'm curious to feel THCV from another vantage point. |
+
+HHC disappointed, so I've dismissed other substances that share its hexahydro scaffold. But structural similarity need not predict phenomenological similarity: Δ9-THC-B and Δ9-THC-O are both THC analogs yet feel almost nothing like Δ9-THC. I probably rushed judgment on HHC-P, HHC-O, and similar compounds.
 
 ## Emergency Rescue
 
