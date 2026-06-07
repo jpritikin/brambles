@@ -1,0 +1,123 @@
+<div class="shrine">
+  <div class="shrine-body">
+    <svg class="shrine-anthemion" viewBox="0 0 120 40" aria-hidden="true">
+      <path d="M60 38 C60 24 50 22 50 10 C50 4 55 2 60 2 C65 2 70 4 70 10 C70 22 60 24 60 38 Z" fill="none" stroke="#d4af37" stroke-width="1.5"/>
+      <path d="M60 14 C60 6 52 4 46 8 M60 14 C60 6 68 4 74 8" fill="none" stroke="#d4af37" stroke-width="1.5"/>
+      <path d="M30 36 C40 26 50 30 60 22 C70 30 80 26 90 36" fill="none" stroke="#d4af37" stroke-width="1.5"/>
+      <circle cx="30" cy="36" r="2.5" fill="#d4af37"/>
+      <circle cx="90" cy="36" r="2.5" fill="#d4af37"/>
+    </svg>
+    <div class="shrine-row">
+      <span class="shrine-flame">🪔</span>
+      <div class="shrine-icon">
+        {{- with .Get "link" }}<a href="{{ . }}">{{ end -}}
+        <img src="{{ $.Get "image" }}" alt="{{ $.Get "alt" }}">
+        {{- with .Get "link" }}</a>{{ end -}}
+      </div>
+      <span class="shrine-flame">🪔</span>
+    </div>
+    <svg class="shrine-meander" viewBox="0 0 288 32" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <!-- Running wave-scroll: the classical Greek construction for marine
+           ornament. Each module is a large whorl winding inward from the
+           crest, paired with a small counter-whorl in the trough — the two
+           joined by a single S-curve. The unit tiles seamlessly: every
+           instance is the same size, so the border reads as one continuous
+           current rather than a stamp that breaks at the seam. -->
+      <defs>
+        <path id="shrine-wave-unit"
+              fill="none" stroke="#d4af37" stroke-width="1.5"
+              d="M0 22
+                 C 6 22 6 14 12 14
+                 C 18 14 18 19.5 13.5 19.5
+                 C 10.5 19.5 10.5 16.5 13 16.5
+                 C 22 16.5 24 8 34 8
+                 C 46 8 46 24 34 24
+                 C 25 24 25 13.5 34 13.5
+                 C 40 13.5 40 18.5 35.5 18.5"/>
+        <pattern id="shrine-wave-tile" x="0" y="0" width="72" height="32" patternUnits="userSpaceOnUse">
+          <use href="#shrine-wave-unit" x="2" y="0"/>
+          <g transform="scale(-1,1) translate(-72,0)">
+            <use href="#shrine-wave-unit" x="2" y="0" opacity="0.7"/>
+          </g>
+          <g fill="#d4af37" opacity="0.6">
+            <circle cx="36" cy="3" r="0.9"/>
+            <circle cx="42" cy="6" r="0.7"/>
+          </g>
+        </pattern>
+      </defs>
+
+      <!-- faint following swell, offset, suggesting a second layer of current -->
+      <path d="M0 26 Q 18 19 36 26 T 72 26 T 108 26 T 144 26 T 180 26 T 216 26 T 252 26 T 288 26"
+            fill="none" stroke="#d4af37" stroke-width="1" opacity="0.3"/>
+
+      <rect x="0" y="0" width="288" height="32" fill="url(#shrine-wave-tile)"/>
+    </svg>
+  </div>
+  <div class="shrine-flowers"></div>
+</div>
+
+<style>
+.shrine {
+  position: relative;
+  margin: 2rem auto;
+  max-width: 32rem;
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+.shrine-body {
+  position: relative;
+  z-index: 2;
+  padding: 1.5rem 1rem;
+}
+.shrine-anthemion {
+  display: block;
+  width: 7.5rem;
+  height: 2.5rem;
+  margin: 0 auto;
+}
+.shrine-icon img {
+  display: block;
+  width: 12rem;
+  aspect-ratio: 2 / 3;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 1.5rem rgba(212, 175, 55, 0.4);
+}
+.shrine-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.5rem;
+}
+.shrine-row .shrine-flame {
+  /* Lift the lamp from the book's base by roughly a third of its height
+     (book cover is ~12rem wide at a 2:3 ratio, so ~18rem tall). */
+  transform: translateY(-4rem);
+}
+.shrine-meander {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  height: 2rem;
+  margin: 0.75rem auto 0;
+}
+.shrine-flame {
+  display: inline-block;
+  font-size: 1.8rem;
+  will-change: transform;
+  filter: drop-shadow(0 0 0.4rem #ffb347);
+}
+.shrine-flowers {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  overflow: hidden;
+}
+.shrine-flower {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+</style>
+<script type="module" src="/js/shrine.js"></script>
