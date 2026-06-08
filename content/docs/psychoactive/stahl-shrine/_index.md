@@ -3,6 +3,7 @@ title: Stahl Shrine
 section: Psychedelics
 weight: 2
 bookToc: false
+layout: shrine-page
 ---
 
 ## Stahl Shrine
@@ -40,3 +41,6 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 - Fan (and gentle heat source)
 - Magnetic stir machine (optional)
 
+### Lest We Forget
+
+We lost this knowledge for a couple thousand years. Let's not make it a habit. Write it down, pass it on, and keep the kykeon flowing.

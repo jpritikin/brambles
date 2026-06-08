@@ -82,7 +82,7 @@ function runPetals(layer: HTMLElement): void {
   let lastTime = performance.now();
 
   function frame(now: number): void {
-    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    const dt = Math.max(0, Math.min((now - lastTime) / 1000, 0.05));
     lastTime = now;
 
     if (now - lastSpawn > 1100 + Math.random() * 800) {
@@ -115,6 +115,7 @@ interface Flame {
   scaleVelocity: number;
   tilt: number;
   tiltVelocity: number;
+  lift: number;
 }
 
 function stepFlame(flame: Flame, dt: number): void {
@@ -131,22 +132,42 @@ function stepFlame(flame: Flame, dt: number): void {
 
   const opacity = 0.85 + (flame.scale - 1) * 0.5;
   flame.el.style.opacity = opacity.toFixed(2);
-  flame.el.style.transform = `scale(${flame.scale.toFixed(3)}) rotate(${flame.tilt.toFixed(2)}deg)`;
+  flame.el.style.transform =
+    `translateY(${flame.lift.toFixed(1)}px) scale(${flame.scale.toFixed(3)}) rotate(${flame.tilt.toFixed(2)}deg)`;
+}
+
+// Lifts the lamps from the book's base by a fraction of its rendered
+// height. Measured from the actual image (rather than assumed from CSS
+// dimensions) so the lamps stay aligned regardless of when the image loads
+// or how its intrinsic size affects layout.
+function flameLift(icon: HTMLElement | null): number {
+  if (!icon) return 0;
+  return -icon.clientHeight / 5;
 }
 
 function runFlames(shrine: HTMLElement): void {
+  const icon = shrine.querySelector<HTMLElement>(".shrine-icon");
+  const img = icon?.querySelector("img") ?? null;
   const flames: Flame[] = Array.from(shrine.querySelectorAll<HTMLElement>(".shrine-flame")).map((el) => ({
     el,
     scale: 1,
     scaleVelocity: 0,
     tilt: 0,
     tiltVelocity: 0,
+    lift: flameLift(icon),
   }));
   if (flames.length === 0) return;
 
+  function remeasure(): void {
+    const lift = flameLift(icon);
+    flames.forEach((flame) => (flame.lift = lift));
+  }
+  if (img && !img.complete) img.addEventListener("load", remeasure, { once: true });
+  window.addEventListener("resize", remeasure);
+
   let lastTime = performance.now();
   function frame(now: number): void {
-    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    const dt = Math.max(0, Math.min((now - lastTime) / 1000, 0.05));
     lastTime = now;
     flames.forEach((flame) => stepFlame(flame, dt));
     requestAnimationFrame(frame);
