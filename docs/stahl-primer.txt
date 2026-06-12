@@ -1,0 +1,175 @@
+STAHL SHRINE ASCII SLIDESHOW - PRIMER
+======================================
+
+What this is
+-------------
+An animated ASCII "slideshow" embedded in the Stahl Shrine recipe page
+(content/docs/psychoactive/stahl-shrine/_index.md). Clicking a recipe step
+(steps are wrapped in <span class="recipe-step" data-step="N">) reveals a
+small monospace grid (#stahl-slideshow) showing props (seed pile, grinder,
+shot glass, stir rod, bottle, measuring stick, fan, fridge, baking dish,
+ice particles, etc.) animating from the previous step's resting frame into
+the new one.
+
+Entry point: src/stahl-scene.ts's `init()` wires up click handlers on
+`.recipe-step` elements and calls `animator.playStep(STEPS[index], index+1)`.
+Built/loaded via layouts/_default/shrine-page.html
+(<script type="module" src="/js/stahl-recipe.js">) and styled by
+static/css/shrine.css (.recipe-ss-* classes + .recipe-step highlight).
+
+Core architecture (3 files)
+----------------------------
+
+1. src/ascii-compositor.ts — generic engine, no recipe knowledge.
+   - `Compositor`: holds a Map of `SceneObject`s (id, sprite, x/y/z,
+     rotation, visible), renders them onto a fixed-size character grid each
+     frame, diffing against the previous grid so only changed <span> cells
+     get touched. Sorts by z for stacking. Supports a `viewOffsetX` for
+     panning an unbounded world space across the fixed-width grid.
+   - `Sprite` = either a `cells: SpriteCell[]` array (each cell has dx/dy
+     offset, a `role` string that resolves to a glyph via
+     `registerGlyphResolver`, and alpha) or a `polygon` (array of [dx,dy]
+     points rasterized fresh each frame via Bresenham line-drawing, so it
+     rotates cleanly to any angle without gaps). `polygonClosed: false`
+     leaves one edge open (e.g. the shot glass's top).
+   - Rotation happens in continuous space (`rotateOffset`, with a
+     CELL_ASPECT correction since terminal cells are taller than wide)
+     before snapping to grid coordinates.
+   - "wall" role cells (`wallCell`) auto-pick - | / \ based on their
+     `edgeAngle` + the object's current rotation (`wallGlyph`).
+   - `PropGroup`: a cluster of SceneObjects (e.g. grinder body + blade, or a
+     pile of individual seed glyphs) that share one origin/rotation and move
+     together via `applyOrigin()`. Members can be `release()`d to animate
+     independently, or `transferTo()` another group (seeds flying from the
+     pile into the grinder, then later into the glass).
+
+2. src/ascii-sprites.ts — sprite-building helpers + extra glyph roles.
+   - `cell()`, `wallCell()`, `staticRole()` (fixed-char roles like "o", "~",
+     "."), `ringSprite()` (rectangular outline, e.g. baking dish),
+     `polygonSprite()`, `bladeSprite(maxRadius)` (pulsing hub+arms for the
+     grinder blade / stir rod: o, =o=, ==o==, ... and back).
+   - `seedGrindRole(t)`: maps grind progress 0..1 to glyph stages O -> o -> .
+   - `ouStep()`: Ornstein-Uhlenbeck random walk used for seed jitter during
+     flight/grinding (bounded random wander).
+   - `arcLerp(from, to, span, arcHeight)`: parabolic-arc interpolation used
+     everywhere a prop "flies" (seed pile into grinder, ground seeds into
+     glass, ethanol/acid drops, glass into fridge, ice particles falling).
+   - `MemberFlight`: animates a PropGroup's origin + per-member jitter along
+     an arc, then `land()`s members into a target group with new offsets.
+   - `GroupArcTransfer`: one-shot timed transfer of a fixed set of members
+     from one group to another along an arc, triggered by elapsed time
+     crossing release/land thresholds (e.g. step 2's ground-seed pour).
+   - `runFrames(duration, frame, onDone, opts)`: shared frame-stepping loop —
+     either real-time via requestAnimationFrame, or, if `opts.instant`,
+     synchronously in fixed 16ms steps with no rendering (used for
+     fast-forwarding earlier steps and for the headless trace/dump tools).
+
+3. src/stahl-scene.ts — all recipe-specific content: sprites, constants,
+   the 5-step timeline, and `SceneAnimator`.
+
+   World space / panes
+     - Coordinates are world-space x positions. Step N (1-based) occupies
+       world x in [N*PANE_WIDTH, (N+1)*PANE_WIDTH). GRID_WIDTH = 2*PANE_WIDTH
+       (two panes visible at once during a transition).
+     - `INITIAL_LAYOUT`: every prop's position/z/rotation before any step is
+       selected (step 0 state). Seeds start beside the grinder; everything
+       else parked in its eventual pane (often off-screen at PROP_PARK_Y).
+
+   Step model (`Step` interface)
+     - `transitionDuration` (ms) + `transitionKeyframes`: sparse per-object
+       waypoints in world space. t=0 is implicitly "wherever the prop was
+       left by the previous step" — `applyAt()` interpolates x/y/rotation
+       (lerp / shortest-angle-lerp) and switches z discretely at the
+       defining waypoint.
+     - `loops`: continuous animations (spin, blade pulse, or a recurring
+       StepEffect) that start once the transition ends.
+     - `effects`: per-frame StepEffect instances (fresh per playTransition
+       call) for things keyframes can't express — particle transfers between
+       PropGroups, one-shot state changes partway through.
+     - `countdown`: a "stir for 10 min" / "refrigerate for 20 min" timer
+       shown `startDelay` ms after the transition finishes.
+
+   The 5 steps, briefly:
+     1. Grind — seed pile arcs (MemberFlight) across the pane seam into the
+        grinder; once landed, `startGrinding()` runs the blade pulse + body
+        shake + per-seed OU jitter for a random 8-10s, crumbling each seed
+        O -> o -> . via `seedGrindRole`.
+     2. Mix & stir — grinder/bottle/stick each run a "pour sequence"
+        (Sequence: self-contained keyframes + duration), shuffled into a
+        random order at module load (`STEP2_POUR_SEQUENCES`, seeded via
+        src/rng.ts's `rand()`), concatenated via `concatSequences`. Per-frame
+        effects (`SeedPourEffect`, `BottlePourEffect`, `StickPourEffect`)
+        fire pours/fills at offsets computed from that shuffled order. Once
+        all three land, the stir rod descends and starts pulsing
+        (LIQUID_VORTEX swirls the "~" particles while stirring).
+     3. Refrigerate — `GlassFridgeArcEffect` arcs the glass (carrying its
+        powder/liquid PropGroups) into the fridge; once landed,
+        `CoverDropEffect` drops the fridge's top cover; `IceParticleEffect`
+        then periodically spawns ice particles from a random vent that fall,
+        sometimes vanish mid-air, and rest on the floor before disappearing.
+     4. Evaporate — glass lifts/slides/tips to pour into the baking dish;
+        residue and steam puffs reposition; fan spins continuously.
+     5. Final draught — residue + a fresh glass move into the last pane;
+        stir rod returns and pulses again.
+
+   `SceneAnimator`
+     - Constructed with a `Compositor`; builds all SPRITES as SceneObjects
+       at INITIAL_LAYOUT, plus proxy objects (`seedPile`, `grinderBody`) used
+       purely as keyframe-timeline anchors for `seedGroup`/`grinderGroup`.
+     - `playStep(step, index)`: stops any in-flight animation/loop,
+       fast-forwards (instantly, no render) through steps
+       `currentStepIndex+1 .. index-1` via `playTransition(..., instant=true)`
+       so step `index` always starts from a deterministic state regardless of
+       what was previously shown, then pans the viewport
+       (`panViewport`, 800ms) to `(index-1)*PANE_WIDTH`, pauses
+       STEP_PAUSE_DURATION, and plays the step's transition for real.
+     - `snapToInitial`: for step 1, hard-resets everything to INITIAL_LAYOUT
+       and rebuilds seed/glass/liquid groups from scratch
+       (`rebuildSeedState`); for steps 2+, just reads current positions as
+       the t=0 anchor and builds per-object keyframe timelines.
+     - `playTransition`: runs `runFrames` over the step's
+       transitionDuration, each frame applying keyframe interpolation
+       (`applyAt`), keeping seed/grinder/glass/liquid PropGroup origins in
+       sync, ticking the step's `effects`, and advancing drop particles
+       (`updateDrops`). On completion starts `loops` (spin/pulse/effect),
+       step 1's grind, and/or the countdown.
+     - `runStepInstant(index, onFrame?)`: headless version (no pan/pause/
+       render/loops) used by the debug scripts below.
+
+Debug / dev tooling
+--------------------
+- src/rng.ts: swap-in seeded PRNG (`setSeed(n)`) for reproducible traces of
+  randomized behavior (step 2 pour order, step 1 grind scatter/duration,
+  step 3 ice spawns). Must be called before stahl-scene.ts is imported,
+  since the pour-order shuffle runs at module load.
+
+- scripts/dump-sprite.ts:
+    npx tsx scripts/dump-sprite.ts sprite <grinder|blade> <rotation-deg>
+      -> renders one sprite at a given rotation on a 24x24 grid, for
+         eyeballing aspect-corrected rotation.
+    npx tsx scripts/dump-sprite.ts grid <step-index 1-based>
+      -> renders the full GRID_WIDTH x GRID_HEIGHT grid for a step at rest
+         (after runStepInstant), mirroring Compositor.render() without DOM.
+
+- scripts/trace-step.ts:
+    npx tsx scripts/trace-step.ts [--seed=<n>] <step-index> <object-id>[,...] [every-ms]
+      -> logs x/y/z/rotation for the given object id(s) every `every-ms`
+         (default 16) across a step's full transition via runStepInstant,
+         so StepEffects (fridge arc, cover drop, ice particles, etc.) run
+         exactly as at runtime. Useful for checking timing/positions of
+         multi-phase effects without a browser.
+
+Debug UI (localhost only)
+--------------------------
+When `location.hostname === "localhost"`, src/stahl-recipe.ts adds pane
+divider lines (`compositor.debugLinesX`), per-object id labels
+(`compositor.debugLabels`), and a slider + "Reset viewport" button
+(`buildDebugControls`) to manually pan the viewport via
+`animator.setDebugViewOffset(x)` / `resetViewOffset()`.
+
+Known WIP / things to watch
+-----------------------------
+- The recipe markdown wraps each numbered step in
+  `<span class="recipe-step" data-step="N">`; `data-step` itself isn't read
+  by stahl-recipe.ts (it uses DOM order / NodeList index instead) — keep
+  step spans and STEPS array order in sync if either changes.

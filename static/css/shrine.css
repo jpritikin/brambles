@@ -55,3 +55,85 @@
   left: 0;
   will-change: transform;
 }
+
+.recipe-step {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.3s ease, background-color 0.3s ease;
+}
+.recipe-step:hover {
+  text-decoration-color: #d4af37;
+}
+.recipe-step.recipe-step-active {
+  background-color: rgba(212, 175, 55, 0.16);
+  border-radius: 0.2rem;
+}
+
+#stahl-slideshow {
+  margin: 2rem auto;
+  max-width: 36rem;
+  border: 1px solid #d4af37;
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  background: #fdfaf3;
+}
+#stahl-slideshow[hidden] {
+  display: none;
+}
+.recipe-ss-viewport {
+  overflow: hidden;
+  width: min(calc(30ch + 1.5rem), 100%);
+  margin: 0 auto;
+  border-radius: 0.25rem;
+  background: #f5f0e8;
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+.recipe-ss-grid {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  width: max-content;
+  grid-template-columns: repeat(30, 1ch);
+  grid-template-rows: repeat(9, 1.4em);
+  line-height: 1.4;
+  color: #333;
+  padding: 0.6rem 0.75rem;
+}
+.ascii-cell {
+  white-space: pre;
+}
+.ascii-debug-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed red;
+  pointer-events: none;
+}
+.recipe-ss-viewport.recipe-ss-debug {
+  overflow: visible;
+}
+.ascii-debug-label {
+  position: absolute;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -1.4em);
+}
+.ascii-debug-label span {
+  font-size: 0.6rem;
+  font-family: monospace;
+  color: red;
+  background: rgba(255, 255, 255, 0.7);
+}
+.recipe-ss-debug-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.recipe-ss-debug-slider {
+  flex: 1;
+}

@@ -18,11 +18,13 @@ For millennia, what the ancients were brewing for their kykeon and soma rites ha
 
 What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof:
 
-1. Grind the seeds to a fine powder in the coffee grinder.
-2. In a shot glass, combine the seed powder with 30mg tartaric acid and the ethanol. Stir for ten minutes, as if coaxing the spirit free.
-3. Refrigerate for 20 minutes, a brief incubation in the cold and dark to let the seed fragments settle out of the solution.
-4. Pour only the liquid into the baking dish, setting aside the spent seed matter. Let gentle heat and a fan carry the alcohol away.
-5. Scrape the remaining residue into a fresh shot glass with 10mg tartaric acid, barley grass powder, and water. Stir for ten minutes and drink—mindfully, and with reverence.
+1. <span class="recipe-step" data-step="0">Grind the seeds to a fine powder in the coffee grinder.</span>
+2. <span class="recipe-step" data-step="1">In a shot glass, combine the seed powder with 30mg tartaric acid and the ethanol. Stir for ten minutes, as if coaxing the spirit free.</span>
+3. <span class="recipe-step" data-step="2">Refrigerate for 20 minutes, a brief incubation in the cold and dark to let the seed fragments settle out of the solution.</span>
+4. <span class="recipe-step" data-step="3">Pour only the liquid into the baking dish, setting aside the spent seed matter. Let gentle heat and a fan carry the alcohol away.</span>
+5. <span class="recipe-step" data-step="4">Scrape the remaining residue into a fresh shot glass with 10mg tartaric acid, barley grass powder, and water. Stir for ten minutes and drink—mindfully, and with reverence.</span>
+
+<div id="stahl-slideshow" hidden></div>
 
 ### Materials
 
