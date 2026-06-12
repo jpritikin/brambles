@@ -36,6 +36,13 @@ export interface Sprite {
     // last point back to the first) — e.g. an open-topped shot glass. Defaults
     // to true (a closed outline).
     polygonClosed?: boolean;
+    // Point (local dx/dy units, relative to the sprite's origin) that rotation
+    // pivots around. Defaults to [0, 0] (the origin itself, i.e. the sprite
+    // doesn't shift on screen as it rotates). `x`/`y` continue to mean the
+    // sprite's own origin; callers that want a different point (e.g. a
+    // glass's bottom-right corner) to stay fixed on screen as rotation
+    // changes must move `x`/`y` themselves each frame.
+    pivot?: [number, number];
 }
 
 export interface SceneObject {
@@ -120,10 +127,11 @@ export interface RasterCell {
 // of the edge's on-screen angle after rotation. If `closed` is false (e.g. an
 // open-topped shot glass), the edge from the last point back to the first is
 // omitted, leaving that side open.
-export function rasterizePolygon(points: Array<[number, number]>, rotation: number, closed = true): RasterCell[] {
+export function rasterizePolygon(points: Array<[number, number]>, rotation: number, closed = true, pivot: [number, number] = [0, 0]): RasterCell[] {
     const cos = Math.cos(rotation);
     const sin = Math.sin(rotation);
-    const rotated = points.map(([dx, dy]) => rotateOffset(dx, dy, cos, sin));
+    const [pivotX, pivotY] = pivot;
+    const rotated = points.map(([dx, dy]) => rotateOffset(dx - pivotX, dy - pivotY, cos, sin));
 
     const edges: RasterCell[] = [];
     const edgeCount = closed ? rotated.length : rotated.length - 1;
@@ -206,15 +214,11 @@ export class Compositor {
     // World-space x positions to mark with a vertical divider (e.g. pane
     // boundaries), repositioned on each render as viewOffsetX changes.
     debugLinesX: number[] = [];
-    // When true, overlays each visible object's id at its (x, y) origin so
-    // its position can be tracked across the world space during animation.
-    debugLabels = false;
     private objects = new Map<string, SceneObject>();
     private spans: HTMLElement[][] | null = null;
     private prevGrid: (string | null)[][] | null = null;
     private container: HTMLElement | null = null;
     private debugLineEls: HTMLElement[] = [];
-    private debugLabelEls = new Map<string, HTMLElement>();
 
     constructor(width: number, height: number) {
         this.width = width;
@@ -279,13 +283,15 @@ export class Compositor {
             }
             const cos = Math.cos(obj.rotation);
             const sin = Math.sin(obj.rotation);
+            const [pivotX, pivotY] = obj.sprite.pivot ?? [0, 0];
             for (const cell of obj.sprite.cells) {
                 if (cell.alpha <= 0) continue;
-                // Rotate the cell's offset in continuous space, then translate by
-                // the object's position, then snap to the grid.
-                const { rx, ry } = rotateOffset(cell.dx, cell.dy, cos, sin);
-                const col = Math.round(obj.x - this.viewOffsetX + rx);
-                const row = Math.round(obj.y + ry);
+                // Rotate the cell's offset (relative to the pivot) in continuous
+                // space, then translate by the pivot and the object's position
+                // (which is the pivot's world position), then snap to the grid.
+                const { rx, ry } = rotateOffset(cell.dx - pivotX, cell.dy - pivotY, cos, sin);
+                const col = Math.round(obj.x - this.viewOffsetX + pivotX + rx);
+                const row = Math.round(obj.y + pivotY + ry);
                 if (row < 0 || row >= this.height || col < 0 || col >= this.width) continue;
 
                 const resolver = GLYPH_RESOLVERS.get(cell.role) ?? staticGlyph("?");
@@ -298,9 +304,9 @@ export class Compositor {
             }
 
             if (obj.sprite.polygon) {
-                for (const { col: localCol, row: localRow, char } of rasterizePolygon(obj.sprite.polygon, obj.rotation, obj.sprite.polygonClosed ?? true)) {
-                    const col = Math.round(obj.x - this.viewOffsetX) + localCol;
-                    const row = Math.round(obj.y) + localRow;
+                for (const { col: localCol, row: localRow, char } of rasterizePolygon(obj.sprite.polygon, obj.rotation, obj.sprite.polygonClosed ?? true, obj.sprite.pivot)) {
+                    const col = Math.round(obj.x - this.viewOffsetX + pivotX) + localCol;
+                    const row = Math.round(obj.y + pivotY) + localRow;
                     if (row < 0 || row >= this.height || col < 0 || col >= this.width) continue;
 
                     const existing = grid[row][col];
@@ -323,35 +329,6 @@ export class Compositor {
         }
 
         this.renderDebugLines();
-        if (this.debugLabels) this.renderDebugLabels(ordered);
-    }
-
-    // Overlays each visible object's id at its (x, y) origin, in world
-    // coordinates panned by viewOffsetX, so positions can be checked against
-    // the rendered scene during animation.
-    private renderDebugLabels(ordered: SceneObject[]): void {
-        if (!this.container) return;
-        const seen = new Set<string>();
-        for (const obj of ordered) {
-            seen.add(obj.id);
-            let label = this.debugLabelEls.get(obj.id);
-            if (!label) {
-                label = document.createElement("div");
-                label.className = "ascii-debug-label";
-                label.appendChild(document.createElement("span"));
-                this.container.appendChild(label);
-                this.debugLabelEls.set(obj.id, label);
-            }
-            label.querySelector("span")!.textContent = obj.id;
-            // Grid cells start at the padding edge, but absolutely-positioned
-            // children are placed relative to the border edge — offset by the
-            // grid's padding to align labels with the cells they annotate.
-            label.style.left = `calc(${obj.x - this.viewOffsetX}ch + 0.75rem)`;
-            label.style.top = `calc(${obj.y}em + 0.6rem)`;
-        }
-        for (const [id, label] of this.debugLabelEls) {
-            if (!seen.has(id)) label.remove(), this.debugLabelEls.delete(id);
-        }
     }
 
     // Draws a vertical line at each world-space x in `debugLinesX`,
@@ -412,13 +389,20 @@ export class PropGroup {
     members: PropGroupMember[];
     private compositor: Compositor;
     private nextMemberIndex: number;
+    // Point (relX/relY units, in the group's unrotated frame) that rotation
+    // pivots around, matching the prop it tracks (e.g. the glass's
+    // GLASS_PIVOT) so members rotate around the same on-screen point as the
+    // prop itself rather than around the prop's origin. Defaults to [0, 0].
+    private pivot: [number, number];
 
     constructor(
         compositor: Compositor,
         private idPrefix: string,
         members: PropGroupMemberSpec[],
         origin: { x: number; y: number; z: number; rotation?: number },
+        pivot: [number, number] = [0, 0],
     ) {
+        this.pivot = pivot;
         this.compositor = compositor;
         this.x = origin.x;
         this.y = origin.y;
@@ -474,10 +458,13 @@ export class PropGroup {
     applyOrigin(): void {
         const cos = Math.cos(this.rotation);
         const sin = Math.sin(this.rotation);
+        const [pivotX, pivotY] = this.pivot;
         for (const member of this.members) {
             if (member.released) continue;
-            member.obj.x = this.x + member.relX * cos - member.relY * sin;
-            member.obj.y = this.y + member.relX * sin + member.relY * cos;
+            const relX = member.relX - pivotX;
+            const relY = member.relY - pivotY;
+            member.obj.x = this.x + pivotX + relX * cos - relY * sin;
+            member.obj.y = this.y + pivotY + relX * sin + relY * cos;
             member.obj.z = this.z + member.relZ;
             member.obj.rotation = this.rotation;
         }

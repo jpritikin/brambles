@@ -116,18 +116,6 @@
 .recipe-ss-viewport.recipe-ss-debug {
   overflow: visible;
 }
-.ascii-debug-label {
-  position: absolute;
-  white-space: nowrap;
-  pointer-events: none;
-  transform: translate(-50%, -1.4em);
-}
-.ascii-debug-label span {
-  font-size: 0.6rem;
-  font-family: monospace;
-  color: red;
-  background: rgba(255, 255, 255, 0.7);
-}
 .recipe-ss-debug-controls {
   display: flex;
   align-items: center;

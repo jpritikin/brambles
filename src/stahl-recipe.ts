@@ -27,7 +27,6 @@ function buildScene(container: HTMLElement): SceneAnimator {
     viewport.classList.add("recipe-ss-debug");
     const paneCount = STEPS.length + 1;
     compositor.debugLinesX = Array.from({ length: paneCount + 1 }, (_, i) => i * PANE_WIDTH);
-    compositor.debugLabels = true;
 
     const animator = new SceneAnimator(compositor);
     container.appendChild(buildDebugControls(animator, paneCount));
