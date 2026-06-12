@@ -11,14 +11,14 @@ shot glass, stir rod, bottle, measuring stick, fan, fridge, baking dish,
 ice particles, etc.) animating from the previous step's resting frame into
 the new one.
 
-Entry point: src/stahl-scene.ts's `init()` wires up click handlers on
+Entry point: src/stahl-recipe.ts's `init()` wires up click handlers on
 `.recipe-step` elements and calls `animator.playStep(STEPS[index], index+1)`.
 Built/loaded via layouts/_default/shrine-page.html
 (<script type="module" src="/js/stahl-recipe.js">) and styled by
 static/css/shrine.css (.recipe-ss-* classes + .recipe-step highlight).
 
-Core architecture (3 files)
-----------------------------
+Core architecture
+------------------
 
 1. src/ascii-compositor.ts — generic engine, no recipe knowledge.
    - `Compositor`: holds a Map of `SceneObject`s (id, sprite, x/y/z,
@@ -64,36 +64,48 @@ Core architecture (3 files)
      synchronously in fixed 16ms steps with no rendering (used for
      fast-forwarding earlier steps and for the headless trace/dump tools).
 
-3. src/stahl-scene.ts — all recipe-specific content: sprites, constants,
-   the 5-step timeline, and `SceneAnimator`.
+3. src/stahl-props.ts — sprites, prop geometry, and shared layout types.
+   - Defines every prop's `Sprite` (seed pile, grinder, glass, liquid/powder
+     particles, stir rod, bottle, stick, fan, dish, fridge, ice) plus their
+     geometry/timing constants, the `SPRITES` registry, and `INITIAL_LAYOUT`
+     (every prop's position/z/rotation before any step is selected — step 0
+     state). Also the shared `ObjectLayout`/`FullLayout` types, `PANE_WIDTH`,
+     `GRID_WIDTH`/`GRID_HEIGHT`, `TAU`, and `PROP_PARK_Y`/`STEP_PAUSE_DURATION`.
+   - Constants that are core `SceneAnimator` state (e.g. `GRIND_*`,
+     `LIQUID_VORTEX_*`, glass dimensions) live here even though they
+     conceptually "belong" to one step, since the animator's constructor and
+     methods (startGrinding, updateLiquidVortex) need them directly.
 
-   World space / panes
-     - Coordinates are world-space x positions. Step N (1-based) occupies
-       world x in [N*PANE_WIDTH, (N+1)*PANE_WIDTH). GRID_WIDTH = 2*PANE_WIDTH
-       (two panes visible at once during a transition).
-     - `INITIAL_LAYOUT`: every prop's position/z/rotation before any step is
-       selected (step 0 state). Seeds start beside the grinder; everything
-       else parked in its eventual pane (often off-screen at PROP_PARK_Y).
+4. src/stahl-timeline.ts — generic Step data model, no recipe content.
+   - `TransitionKeyframe`/`Sequence`/`concatSequences`: sparse per-object
+     waypoints in world space and a helper to chain self-contained
+     sub-sequences (each with its own duration) into one timeline with
+     offsets.
+   - `Loop`/`EffectLoop`/`ContinuousSpin`/`BladePulse`: continuous
+     animations (spin, blade pulse, or a recurring StepEffect) that start
+     once a transition ends.
+   - `StepEffect`: per-frame effect interface (`tick(t, anim)`), instantiated
+     fresh per `playTransition` call, for things keyframes can't express —
+     particle transfers between PropGroups, one-shot state changes partway
+     through.
+   - `CountdownConfig`/`formatCountdown`: the "stir for 10 min" /
+     "refrigerate for 20 min" timer shown `startDelay` ms after a
+     transition finishes.
+   - `Step`: ties the above together (`transitionDuration`,
+     `transitionKeyframes`, `loops`, `effects`, `countdown`).
+   - `DropAnimation`: short-lived particle (ethanol/acid drop) state used by
+     `SceneAnimator.spawnDrop`/`updateDrops`.
 
-   Step model (`Step` interface)
-     - `transitionDuration` (ms) + `transitionKeyframes`: sparse per-object
-       waypoints in world space. t=0 is implicitly "wherever the prop was
-       left by the previous step" — `applyAt()` interpolates x/y/rotation
-       (lerp / shortest-angle-lerp) and switches z discretely at the
-       defining waypoint.
-     - `loops`: continuous animations (spin, blade pulse, or a recurring
-       StepEffect) that start once the transition ends.
-     - `effects`: per-frame StepEffect instances (fresh per playTransition
-       call) for things keyframes can't express — particle transfers between
-       PropGroups, one-shot state changes partway through.
-     - `countdown`: a "stir for 10 min" / "refrigerate for 20 min" timer
-       shown `startDelay` ms after the transition finishes.
-
-   The 5 steps, briefly:
+5. src/stahl-steps/ — one file per step (step1-grind.ts .. step5-draught.ts),
+   each exporting `STEPN: Step` plus that step's own constants and per-frame
+   StepEffect classes. Cross-step dependencies are plain value imports
+   between these files (e.g. step4-evaporate.ts imports
+   `GLASS_FRIDGE_REST`/`STIR_ROD_PARK_DURATION` from step3-fridge.ts) — safe
+   since there's no cycle among the step files themselves.
      1. Grind — seed pile arcs (MemberFlight) across the pane seam into the
-        grinder; once landed, `startGrinding()` runs the blade pulse + body
-        shake + per-seed OU jitter for a random 8-10s, crumbling each seed
-        O -> o -> . via `seedGrindRole`.
+        grinder; once landed, `startGrinding()` (in stahl-animator.ts) runs
+        the blade pulse + body shake + per-seed OU jitter for a random
+        8-10s, crumbling each seed O -> o -> . via `seedGrindRole`.
      2. Mix & stir — grinder/bottle/stick each run a "pour sequence"
         (Sequence: self-contained keyframes + duration), shuffled into a
         random order at module load (`STEP2_POUR_SEQUENCES`, seeded via
@@ -110,31 +122,41 @@ Core architecture (3 files)
      4. Evaporate — glass lifts/slides/tips to pour into the baking dish;
         residue and steam puffs reposition; fan spins continuously.
      5. Final draught — residue + a fresh glass move into the last pane;
-        stir rod returns and pulses again.
+        stir rod returns and pulses again. (Currently a rough cut.)
 
-   `SceneAnimator`
-     - Constructed with a `Compositor`; builds all SPRITES as SceneObjects
-       at INITIAL_LAYOUT, plus proxy objects (`seedPile`, `grinderBody`) used
-       purely as keyframe-timeline anchors for `seedGroup`/`grinderGroup`.
-     - `playStep(step, index)`: stops any in-flight animation/loop,
-       fast-forwards (instantly, no render) through steps
-       `currentStepIndex+1 .. index-1` via `playTransition(..., instant=true)`
-       so step `index` always starts from a deterministic state regardless of
-       what was previously shown, then pans the viewport
-       (`panViewport`, 800ms) to `(index-1)*PANE_WIDTH`, pauses
-       STEP_PAUSE_DURATION, and plays the step's transition for real.
-     - `snapToInitial`: for step 1, hard-resets everything to INITIAL_LAYOUT
-       and rebuilds seed/glass/liquid groups from scratch
-       (`rebuildSeedState`); for steps 2+, just reads current positions as
-       the t=0 anchor and builds per-object keyframe timelines.
-     - `playTransition`: runs `runFrames` over the step's
-       transitionDuration, each frame applying keyframe interpolation
-       (`applyAt`), keeping seed/grinder/glass/liquid PropGroup origins in
-       sync, ticking the step's `effects`, and advancing drop particles
-       (`updateDrops`). On completion starts `loops` (spin/pulse/effect),
-       step 1's grind, and/or the countdown.
-     - `runStepInstant(index, onFrame?)`: headless version (no pan/pause/
-       render/loops) used by the debug scripts below.
+6. src/stahl-animator.ts — `SceneAnimator` plus the `applyAt`/`lerp`/
+   `shortestAngleLerp` helpers.
+   - Constructed with a `Compositor`; builds all SPRITES as SceneObjects
+     at INITIAL_LAYOUT, plus proxy objects (`seedPile`, `grinderBody`) used
+     purely as keyframe-timeline anchors for `seedGroup`/`grinderGroup`.
+   - `playStep(step, index)`: stops any in-flight animation/loop,
+     fast-forwards (instantly, no render) through steps
+     `currentStepIndex+1 .. index-1` via `playTransition(..., instant=true)`
+     so step `index` always starts from a deterministic state regardless of
+     what was previously shown, then pans the viewport
+     (`panViewport`, 800ms) to `(index-1)*PANE_WIDTH`, pauses
+     STEP_PAUSE_DURATION, and plays the step's transition for real.
+   - `snapToInitial`: for step 1, hard-resets everything to INITIAL_LAYOUT
+     and rebuilds seed/glass/liquid groups from scratch
+     (`rebuildSeedState`); for steps 2+, just reads current positions as
+     the t=0 anchor and builds per-object keyframe timelines.
+   - `playTransition`: runs `runFrames` over the step's
+     transitionDuration, each frame applying keyframe interpolation
+     (`applyAt`), keeping seed/grinder/glass/liquid PropGroup origins in
+     sync, ticking the step's `effects`, and advancing drop particles
+     (`updateDrops`). On completion starts `loops` (spin/pulse/effect),
+     step 1's grind, and/or the countdown.
+   - `runStepInstant(index, onFrame?)`: headless version (no pan/pause/
+     render/loops) used by the debug scripts below.
+   - Imports `STEPS` from stahl-scene.ts (a value-level circular import,
+     safe in ESM since `STEPS` is only read inside method bodies, never at
+     module-evaluation time).
+
+7. src/stahl-scene.ts — thin assembly/re-export shim. Imports `STEP1..STEP5`
+   from src/stahl-steps/*, assembles `STEPS: Step[]`, and re-exports
+   `SceneAnimator` plus the handful of names src/stahl-recipe.ts and
+   scripts/*.ts depend on (`GRID_HEIGHT`, `GRID_WIDTH`, `PANE_WIDTH`,
+   `GRINDER_BLADE`, `GRINDER_BLADE_RADIUS`, `GRINDER_BODY`).
 
 Debug / dev tooling
 --------------------
