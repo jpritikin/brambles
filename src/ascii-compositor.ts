@@ -211,14 +211,9 @@ export class Compositor {
     // grid, allowing the visible window to pan across an unbounded world
     // without moving any DOM elements.
     viewOffsetX = 0;
-    // World-space x positions to mark with a vertical divider (e.g. pane
-    // boundaries), repositioned on each render as viewOffsetX changes.
-    debugLinesX: number[] = [];
     private objects = new Map<string, SceneObject>();
     private spans: HTMLElement[][] | null = null;
     private prevGrid: (string | null)[][] | null = null;
-    private container: HTMLElement | null = null;
-    private debugLineEls: HTMLElement[] = [];
 
     constructor(width: number, height: number) {
         this.width = width;
@@ -227,7 +222,6 @@ export class Compositor {
 
     // Builds the DOM grid of <span> elements inside `container`, one per cell.
     mount(container: HTMLElement): void {
-        this.container = container;
         container.innerHTML = "";
         const spans: HTMLElement[][] = [];
         const prevGrid: (string | null)[][] = [];
@@ -328,28 +322,6 @@ export class Compositor {
             }
         }
 
-        this.renderDebugLines();
-    }
-
-    // Draws a vertical line at each world-space x in `debugLinesX`,
-    // repositioned each frame as viewOffsetX changes. Positioned absolutely
-    // (in character widths from the grid's left edge) so lines outside the
-    // visible window remain visible if the container doesn't clip.
-    private renderDebugLines(): void {
-        if (!this.container) return;
-        while (this.debugLineEls.length < this.debugLinesX.length) {
-            const line = document.createElement("div");
-            line.className = "ascii-debug-line";
-            this.container.appendChild(line);
-            this.debugLineEls.push(line);
-        }
-        this.debugLinesX.forEach((worldX, i) => {
-            const line = this.debugLineEls[i];
-            const col = worldX - this.viewOffsetX;
-            // Grid cells start at the padding edge, but absolutely-positioned
-            // children are placed relative to the border edge.
-            line.style.left = `calc(${col}ch + 0.75rem)`;
-        });
     }
 }
 

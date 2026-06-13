@@ -19,51 +19,60 @@ function buildScene(container: HTMLElement): SceneAnimator {
   const compositor = new Compositor(GRID_WIDTH, GRID_HEIGHT);
   compositor.mount(grid);
 
-  // On localhost, draw pane-boundary dividers (including off-screen ones)
-  // so the panning math can be visually checked against the rendered scene,
-  // and add a slider to manually pan the viewport to inspect props that are
-  // out of frame.
-  if (location.hostname === "localhost") {
-    viewport.classList.add("recipe-ss-debug");
-    const paneCount = STEPS.length + 1;
-    compositor.debugLinesX = Array.from({ length: paneCount + 1 }, (_, i) => i * PANE_WIDTH);
-
-    const animator = new SceneAnimator(compositor);
-    container.appendChild(buildDebugControls(animator, paneCount));
-    return animator;
-  }
-
   return new SceneAnimator(compositor);
 }
 
-// Builds a slider for manually setting the viewport's world-x offset, plus a
-// button to reset it back to the active step's resting offset.
-function buildDebugControls(animator: SceneAnimator, paneCount: number): HTMLElement {
+// Builds a slider for manually panning the viewport's world-x offset. Below
+// the slider, numbered ticks mark each step's resting offset; clicking a
+// tick pans the viewport there (without changing the active step), and the
+// active step's tick is highlighted.
+function buildViewportControls(animator: SceneAnimator): { element: HTMLElement; tickEls: HTMLElement[] } {
   const controls = document.createElement("div");
-  controls.className = "recipe-ss-debug-controls";
+  controls.className = "recipe-ss-controls";
+
+  const paneCount = STEPS.length + 1;
+  const max = paneCount * PANE_WIDTH - GRID_WIDTH;
 
   const slider = document.createElement("input");
   slider.type = "range";
   slider.min = "0";
-  slider.max = String(paneCount * PANE_WIDTH - GRID_WIDTH);
+  slider.max = String(max);
   slider.step = "1";
   slider.value = "0";
-  slider.className = "recipe-ss-debug-slider";
+  slider.className = "recipe-ss-slider";
   slider.addEventListener("input", () => {
-    animator.setDebugViewOffset(Number(slider.value));
+    animator.setManualViewOffset(Number(slider.value));
   });
-
-  const resetButton = document.createElement("button");
-  resetButton.type = "button";
-  resetButton.textContent = "Reset viewport";
-  resetButton.addEventListener("click", () => {
-    animator.resetViewOffset();
-    slider.value = String(animator.getRestingViewOffset());
-  });
-
   controls.appendChild(slider);
-  controls.appendChild(resetButton);
-  return controls;
+
+  // Numbered ticks below the slider, one per step, positioned at the
+  // step's resting offset as a percentage of the slider's range.
+  const ticks = document.createElement("div");
+  ticks.className = "recipe-ss-ticks";
+  const tickEls: HTMLElement[] = [];
+  for (let i = 0; i < STEPS.length; i++) {
+    const restingOffset = i * PANE_WIDTH;
+    const tick = document.createElement("button");
+    tick.type = "button";
+    tick.className = "recipe-ss-tick";
+    tick.textContent = String(i + 1);
+    tick.style.left = `${(restingOffset / max) * 100}%`;
+    tick.addEventListener("click", () => {
+      animator.setManualViewOffset(restingOffset);
+      slider.value = String(restingOffset);
+    });
+    ticks.appendChild(tick);
+    tickEls.push(tick);
+  }
+  controls.appendChild(ticks);
+
+  // Keep the slider in sync with the viewport offset as it pans (e.g. when a
+  // step is selected), so the slider always reflects what's on screen.
+  animator.onViewOffsetChange = (x) => {
+    slider.value = String(x);
+  };
+
+  return { element: controls, tickEls };
 }
 
 function init(): void {
@@ -75,9 +84,13 @@ function init(): void {
 
   function selectStep(index: number): void {
     steps.forEach((el, i) => el.classList.toggle("recipe-step-active", i === index));
+    tickEls.forEach((el, i) => el.classList.toggle("recipe-ss-tick-active", i === index));
     container!.hidden = false;
     animator.playStep(STEPS[index], index + 1);
   }
+
+  const { element: controls, tickEls } = buildViewportControls(animator);
+  container.appendChild(controls);
 
   steps.forEach((el, i) => {
     el.addEventListener("click", () => selectStep(i));

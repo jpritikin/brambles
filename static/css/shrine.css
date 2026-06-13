@@ -74,7 +74,7 @@
 
 #stahl-slideshow {
   margin: 2rem auto;
-  max-width: 36rem;
+  max-width: calc(30ch + 4.5rem);
   border: 1px solid #d4af37;
   border-radius: 0.5rem;
   padding: 1.25rem 1.5rem;
@@ -106,22 +106,38 @@
 .ascii-cell {
   white-space: pre;
 }
-.ascii-debug-line {
+.recipe-ss-controls {
+  width: min(calc(30ch + 1.5rem), 100%);
+  margin: 0.5rem auto 0;
+}
+.recipe-ss-slider {
+  width: 100%;
+}
+.recipe-ss-ticks {
+  position: relative;
+  height: 1.4em;
+  font-size: 0.75rem;
+}
+.recipe-ss-tick {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  border-left: 1px dashed red;
-  pointer-events: none;
+  transform: translateX(-50%);
+  border: 1px solid transparent;
+  border-radius: 0.2rem;
+  background: none;
+  padding: 0 0.2em;
+  cursor: pointer;
+  color: #8a7a55;
+  font: inherit;
+  text-decoration: none;
 }
-.recipe-ss-viewport.recipe-ss-debug {
-  overflow: visible;
+.recipe-ss-tick:hover {
+  color: #d4af37;
 }
-.recipe-ss-debug-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+.recipe-ss-tick:focus {
+  outline: none;
 }
-.recipe-ss-debug-slider {
-  flex: 1;
+.recipe-ss-tick-active {
+  color: #2e7d32;
+  font-weight: bold;
+  border-color: #2e7d32;
 }

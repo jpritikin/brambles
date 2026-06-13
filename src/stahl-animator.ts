@@ -65,6 +65,9 @@ export class SceneAnimator {
     private rafHandle: number | null = null;
     // World x of the left edge of the currently-displayed window.
     private currentViewOffset = 0;
+    // Notified with the new viewOffsetX whenever it changes, so callers (e.g.
+    // the viewport scroller) can stay in sync with panning/animation.
+    onViewOffsetChange: ((x: number) => void) | null = null;
     // The seed pile, rendered as individual "O" seeds. Its shared transform is
     // driven by the "seedPile" entry in `objects` (a non-rendered proxy used
     // only as an interpolation target for the keyframe timeline). During
@@ -316,23 +319,13 @@ export class SceneAnimator {
         if (idx !== -1) this.dishLiquidGroup.members.splice(idx, 1);
     }
 
-    // Debug helper: overrides the viewport's world-x offset so out-of-frame
-    // props can be inspected. Stops any running animation/loop first, since
-    // those would otherwise overwrite viewOffsetX on the next frame.
-    setDebugViewOffset(x: number): void {
-        this.stop();
+    // Manually overrides the viewport's world-x offset, e.g. so out-of-frame
+    // props can be inspected. Does not stop any running animation/loop, so a
+    // manual pan never interrupts an in-progress step transition; the next
+    // animated frame (if any) will overwrite this offset again.
+    setManualViewOffset(x: number): void {
         this.compositor.viewOffsetX = x;
         this.compositor.render();
-    }
-
-    // Debug helper: restores the viewport to the last step's resting offset.
-    resetViewOffset(): void {
-        this.setDebugViewOffset(this.currentViewOffset);
-    }
-
-    // Debug helper: the world-x offset the viewport rests at for the active step.
-    getRestingViewOffset(): number {
-        return this.currentViewOffset;
     }
 
     // Resets to step 1's initial layout and fast-forwards through steps
@@ -442,6 +435,7 @@ export class SceneAnimator {
 
             this.compositor.viewOffsetX = lerp(startViewOffset, endViewOffset, span);
             this.compositor.render();
+            this.onViewOffsetChange?.(this.compositor.viewOffsetX);
 
             if (elapsed < duration) {
                 this.rafHandle = requestAnimationFrame(tick);
