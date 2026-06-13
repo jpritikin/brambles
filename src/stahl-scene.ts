@@ -16,9 +16,10 @@ import { STEP1 } from "./stahl-steps/step1-grind";
 import { STEP2 } from "./stahl-steps/step2-mix";
 import { STEP3 } from "./stahl-steps/step3-fridge";
 import { STEP4 } from "./stahl-steps/step4-evaporate";
-import { STEP5 } from "./stahl-steps/step5-draught";
+import { STEP5 } from "./stahl-steps/step5-residue";
+import { STEP6 } from "./stahl-steps/step6-drink";
 
 export { GRID_HEIGHT, GRID_WIDTH, GRINDER_BLADE, GRINDER_BLADE_RADIUS, GRINDER_BODY, PANE_WIDTH };
 export { SceneAnimator } from "./stahl-animator";
 
-export const STEPS: Step[] = [STEP1, STEP2, STEP3, STEP4, STEP5];
+export const STEPS: Step[] = [STEP1, STEP2, STEP3, STEP4, STEP5, STEP6];

@@ -103,19 +103,35 @@ function buildBottlePourSequence(parkX: number, glassX: number): Sequence {
     };
 }
 
-// The stick descends above the glass, tips to pour a single tartaric acid
-// drop, rights itself, then ascends back off-screen.
-function buildStickPourSequence(parkX: number, glassX: number): Sequence {
-    const duration = STICK_DESCEND_DURATION + STICK_POUR_DURATION + STICK_ASCEND_DURATION;
+// A prop descends above the glass, tips to pour, rights itself, then ascends
+// back off-screen. Not private: used for the stick's tartaric-acid pour
+// (step 2 and step 5) and step 5's barley grass scoop.
+export function buildTipPourSequence(
+    objectId: string,
+    parkX: number,
+    glassX: number,
+    descendDuration: number,
+    pourDuration: number,
+    ascendDuration: number,
+    tipRotation: number,
+): Sequence {
+    const duration = descendDuration + pourDuration + ascendDuration;
     return {
         duration,
         keyframes: [
-            { t: 0, objects: { stick: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
-            { t: STICK_DESCEND_DURATION, objects: { stick: { x: glassX, y: POUR_PROP_Y, rotation: 0 } } },
-            { t: STICK_DESCEND_DURATION + STICK_POUR_DURATION, objects: { stick: { x: glassX, y: POUR_PROP_Y, rotation: STICK_TIP_ROTATION } } },
-            { t: duration, objects: { stick: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
+            { t: 0, objects: { [objectId]: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
+            { t: descendDuration, objects: { [objectId]: { x: glassX, y: POUR_PROP_Y, rotation: 0 } } },
+            { t: descendDuration + pourDuration, objects: { [objectId]: { x: glassX, y: POUR_PROP_Y, rotation: tipRotation } } },
+            { t: duration, objects: { [objectId]: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
         ],
     };
+}
+
+// The stick descends above the glass, tips to pour a single tartaric acid
+// drop, rights itself, then ascends back off-screen. Not private: reused by
+// step 5's tartaric-acid pour into glass2.
+export function buildStickPourSequence(parkX: number, glassX: number): Sequence {
+    return buildTipPourSequence("stick", parkX, glassX, STICK_DESCEND_DURATION, STICK_POUR_DURATION, STICK_ASCEND_DURATION, STICK_TIP_ROTATION);
 }
 
 // The stir rod descends from above the viewport into the bottom of the glass,
@@ -223,17 +239,18 @@ class BottlePourEffect implements StepEffect {
     }
 }
 
-// Drops a single tartaric-acid particle from the stick's cup into the glass
-// once the stick's pour phase begins (STEP2_STICK_OFFSET +
-// STICK_DESCEND_DURATION + half of STICK_POUR_DURATION).
-class StickPourEffect implements StepEffect {
+// Drops a single tartaric-acid particle from the stick's cup into `glassId`
+// once `dropStart` (transition-elapsed ms) is reached. Not private: reused by
+// step 5's tartaric-acid pour into glass2.
+export class StickPourEffect implements StepEffect {
     private spawned = false;
-    private readonly dropStart = STEP2_STICK_OFFSET + STICK_DESCEND_DURATION + STICK_POUR_DURATION / 2;
+
+    constructor(private dropStart: number, private glassId: string = "glass") {}
 
     tick(t: number, anim: SceneAnimator): void {
         if (this.spawned || t < this.dropStart) return;
         const stick = anim.getObject("stick");
-        const glass = anim.getObject("glass");
+        const glass = anim.getObject(this.glassId);
         const cos = Math.cos(stick.rotation);
         const sin = Math.sin(stick.rotation);
         const { rx, ry } = rotateOffset(0, 1, cos, sin);
@@ -245,7 +262,8 @@ class StickPourEffect implements StepEffect {
 }
 
 function buildStep2Effects(anim: SceneAnimator): StepEffect[] {
-    return [new SeedPourEffect(), new BottlePourEffect(anim), new StickPourEffect()];
+    const stickDropStart = STEP2_STICK_OFFSET + STICK_DESCEND_DURATION + STICK_POUR_DURATION / 2;
+    return [new SeedPourEffect(), new BottlePourEffect(anim), new StickPourEffect(stickDropStart)];
 }
 
 export const STEP2: Step = {

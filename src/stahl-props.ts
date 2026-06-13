@@ -108,6 +108,17 @@ export const GLASS_POWDER_POSITIONS: Array<[number, number]> = [
     [-2, 1.5], [-1, 1.5], [0, 1.5], [1, 1.5], [2, 1.5],
 ];
 
+// Rest offsets (relative to glass2's center) where the scraped dish residue
+// settles at the bottom of glass2's interior in step 5, one per
+// DISH_LIQUID_POSITIONS entry (the dish can hold up to that many residue
+// particles).
+export const GLASS2_POWDER_POSITIONS: Array<[number, number]> = [
+    [-2, 0.5], [-1, 0.5], [0, 0.5], [1, 0.5], [2, 0.5],
+    [-2, 1], [-1, 1], [0, 1], [1, 1], [2, 1],
+    [-2, 1.5], [-1, 1.5], [0, 1.5], [1, 1.5], [2, 1.5],
+    [-2, 2], [-1, 2], [0, 2], [1, 2], [2, 2],
+];
+
 // Rest offsets (relative to the glass's center) where individual "~" liquid
 // particles settle once the bottle's ethanol pour lands, filling the glass
 // interior above the powder layer (dy 1, 1.5).
@@ -205,6 +216,35 @@ export const ACID_DROP: Sprite = { cells: [cell(0, 0, staticRole("."))] };
 
 // World y the bottle/stick descend to, just above the glass rim, to pour.
 export const POUR_PROP_Y = 3;
+
+// ---------------------------------------------------------------------------
+// Scraper (step 5)
+// ---------------------------------------------------------------------------
+
+// Scraper: a short "\"-angled blade for working dried residue out of the
+// baking dish, built from wallCells so it shows as "\" at rest.
+export const SCRAPER: Sprite = {
+    cells: [wallCell(-1, -1, Math.PI / 4), wallCell(0, 0, Math.PI / 4), wallCell(1, 1, Math.PI / 4)],
+};
+
+// A single "~" tap water particle poured into glass2 (see LIQUID_POSITIONS).
+export const TAP_WATER_DROP: Sprite = { cells: [cell(0, 0, staticRole("~"))] };
+
+// Barley grass powder scoop: a vertical line with a small cup at the tip,
+// like STICK, so it can tilt to dump its scoop. Origin (0,0) sits at the cup.
+export const BARLEY_SCOOP: Sprite = {
+    cells: [wallCell(0, -2, Math.PI / 2), wallCell(0, -1, Math.PI / 2), wallCell(0, 0, Math.PI / 2), cell(0, 1, staticRole("c"))],
+};
+
+// A single barley grass powder particle dumped from the scoop's cup.
+export const BARLEY_POWDER_DROP: Sprite = { cells: [cell(0, 0, staticRole(","))] };
+
+// Rest offsets (relative to glass2's center) where the dumped barley grass
+// powder settles, in the top interior row (above the residue/water layers at
+// dy >= 0.5) so it doesn't overlap GLASS2_POWDER_POSITIONS.
+export const BARLEY_POWDER_POSITIONS: Array<[number, number]> = [
+    [-1.5, 0], [-0.5, 0], [0.5, 0], [1.5, 0],
+];
 
 // ---------------------------------------------------------------------------
 // Fan (step 4)
@@ -317,8 +357,11 @@ export const SPRITES: Record<string, Sprite> = {
     glass: GLASS,
     glass2: GLASS,
     stirRod: STIR_ROD,
+    stirRod2: STIR_ROD,
     bottle: BOTTLE,
     stick: STICK,
+    scraper: SCRAPER,
+    barleyScoop: BARLEY_SCOOP,
     dish: DISH,
     fan: FAN,
     fridgeLeftWall: FRIDGE_LEFT_WALL,
@@ -333,10 +376,20 @@ export const INITIAL_LAYOUT: FullLayout = {
     grinderBody: { x: 7.5 + PANE_WIDTH, y: 6, z: 2, rotation: 0 },
     grinderBlade: { x: 7.5 + PANE_WIDTH, y: 7, z: 3, rotation: 0 },
     glass: { x: 7.5 + 2 * PANE_WIDTH, y: 6, z: 1, rotation: 0 },
-    glass2: { x: 7.5 + 5 * PANE_WIDTH, y: PROP_PARK_Y, z: 1, rotation: 0 },
+    // Sits in step 6's pane, visible alongside step 5's, as step 5's "second
+    // glass" before its own contents are added.
+    glass2: { x: 7.5 + 5 * PANE_WIDTH, y: 6, z: 1, rotation: 0 },
     stirRod: { x: 7.5 + 2 * PANE_WIDTH, y: 4.5, z: 3, rotation: 0 },
+    // Parked off-screen above until step 5's transition lowers it into glass2.
+    stirRod2: { x: 7.5 + 5 * PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },
     bottle: { x: 7.5 + PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },
     stick: { x: 10 + PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },
+    // Parked off-screen above the dish until step 5's transition descends it
+    // to scrape the dish's residue into glass2.
+    scraper: { x: 7.5 + 4 * PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },
+    // Parked off-screen above until step 5's transition descends it to dump
+    // barley grass powder into glass2.
+    barleyScoop: { x: 9 + 5 * PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },
     dish: { x: 7.5 + 4 * PANE_WIDTH, y: 7, z: 1, rotation: 0 },
     fan: { x: 13 + 4 * PANE_WIDTH, y: 3, z: 4, rotation: 0 },
     fridgeLeftWall: { x: FRIDGE_LEFT_X, y: FRIDGE_TOP_Y, z: 0, rotation: 0 },
