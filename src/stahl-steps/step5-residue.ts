@@ -8,8 +8,9 @@
 // once at module load and concatenated with stirRod2's descent (see
 // `concatSequences`), the same pattern as step 2's pours.
 
-import { GroupArcTransfer } from "../ascii-sprites";
+import { arcLerp, GroupArcTransfer } from "../ascii-sprites";
 import { rand } from "../rng";
+import { type PropGroupMember } from "../ascii-compositor";
 import {
     BARLEY_BOWL_BASE_CELL_INDICES,
     BARLEY_POWDER_DROP,
@@ -20,6 +21,7 @@ import {
     INITIAL_LAYOUT,
     PANE_WIDTH,
     PROP_PARK_Y,
+    RESIDUE_CLUMP_PARTICLE,
     STIR_ROD_DESCEND_DURATION,
     STIR_ROD_PULSE_PERIOD,
     STIR_ROD_RADIUS,
@@ -59,23 +61,57 @@ export const BARLEY_SCOOP_POUR_DURATION = BARLEY_SCOOP_PRE_POUR_PAUSE_DURATION +
 export const BARLEY_POWDER_DROP_SPACING = 150;
 export const BARLEY_POWDER_FALL_DURATION = 500;
 
-// How long the scraper takes to scrape (a short up-and-right motion), pause
-// while the residue arcs into glass2, and ascend back off-screen. Its
-// descend/ascend durations are computed from travel distance (see
-// SCRAPER_TRAVEL_DURATION).
-export const SCRAPER_SCRAPE_DURATION = 400;
+// How long the scraper takes to sweep across the dish (during which the
+// dish's residue particles disappear one at a time, left to right) and, once
+// positioned above glass2, to pause while the gathered "@" clump arcs down
+// into it. Descend/travel/ascend durations are computed from travel distance
+// (see SCRAPER_TRAVEL_DURATION / SCRAPER_TO_GLASS2_DURATION).
+export const SCRAPER_SWEEP_DURATION = 1200;
 export const SCRAPER_TRANSFER_DURATION = 800;
 
-// How far the scraper moves up and to the right while scraping.
-export const SCRAPER_SCRAPE_DX = 3;
-export const SCRAPER_SCRAPE_DY = -1;
-
-// World y the scraper descends to, level with the dish's residue.
+// World y the scraper descends to, level with the dish's residue, and the
+// world x of the sweep's start/end points: the leftmost/rightmost residue
+// positions in DISH_LIQUID_POSITIONS (one column inside the dish's outer
+// walls, where the residue actually sits).
 export const SCRAPER_REST_Y = 6;
+const DISH_RESIDUE_MIN_X = Math.min(...DISH_LIQUID_POSITIONS.map(([relX]) => relX));
+const DISH_RESIDUE_MAX_X = Math.max(...DISH_LIQUID_POSITIONS.map(([relX]) => relX));
+const SCRAPER_SWEEP_START_X = STEP5_DISH_X + DISH_RESIDUE_MIN_X;
+// Stops 1 column short of the rightmost residue position; any residue left
+// there is swept up in ResidueScrapeEffect's end-of-sweep cleanup.
+const SCRAPER_SWEEP_END_X = STEP5_DISH_X + DISH_RESIDUE_MAX_X - 1;
+
+// World x/y the scraper holds at, above glass2, while the gathered clump
+// falls.
+const SCRAPER_GLASS2_X = STEP5_GLASS2_X;
+const SCRAPER_GLASS2_Y = SCRAPER_REST_Y - 4;
+
+// After sweeping across the dish, the scraper arcs up and to the left of the
+// dish's right edge, then curves back to the right and down toward
+// SCRAPER_GLASS2_X/Y above glass2 (see ScraperArcEffect) — a two-hop
+// parabolic path (via arcLerp) through this peak point, rather than a
+// straight line. Pushed further left/up than a direct path would need, so the
+// arc clears the fan (INITIAL_LAYOUT.fan) rather than cutting through it.
+const SCRAPER_ARC_PEAK_X = SCRAPER_SWEEP_END_X - 5;
+const SCRAPER_ARC_PEAK_Y = SCRAPER_REST_Y - 5;
+const SCRAPER_ARC_RISE_HEIGHT = 1.5;
+const SCRAPER_ARC_DESCENT_HEIGHT = 1.5;
+
+// Pause at the arc's peak between the rise (rightward sweep -> leftward rise)
+// and the descent (back rightward toward glass2), so the direction reversal
+// reads as a deliberate beat rather than a jerky snap.
+const SCRAPER_ARC_PAUSE_DURATION = 500;
 
 // How long the scraper takes to descend from its parked position to the
-// dish (and, symmetrically, to ascend back), at PROP_TRAVEL_SPEED.
-const SCRAPER_TRAVEL_DURATION = travelDuration(INITIAL_LAYOUT.scraper.x, PROP_PARK_Y, STEP5_DISH_X, SCRAPER_REST_Y);
+// dish's left edge, to travel (via ScraperArcEffect's two-hop arc) from the
+// dish's right edge to above glass2, and (symmetrically, from above glass2)
+// to ascend back to its parked position, at PROP_TRAVEL_SPEED.
+const SCRAPER_TRAVEL_DURATION = travelDuration(INITIAL_LAYOUT.scraper.x, PROP_PARK_Y, SCRAPER_SWEEP_START_X, SCRAPER_REST_Y);
+const SCRAPER_TO_GLASS2_DURATION =
+    travelDuration(SCRAPER_SWEEP_END_X, SCRAPER_REST_Y, SCRAPER_ARC_PEAK_X, SCRAPER_ARC_PEAK_Y) +
+    SCRAPER_ARC_PAUSE_DURATION +
+    travelDuration(SCRAPER_ARC_PEAK_X, SCRAPER_ARC_PEAK_Y, SCRAPER_GLASS2_X, SCRAPER_GLASS2_Y);
+const SCRAPER_RETURN_DURATION = travelDuration(SCRAPER_GLASS2_X, SCRAPER_GLASS2_Y, INITIAL_LAYOUT.scraper.x, PROP_PARK_Y);
 
 // How long the tap water takes to fall into glass2 and fill it, once its
 // phase begins.
@@ -89,26 +125,36 @@ export const TAP_WATER_PHASE_DURATION = 1200;
 // ---------------------------------------------------------------------------
 // `parkX` is the prop's own resting x (off-screen above the viewport).
 
-// The scraper's descend/scrape/pause/ascend motion, expressed as a Sequence
-// relative to its own start. The residue transfer itself is handled
-// separately by ResidueScrapeEffect, computed from this sequence's offset in
-// the concatenated order.
+// The scraper's descend/sweep/travel/drop/ascend motion, expressed as a
+// Sequence relative to its own start:
+//   1. descends from its parked position to the dish's left edge
+//   2. sweeps across the full width of the dish's floor, during which
+//      ResidueScrapeEffect removes the dish's residue particles one at a
+//      time as the scraper passes over them
+//   3. travels from the dish's right edge to above glass2
+//   4. holds there while ResidueScrapeEffect arcs the gathered "@" clump
+//      down into glass2
+//   5. ascends back to its parked position
 function buildScraperSequence(): Sequence {
-    const scrapeEnd = SCRAPER_TRAVEL_DURATION + SCRAPER_SCRAPE_DURATION;
-    const transferEnd = scrapeEnd + SCRAPER_TRANSFER_DURATION;
-    const duration = transferEnd + SCRAPER_TRAVEL_DURATION;
+    const sweepEnd = SCRAPER_TRAVEL_DURATION + SCRAPER_SWEEP_DURATION;
+    const glass2End = sweepEnd + SCRAPER_TO_GLASS2_DURATION;
+    const dropEnd = glass2End + SCRAPER_TRANSFER_DURATION;
+    const duration = dropEnd + SCRAPER_RETURN_DURATION;
     const parkX = INITIAL_LAYOUT.scraper.x;
-    const scrapeX = STEP5_DISH_X + SCRAPER_SCRAPE_DX;
-    const scrapeY = SCRAPER_REST_Y + SCRAPER_SCRAPE_DY;
     return {
         duration,
         keyframes: [
             { t: 0, objects: { scraper: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
-            { t: SCRAPER_TRAVEL_DURATION, objects: { scraper: { x: STEP5_DISH_X, y: SCRAPER_REST_Y, rotation: 0 } } },
-            { t: scrapeEnd, objects: { scraper: { x: scrapeX, y: scrapeY, rotation: 0 } } },
-            // Holds the scraped pose through the residue transfer, so it
-            // doesn't start ascending until the residue has landed.
-            { t: transferEnd, objects: { scraper: { x: scrapeX, y: scrapeY, rotation: 0 } } },
+            { t: SCRAPER_TRAVEL_DURATION, objects: { scraper: { x: SCRAPER_SWEEP_START_X, y: SCRAPER_REST_Y, rotation: 0 } } },
+            { t: sweepEnd, objects: { scraper: { x: SCRAPER_SWEEP_END_X, y: SCRAPER_REST_Y, rotation: 0 } } },
+            // ScraperArcEffect takes over x/y for the two-hop parabolic arc
+            // up-and-left then over-and-down to above glass2; this keyframe
+            // just holds the scraper's final position so it doesn't snap
+            // once the effect stops driving it.
+            { t: glass2End, objects: { scraper: { x: SCRAPER_GLASS2_X, y: SCRAPER_GLASS2_Y, rotation: 0 } } },
+            // Holds above glass2 while the clump falls, so the scraper
+            // doesn't start ascending until it's landed.
+            { t: dropEnd, objects: { scraper: { x: SCRAPER_GLASS2_X, y: SCRAPER_GLASS2_Y, rotation: 0 } } },
             { t: duration, objects: { scraper: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
         ],
     };
@@ -187,34 +233,128 @@ function buildBarleyBowlTipEffect(barleyOffset: number, barleyTravelDuration: nu
     return new BowlTipEffect("barleyScoop", BARLEY_BOWL_BASE_CELL_INDICES, dumpStart, dumpStart + BARLEY_SCOOP_DUMP_DURATION);
 }
 
-// The dish's dried residue arcing from `anim.dishResidueGroup` into
-// `anim.glass2Group`, once the scraper has scraped (STEP5_SCRAPER_OFFSET +
-// SCRAPER_TRAVEL_DURATION + SCRAPER_SCRAPE_DURATION). By the time step 5
-// plays, step 4's evaporation effect won't have run (its loop only starts
-// after step 4's transition completes), so `dishResidueGroup` is seeded here
-// with a full dish of residue if it's still empty.
+// Offset (relative to the scraper's origin) of its tip, the end nearer
+// glass2 — where the gathered "@" clump rides once it's picked up (see
+// ResidueScrapeEffect).
+const SCRAPER_TIP_OFFSET: [number, number] = [1, 1];
+
+// The dish's scattered "." residue particles vanishing one at a time, left to
+// right, as the scraper sweeps across the dish floor
+// (STEP5_SCRAPER_OFFSET + SCRAPER_TRAVEL_DURATION ..
+// + SCRAPER_SWEEP_DURATION). Once the sweep finishes, the gathered residue
+// becomes a single "@" clump added to `anim.scraperGroup` at
+// SCRAPER_TIP_OFFSET, riding rigidly on the scraper's tip as it arcs to above
+// glass2, then arcs from `anim.scraperGroup` into `anim.glass2Group` once the
+// scraper pauses there (+ SCRAPER_TO_GLASS2_DURATION). Before any of this, clears
+// `dishLiquidGroup` and seeds `dishResidueGroup` with a full dish of residue
+// if it's still empty — by the time step 5 plays, step 4's evaporation effect
+// won't have run (its loop only starts after step 4's transition completes),
+// so the dish would otherwise still show liquid instead of residue.
 class ResidueScrapeEffect implements StepEffect {
+    private sortedMembers: PropGroupMember[] | null = null;
+    private nextToRemove = 0;
+    private clump: PropGroupMember | null = null;
     private transfer: GroupArcTransfer | null = null;
 
+    private readonly sweepStart = STEP5_SCRAPER_OFFSET + SCRAPER_TRAVEL_DURATION;
+    private readonly sweepEnd = this.sweepStart + SCRAPER_SWEEP_DURATION;
+    private readonly dropStart = this.sweepEnd + SCRAPER_TO_GLASS2_DURATION;
+
     tick(t: number, anim: SceneAnimator): void {
-        if (!this.transfer) {
-            const releaseT = STEP5_SCRAPER_OFFSET + SCRAPER_TRAVEL_DURATION + SCRAPER_SCRAPE_DURATION;
-            if (t < releaseT) return;
+        if (!this.sortedMembers) {
             if (anim.dishResidueGroup.members.length === 0) {
+                // Reaching step 5 directly skips step 4's real-time
+                // evaporation loop, so the dish's liquid hasn't turned into
+                // residue yet. Clear it and seed a full dish of residue, as
+                // if the fan had already finished evaporating it.
+                anim.emptyDishLiquid();
                 for (const [relX, relY] of DISH_LIQUID_POSITIONS) {
                     anim.dishResidueGroup.addMember({ sprite: DISH_RESIDUE_PARTICLE, relX, relY, relZ: 0 });
                 }
             }
-            const count = anim.dishResidueGroup.members.length;
+            this.sortedMembers = [...anim.dishResidueGroup.members].sort((a, b) => a.relX - b.relX);
+        }
+
+        if (t < this.sweepStart) return;
+
+        if (!this.clump) {
+            // The scraper sweeps linearly from the dish's left edge to its
+            // right edge; remove each residue particle, left to right, once
+            // the scraper's current x reaches its position in the dish.
+            const span = Math.min(1, Math.max(0, (t - this.sweepStart) / SCRAPER_SWEEP_DURATION));
+            const scraperX = SCRAPER_SWEEP_START_X + span * (SCRAPER_SWEEP_END_X - SCRAPER_SWEEP_START_X);
+            while (this.nextToRemove < this.sortedMembers.length) {
+                const member = this.sortedMembers[this.nextToRemove];
+                if (anim.dishResidueGroup.x + member.relX > scraperX) break;
+                anim.removeDishResidueParticle(member);
+                this.nextToRemove++;
+            }
+
+            if (t >= this.sweepEnd) {
+                // Sweep over: remove anything left behind and gather the
+                // residue into a single "@" clump riding on the scraper's
+                // tip, as a member of `scraperGroup` so it tracks the
+                // scraper's position/rotation as one rigid unit.
+                while (this.nextToRemove < this.sortedMembers.length) {
+                    anim.removeDishResidueParticle(this.sortedMembers[this.nextToRemove]);
+                    this.nextToRemove++;
+                }
+                this.clump = anim.scraperGroup.addMember({
+                    sprite: RESIDUE_CLUMP_PARTICLE,
+                    relX: SCRAPER_TIP_OFFSET[0],
+                    relY: SCRAPER_TIP_OFFSET[1],
+                    // +1 over the scraper's own z so the "@" renders in front
+                    // of it rather than being hidden by a same-z tie.
+                    relZ: 1,
+                });
+            }
+        }
+
+        if (this.clump && !this.transfer && t >= this.dropStart) {
             this.transfer = new GroupArcTransfer(
-                anim.dishResidueGroup,
+                anim.scraperGroup,
                 anim.glass2Group,
-                releaseT,
+                this.dropStart,
                 SCRAPER_TRANSFER_DURATION,
-                GLASS2_POWDER_POSITIONS.slice(0, count),
+                [GLASS2_POWDER_POSITIONS[0]],
             );
         }
-        this.transfer.tick(t);
+        this.transfer?.tick(t);
+    }
+}
+
+// Once the scraper finishes sweeping the dish (STEP5_SCRAPER_OFFSET +
+// SCRAPER_TRAVEL_DURATION + SCRAPER_SWEEP_DURATION), carries it from the
+// dish's right edge to above glass2 along a two-hop parabolic path: first up
+// and to the left to SCRAPER_ARC_PEAK_X/Y, then curving back to the right and
+// down to SCRAPER_GLASS2_X/Y, landing with its tip over the glass.
+class ScraperArcEffect implements StepEffect {
+    private landed = false;
+    private readonly arcStart = STEP5_SCRAPER_OFFSET + SCRAPER_TRAVEL_DURATION + SCRAPER_SWEEP_DURATION;
+    private readonly riseDuration = travelDuration(SCRAPER_SWEEP_END_X, SCRAPER_REST_Y, SCRAPER_ARC_PEAK_X, SCRAPER_ARC_PEAK_Y);
+    private readonly from: ObjectLayout = { x: SCRAPER_SWEEP_END_X, y: SCRAPER_REST_Y, z: INITIAL_LAYOUT.scraper.z, rotation: 0 };
+    private readonly peak: ObjectLayout = { x: SCRAPER_ARC_PEAK_X, y: SCRAPER_ARC_PEAK_Y, z: INITIAL_LAYOUT.scraper.z, rotation: 0 };
+    private readonly to: ObjectLayout = { x: SCRAPER_GLASS2_X, y: SCRAPER_GLASS2_Y, z: INITIAL_LAYOUT.scraper.z, rotation: 0 };
+
+    tick(t: number, anim: SceneAnimator): void {
+        if (this.landed) return;
+        if (t < this.arcStart) return;
+        const elapsed = t - this.arcStart;
+        const scraper = anim.getObject("scraper");
+        const descentStart = this.riseDuration + SCRAPER_ARC_PAUSE_DURATION;
+        if (elapsed < this.riseDuration) {
+            const span = Math.min(1, elapsed / this.riseDuration);
+            Object.assign(scraper, arcLerp(this.from, this.peak, span, SCRAPER_ARC_RISE_HEIGHT));
+        } else if (elapsed < descentStart) {
+            // Hold at the peak for SCRAPER_ARC_PAUSE_DURATION before reversing
+            // direction toward glass2.
+            Object.assign(scraper, this.peak);
+        } else {
+            const descentDuration = SCRAPER_TO_GLASS2_DURATION - descentStart;
+            const span = descentDuration > 0 ? Math.min(1, (elapsed - descentStart) / descentDuration) : 1;
+            Object.assign(scraper, arcLerp(this.peak, this.to, span, SCRAPER_ARC_DESCENT_HEIGHT));
+            if (span >= 1) this.landed = true;
+        }
     }
 }
 
@@ -296,6 +436,7 @@ function buildStep5Effects(anim: SceneAnimator): StepEffect[] {
     const barleyTravelDuration = tipPourTravelDuration(INITIAL_LAYOUT.barleyScoop.x, STEP5_GLASS2_X);
     return [
         new ResidueScrapeEffect(),
+        new ScraperArcEffect(),
         new StickPourEffect(stickDropStart, "glass2", "stick2"),
         buildStickBowlTipEffect("stick2", STEP5_STICK_OFFSET, INITIAL_LAYOUT.stick2.x, STEP5_GLASS2_X),
         new BarleyScoopEffect(anim),
@@ -306,7 +447,14 @@ function buildStep5Effects(anim: SceneAnimator): StepEffect[] {
 
 export const STEP5: Step = {
     transitionDuration: STEP5_TIMELINE.duration,
-    transitionKeyframes: STEP5_TIMELINE.keyframes,
+    transitionKeyframes: [
+        // If step 4 was interrupted mid-pour (glass tipped over the dish),
+        // snap it back to its upright step 2 resting spot before step 5
+        // starts, since step 5 takes place in a different pane and otherwise
+        // leaves the glass wherever step 4 left it.
+        { t: 0, objects: { glass: { ...INITIAL_LAYOUT.glass } } },
+        ...STEP5_TIMELINE.keyframes,
+    ],
     loops: () => [{ kind: "pulse", id: "stirRod2", maxRadius: STIR_ROD_RADIUS, period: STIR_ROD_PULSE_PERIOD }],
     effects: buildStep5Effects,
     // The recipe's "stir for ten minutes" countdown appears 5s after

@@ -57,8 +57,8 @@ export const STEP4_GLASS_ARC_HEIGHT = 2.5;
 // upright); the angle it then tips to (pivoting around its bottom-right
 // corner) and how long that tip takes; and how long the pour itself takes
 // once tipped (during which liquid transfers from the glass into the dish).
-export const STEP4_POUR_X = 7.5 + 4 * PANE_WIDTH - DISH_WIDTH / 2 + 1.5;
-export const STEP4_POUR_Y = 5;
+export const STEP4_POUR_X = 7.5 + 4 * PANE_WIDTH - DISH_WIDTH / 2 + 1.5 - 8;
+export const STEP4_POUR_Y = 5 - 3;
 export const STEP4_POUR_ROTATION = TAU * (110 / 360);
 export const STEP4_GLASS_TIP_DURATION = 500;
 export const STEP4_POUR_DURATION = 800;
@@ -195,7 +195,7 @@ interface EvaporatingParticle {
 class EvaporationEffect implements StepEffect {
     private particles: EvaporatingParticle[] | null = null;
 
-    constructor(private pour: LiquidPourEffect, private fanSpin: FanSpinEffect) {}
+    constructor(private pour: LiquidPourEffect, private fanSpin: FanSpinEffect) { }
 
     // True once every poured particle has finished evaporating.
     get allEvaporated(): boolean {
@@ -303,7 +303,7 @@ class FanSpinEffect implements StepEffect {
     private landedT: number | null = null;
     private evaporation: EvaporationEffect | null = null;
 
-    constructor(private glassReturn: GlassReturnArcEffect) {}
+    constructor(private glassReturn: GlassReturnArcEffect) { }
 
     // Lets EvaporationEffect know once `allEvaporated` is meaningful.
     setEvaporation(evaporation: EvaporationEffect): void {
@@ -355,31 +355,43 @@ export const STEP4: Step = {
         // bottom-right corner (GLASS_PIVOT) so that corner stays put on
         // screen and swings the glass body the rest of the way over the
         // dish.
-        { t: STEP4_GLASS_ARC_END, objects: {
-            glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: 0 },
-        } },
-        { t: STEP4_GLASS_TIP_END, objects: {
-            glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: STEP4_POUR_ROTATION },
-        } },
+        {
+            t: STEP4_GLASS_ARC_END, objects: {
+                glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: 0 },
+            }
+        },
+        {
+            t: STEP4_GLASS_TIP_END, objects: {
+                glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: STEP4_POUR_ROTATION },
+            }
+        },
         // Holds the tipped pose through the pour, so it doesn't start
         // rotating back until the liquid has landed in the dish.
-        { t: STEP4_POUR_END, objects: {
-            glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: STEP4_POUR_ROTATION },
-        } },
+        {
+            t: STEP4_POUR_END, objects: {
+                glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: STEP4_POUR_ROTATION },
+            }
+        },
         // Holds the tipped pose a little longer after the pour lands
         // before rotating back upright.
-        { t: STEP4_POUR_TO_RETURN_PAUSE_END, objects: {
-            glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: STEP4_POUR_ROTATION },
-        } },
+        {
+            t: STEP4_POUR_TO_RETURN_PAUSE_END, objects: {
+                glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: STEP4_POUR_ROTATION },
+            }
+        },
         // Rotates back upright, again pivoting around its bottom-right
         // corner, then pauses before GlassReturnArcEffect takes over
         // x/y/z/rotation for the arc back to the step 2 resting spot.
-        { t: STEP4_GLASS_RIGHT_END, objects: {
-            glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: 0 },
-        } },
-        { t: STEP4_RIGHT_TO_RETURN_PAUSE_END, objects: {
-            glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: 0 },
-        } },
+        {
+            t: STEP4_GLASS_RIGHT_END, objects: {
+                glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: 0 },
+            }
+        },
+        {
+            t: STEP4_RIGHT_TO_RETURN_PAUSE_END, objects: {
+                glass: { ...STEP4_ARC_PEAK, z: STEP4_GLASS_RAISED_Z, rotation: 0 },
+            }
+        },
     ],
     effects: buildStep4Effects,
     // Keeps the fan spinning and the dish's liquid evaporating for as
@@ -395,7 +407,7 @@ export const STEP4: Step = {
                 { kind: "effect", effect: evaporation },
                 { kind: "effect", effect: glassReturn },
                 { kind: "effect", effect: fan },
-              ]
+            ]
             : [];
     },
 };

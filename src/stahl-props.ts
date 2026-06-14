@@ -325,6 +325,10 @@ export const DISH_LIQUID_PARTICLE: Sprite = { cells: [cell(0, 0, staticRole("~")
 // particle evaporates.
 export const DISH_RESIDUE_PARTICLE: Sprite = { cells: [cell(0, 0, staticRole("."))] };
 
+// The dish's scattered "." residue, gathered by the scraper into a single "@"
+// clump (step 5) before falling into glass2.
+export const RESIDUE_CLUMP_PARTICLE: Sprite = { cells: [cell(0, 0, staticRole("@"))] };
+
 // Rest offsets (relative to the dish's center) where individual "~" liquid
 // particles settle once the glass pours into the dish, one per
 // LIQUID_POSITIONS entry. The dish floor is a single row at dy = DISH_HEIGHT

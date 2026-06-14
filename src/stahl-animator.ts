@@ -122,6 +122,13 @@ export class SceneAnimator {
     // populate these, and step 6's effects empty `liquid2Group`.
     glass2Group: PropGroup;
     liquid2Group: PropGroup;
+    // Holds the gathered "@" residue clump so it rides along with the
+    // scraper's position/rotation as a single rigid unit, rather than being
+    // repositioned by hand each frame. Tracks the "scraper" object's position
+    // each frame, like `dishLiquidGroup` tracks "dish". Empty except during
+    // step 5's transfer of the clump from the dish to glass2. Not private:
+    // step 5's ResidueScrapeEffect adds the clump member here.
+    scraperGroup: PropGroup;
     // 1-based index of the step last brought to rest (0 = INITIAL_LAYOUT,
     // before any step has been selected). Used so that selecting step N can
     // first fast-forward steps `currentStepIndex+1 .. N-1` to their resting
@@ -201,6 +208,9 @@ export class SceneAnimator {
         this.glass2Group = new PropGroup(compositor, "powder2", [], glass2Layout, GLASS_PIVOT);
         this.liquid2Group = new PropGroup(compositor, "liquid2", [], glass2Layout, GLASS_PIVOT);
 
+        const scraperLayout = INITIAL_LAYOUT.scraper;
+        this.scraperGroup = new PropGroup(compositor, "scraper-clump", [], scraperLayout);
+
         compositor.viewOffsetX = this.currentViewOffset;
         compositor.render();
     }
@@ -256,6 +266,7 @@ export class SceneAnimator {
         this.glass2Group.destroy();
         this.liquid2Group.destroy();
         this.liquid2Vortex = [];
+        this.scraperGroup.destroy();
 
         const seedLayout = INITIAL_LAYOUT.seedPile;
         this.objects.set("seedPile", { id: "seedPile", sprite: SEED_SPRITE, ...seedLayout, visible: true });
@@ -278,6 +289,9 @@ export class SceneAnimator {
         const glass2Layout = this.objects.get("glass2")!;
         this.glass2Group = new PropGroup(this.compositor, "powder2", [], glass2Layout);
         this.liquid2Group = new PropGroup(this.compositor, "liquid2", [], glass2Layout);
+
+        const scraperLayout = this.objects.get("scraper")!;
+        this.scraperGroup = new PropGroup(this.compositor, "scraper-clump", [], scraperLayout);
     }
 
     // Populates `liquidGroup` with one "~" particle per `LIQUID_POSITIONS`
@@ -319,6 +333,15 @@ export class SceneAnimator {
         this.liquid2Vortex = [];
     }
 
+    // Removes every remaining particle from `dishLiquidGroup`. Not private:
+    // called by step 5's ResidueScrapeEffect when reaching step 5 directly
+    // (skipping step 4's real-time evaporation loop), so the dish shows only
+    // residue, as if the fan had already evaporated all its liquid.
+    emptyDishLiquid(): void {
+        this.dishLiquidGroup.destroy();
+        this.dishLiquidGroup.members.length = 0;
+    }
+
     // Removes a fully-evaporated particle from `dishLiquidGroup` and the
     // compositor. Not private: called by step 4's EvaporationEffect once a
     // particle finishes drifting away.
@@ -326,6 +349,15 @@ export class SceneAnimator {
         this.compositor.removeObject(member.obj.id);
         const idx = this.dishLiquidGroup.members.indexOf(member);
         if (idx !== -1) this.dishLiquidGroup.members.splice(idx, 1);
+    }
+
+    // Removes a residue particle the scraper has just swept over from
+    // `dishResidueGroup` and the compositor. Not private: called by step 5's
+    // ResidueScrapeEffect as the scraper sweeps across the dish.
+    removeDishResidueParticle(member: PropGroupMember): void {
+        this.compositor.removeObject(member.obj.id);
+        const idx = this.dishResidueGroup.members.indexOf(member);
+        if (idx !== -1) this.dishResidueGroup.members.splice(idx, 1);
     }
 
     // Manually overrides the viewport's world-x offset, e.g. so out-of-frame
@@ -593,6 +625,12 @@ export class SceneAnimator {
             this.liquid2Group.setOrigin(glass2.x, glass2.y, glass2.z, glass2.rotation);
 
             for (const effect of effects) effect.tick(t, this);
+
+            // Keep the gathered "@" clump riding on the scraper's tip. Synced
+            // after `effects` since ScraperArcEffect mutates the scraper's
+            // x/y directly during its arc, in this same effects pass.
+            const scraper = this.objects.get("scraper")!;
+            this.scraperGroup.setOrigin(scraper.x, scraper.y, scraper.z, scraper.rotation);
 
             this.updateDrops(t);
 

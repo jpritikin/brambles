@@ -169,13 +169,14 @@ function init(): void {
         radius = Math.max(20, Math.min(ORIGIN_RADIUS_MAX, (box.bottom - box.top) / 2, (box.right - box.left) / 2));
 
         // Drift the circle origin, bouncing off the box walls at semi-random
-        // angles — unless released, in which case the origin is left free to
-        // wander past the box edges and offscreen.
+        // angles — unless released, in which case the left/right walls no
+        // longer bounce it, so the origin can wander offscreen horizontally;
+        // the top/bottom walls keep bouncing it regardless.
         originX += Math.cos(driftAngle) * ORIGIN_SPEED * dt;
         originY += Math.sin(driftAngle) * ORIGIN_SPEED * dt;
+        const minX = box.left + radius, maxX = box.right - radius;
+        const minY = box.top + radius, maxY = box.bottom - radius;
         if (!released) {
-            const minX = box.left + radius, maxX = box.right - radius;
-            const minY = box.top + radius, maxY = box.bottom - radius;
             if (originX < minX) {
                 originX = minX;
                 driftAngle = avoidVertical(Math.PI - driftAngle + bounceJitter());
@@ -183,13 +184,13 @@ function init(): void {
                 originX = maxX;
                 driftAngle = avoidVertical(Math.PI - driftAngle + bounceJitter());
             }
-            if (originY < minY) {
-                originY = minY;
-                driftAngle = avoidVertical(-driftAngle + bounceJitter());
-            } else if (originY > maxY) {
-                originY = maxY;
-                driftAngle = avoidVertical(-driftAngle + bounceJitter());
-            }
+        }
+        if (originY < minY) {
+            originY = minY;
+            driftAngle = avoidVertical(-driftAngle + bounceJitter());
+        } else if (originY > maxY) {
+            originY = maxY;
+            driftAngle = avoidVertical(-driftAngle + bounceJitter());
         }
 
         // Accelerate toward dest, apply friction, integrate

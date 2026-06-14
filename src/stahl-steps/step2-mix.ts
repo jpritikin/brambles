@@ -97,10 +97,10 @@ function buildGrinderPourSequence(parkX: number, glassX: number): Sequence {
         duration,
         keyframes: [
             { t: 0, objects: { grinderBody: { x: parkX, y: 6, rotation: 0 } } },
-            { t: POUR_TIP_DURATION, objects: { grinderBody: { x: glassX, y: 1, rotation: POUR_TIP_ROTATION } } },
+            { t: POUR_TIP_DURATION, objects: { grinderBody: { x: glassX - 2, y: 0, rotation: POUR_TIP_ROTATION } } },
             // Holds the tipped pose through the pause and pour-fall, so it doesn't
             // start rotating back until the seed dust has landed.
-            { t: pauseEnd, objects: { grinderBody: { x: glassX, y: 1, rotation: POUR_TIP_ROTATION } } },
+            { t: pauseEnd, objects: { grinderBody: { x: glassX - 2, y: 0, rotation: POUR_TIP_ROTATION } } },
             { t: duration, objects: { grinderBody: { x: parkX, y: 6, rotation: 0 } } },
         ],
     };
