@@ -384,7 +384,7 @@ class TapWaterEffect implements StepEffect {
             this.spawned = true;
         }
         if (!this.filled && t >= this.fillT) {
-            anim.fillLiquid2();
+            anim.fillLiquidContainer("glass2");
             this.filled = true;
         }
     }

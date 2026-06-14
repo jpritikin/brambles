@@ -312,7 +312,7 @@ class BottlePourEffect implements StepEffect {
             this.spawned = true;
         }
         if (!this.filled && t >= this.fillT) {
-            anim.fillLiquid();
+            anim.fillLiquidContainer("glass");
             this.filled = true;
         }
     }

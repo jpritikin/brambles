@@ -57,6 +57,23 @@ function shortestAngleLerp(a: number, b: number, t: number): number {
     return a + diff * t;
 }
 
+// One container of "~" liquid particles (glass1, glass2, or the dish), plus
+// its per-particle vortex state (parallel to `group.members`, unused/empty
+// for the dish since its liquid never swirls).
+interface FluidContainer {
+    group: PropGroup;
+    vortex: Array<{ angle: number; radius: number }>;
+}
+
+function makeFluidContainer(
+    compositor: Compositor,
+    idPrefix: string,
+    origin: { x: number; y: number; z: number; rotation?: number },
+    pivot?: [number, number],
+): FluidContainer {
+    return { group: new PropGroup(compositor, idPrefix, [], origin, pivot), vortex: [] };
+}
+
 export class SceneAnimator {
     private compositor: Compositor;
     // Not private: read by StepEffects (via getObject) to look up other
@@ -88,40 +105,39 @@ export class SceneAnimator {
     // position/rotation each frame so the powder moves with the glass. Not
     // private: step 2's SeedPourEffect transfers members into this group.
     glassGroup: PropGroup;
-    // Holds the individual "~" liquid particles once step 2's bottle pour
-    // lands; empty until then. Tracks the "glass" object's
-    // position/rotation each frame, like `glassGroup`. While the stir rod is
-    // active, particles swirl outward toward the glass walls (see
-    // `updateLiquidVortex`). Not private: step 2's BottlePourEffect checks
-    // `members.length` to know whether the liquid has already been filled.
-    liquidGroup: PropGroup;
-    // Per-particle vortex state, parallel to `liquidGroup.members`, used to
-    // swirl liquid particles around the glass center while stirring.
-    private liquidVortex: Array<{ angle: number; radius: number }> = [];
-    // Per-particle vortex state, parallel to `liquid2Group.members`, used to
-    // swirl liquid particles around glass2's center while step 5's stirRod2
-    // is active.
-    private liquid2Vortex: Array<{ angle: number; radius: number }> = [];
+    // Holds the individual "~" liquid particles for glass1, glass2, and the
+    // dish, plus each container's vortex state. While a stir rod is active,
+    // the "glass"/"glass2" containers' particles swirl outward toward the
+    // glass walls (see `updateVortex`); the "dish" container's particles
+    // never swirl. Not private: step 2's BottlePourEffect checks
+    // `fluidContainers.get("glass")!.group.members.length` to know whether
+    // the liquid has already been filled, step 4's LiquidPourEffect/
+    // EvaporationEffect transfer/release members into/from the "dish"
+    // container, and step 5/6's effects populate/empty the "glass2"
+    // container.
+    private fluidContainers = new Map<"glass" | "glass2" | "dish", FluidContainer>();
+    get liquidGroup(): PropGroup {
+        return this.fluidContainers.get("glass")!.group;
+    }
+    get liquid2Group(): PropGroup {
+        return this.fluidContainers.get("glass2")!.group;
+    }
+    get dishLiquidGroup(): PropGroup {
+        return this.fluidContainers.get("dish")!.group;
+    }
     // Stir rod ids ("stirRod"/"stirRod2") whose pulse/vortex loop has been
     // stopped via `stopStirring` (e.g. once their countdown completes), even
     // though the rod itself remains visible in place.
     private stoppedStirring = new Set<string>();
-    // Holds the individual "~" liquid particles once step 4's pour transfers
-    // them from `liquidGroup` into the dish; empty until then. Tracks the
-    // "dish" object's position each frame, like `liquidGroup` tracks "glass".
-    // Not private: step 4's LiquidPourEffect transfers members into this
-    // group, and EvaporationEffect releases/animates them as they evaporate.
-    dishLiquidGroup: PropGroup;
     // Holds "." residue particles left behind in the dish as each liquid
-    // particle in `dishLiquidGroup` evaporates. Not private: step 4's
-    // EvaporationEffect adds members here.
+    // particle in the "dish" fluid container evaporates. Not private: step
+    // 4's EvaporationEffect adds members here.
     dishResidueGroup: PropGroup;
-    // Holds the scraped dish residue and tap water poured into glass2 during
-    // step 5, analogous to `glassGroup`/`liquidGroup` but tracking the
-    // "glass2" object's position each frame. Not private: step 5's effects
-    // populate these, and step 6's effects empty `liquid2Group`.
+    // Holds the scraped dish residue poured into glass2 during step 5,
+    // analogous to `glassGroup` but tracking the "glass2" object's position
+    // each frame. Not private: step 5's effects populate this, and step 6's
+    // effects empty it.
     glass2Group: PropGroup;
-    liquid2Group: PropGroup;
     // Holds the gathered "@" residue clump so it rides along with the
     // scraper's position/rotation as a single rigid unit, rather than being
     // repositioned by hand each frame. Tracks the "scraper" object's position
@@ -198,15 +214,15 @@ export class SceneAnimator {
 
         const glassLayout = INITIAL_LAYOUT.glass;
         this.glassGroup = new PropGroup(compositor, "powder", [], glassLayout, GLASS_PIVOT);
-        this.liquidGroup = new PropGroup(compositor, "liquid", [], glassLayout, GLASS_PIVOT);
+        this.fluidContainers.set("glass", makeFluidContainer(compositor, "liquid", glassLayout, GLASS_PIVOT));
 
         const dishLayout = INITIAL_LAYOUT.dish;
-        this.dishLiquidGroup = new PropGroup(compositor, "dish-liquid", [], dishLayout);
+        this.fluidContainers.set("dish", makeFluidContainer(compositor, "dish-liquid", dishLayout));
         this.dishResidueGroup = new PropGroup(compositor, "dish-residue", [], dishLayout);
 
         const glass2Layout = INITIAL_LAYOUT.glass2;
         this.glass2Group = new PropGroup(compositor, "powder2", [], glass2Layout, GLASS_PIVOT);
-        this.liquid2Group = new PropGroup(compositor, "liquid2", [], glass2Layout, GLASS_PIVOT);
+        this.fluidContainers.set("glass2", makeFluidContainer(compositor, "liquid2", glass2Layout, GLASS_PIVOT));
 
         const scraperLayout = INITIAL_LAYOUT.scraper;
         this.scraperGroup = new PropGroup(compositor, "scraper-clump", [], scraperLayout);
@@ -260,12 +276,10 @@ export class SceneAnimator {
         this.grinderGroup.members.length = 2;
         this.glassGroup.destroy();
         this.liquidGroup.destroy();
-        this.liquidVortex = [];
         this.dishLiquidGroup.destroy();
         this.dishResidueGroup.destroy();
         this.glass2Group.destroy();
         this.liquid2Group.destroy();
-        this.liquid2Vortex = [];
         this.scraperGroup.destroy();
 
         const seedLayout = INITIAL_LAYOUT.seedPile;
@@ -280,43 +294,32 @@ export class SceneAnimator {
 
         const glassLayout = this.objects.get("glass")!;
         this.glassGroup = new PropGroup(this.compositor, "powder", [], glassLayout);
-        this.liquidGroup = new PropGroup(this.compositor, "liquid", [], glassLayout);
+        this.fluidContainers.set("glass", makeFluidContainer(this.compositor, "liquid", glassLayout));
 
         const dishLayout = this.objects.get("dish")!;
-        this.dishLiquidGroup = new PropGroup(this.compositor, "dish-liquid", [], dishLayout);
+        this.fluidContainers.set("dish", makeFluidContainer(this.compositor, "dish-liquid", dishLayout));
         this.dishResidueGroup = new PropGroup(this.compositor, "dish-residue", [], dishLayout);
 
         const glass2Layout = this.objects.get("glass2")!;
         this.glass2Group = new PropGroup(this.compositor, "powder2", [], glass2Layout);
-        this.liquid2Group = new PropGroup(this.compositor, "liquid2", [], glass2Layout);
+        this.fluidContainers.set("glass2", makeFluidContainer(this.compositor, "liquid2", glass2Layout));
 
         const scraperLayout = this.objects.get("scraper")!;
         this.scraperGroup = new PropGroup(this.compositor, "scraper-clump", [], scraperLayout);
     }
 
-    // Populates `liquidGroup` with one "~" particle per `LIQUID_POSITIONS`
-    // entry, settled at rest (no vortex), and initializes `liquidVortex` from
-    // each particle's rest offset. Not private: called by step 2's
-    // BottlePourEffect once the bottle's last ethanol drop lands.
-    fillLiquid(): void {
+    // Populates the "glass"/"glass2" fluid container with one "~" particle
+    // per `LIQUID_POSITIONS` entry, settled at rest, and initializes its
+    // vortex state from each particle's rest offset. Not private: called by
+    // step 2's BottlePourEffect (glass) once the bottle's last ethanol drop
+    // lands, and step 5's TapWaterEffect (glass2) once the last water drop
+    // lands.
+    fillLiquidContainer(id: "glass" | "glass2"): void {
+        const container = this.fluidContainers.get(id)!;
         for (const [relX, relY] of LIQUID_POSITIONS) {
-            this.liquidGroup.addMember({ sprite: LIQUID_PARTICLE, relX, relY, relZ: 0 });
+            container.group.addMember({ sprite: LIQUID_PARTICLE, relX, relY, relZ: 0 });
         }
-        this.liquidVortex = LIQUID_POSITIONS.map(([relX, relY]) => ({
-            angle: Math.atan2(relY, relX),
-            radius: Math.hypot(relX, relY),
-        }));
-    }
-
-    // Populates `liquid2Group` with one "~" particle per `LIQUID_POSITIONS`
-    // entry, settled at rest (no vortex), and initializes `liquid2Vortex` from
-    // each particle's rest offset. Not private: called by step 5's
-    // TapWaterEffect once the last water drop lands.
-    fillLiquid2(): void {
-        for (const [relX, relY] of LIQUID_POSITIONS) {
-            this.liquid2Group.addMember({ sprite: LIQUID_PARTICLE, relX, relY, relZ: 0 });
-        }
-        this.liquid2Vortex = LIQUID_POSITIONS.map(([relX, relY]) => ({
+        container.vortex = LIQUID_POSITIONS.map(([relX, relY]) => ({
             angle: Math.atan2(relY, relX),
             radius: Math.hypot(relX, relY),
         }));
@@ -328,9 +331,10 @@ export class SceneAnimator {
     emptyGlass2(): void {
         this.glass2Group.destroy();
         this.glass2Group.members.length = 0;
-        this.liquid2Group.destroy();
-        this.liquid2Group.members.length = 0;
-        this.liquid2Vortex = [];
+        const container = this.fluidContainers.get("glass2")!;
+        container.group.destroy();
+        container.group.members.length = 0;
+        container.vortex = [];
     }
 
     // Removes every remaining particle from `dishLiquidGroup`. Not private:
@@ -878,28 +882,28 @@ export class SceneAnimator {
                     applyBladeRadius(obj.sprite, radius);
                 }
             }
-            if (stirring && !this.stoppedStirring.has("stirRod")) this.updateVortex(this.liquidGroup, this.liquidVortex, dt);
-            if (stirring2 && !this.stoppedStirring.has("stirRod2")) this.updateVortex(this.liquid2Group, this.liquid2Vortex, dt);
+            if (stirring && !this.stoppedStirring.has("stirRod")) this.updateVortex(this.fluidContainers.get("glass")!, dt);
+            if (stirring2 && !this.stoppedStirring.has("stirRod2")) this.updateVortex(this.fluidContainers.get("glass2")!, dt);
             this.compositor.render();
             this.rafHandle = requestAnimationFrame(tick);
         };
         this.rafHandle = requestAnimationFrame(tick);
     }
 
-    // While a stir rod is active, swirls each of `group`'s liquid particles
-    // around its glass's center: each particle's radius grows toward
-    // LIQUID_VORTEX_RADIUS (pushing it out toward the glass walls) while its
-    // angle advances at LIQUID_VORTEX_SPEED.
-    private updateVortex(group: PropGroup, vortex: Array<{ angle: number; radius: number }>, dt: number): void {
-        for (const [i, member] of group.members.entries()) {
-            const state = vortex[i];
+    // While a stir rod is active, swirls each of `container`'s liquid
+    // particles around its glass's center: each particle's radius grows
+    // toward LIQUID_VORTEX_RADIUS (pushing it out toward the glass walls)
+    // while its angle advances at LIQUID_VORTEX_SPEED.
+    private updateVortex(container: FluidContainer, dt: number): void {
+        for (const [i, member] of container.group.members.entries()) {
+            const state = container.vortex[i];
             if (!state) continue;
             state.angle += LIQUID_VORTEX_SPEED * dt;
             state.radius = Math.min(LIQUID_VORTEX_RADIUS, state.radius + LIQUID_VORTEX_RADIUS * dt);
             member.relX = Math.cos(state.angle) * state.radius;
             member.relY = Math.sin(state.angle) * state.radius * (GLASS_HEIGHT / GLASS_WIDTH);
         }
-        group.applyOrigin();
+        container.group.applyOrigin();
     }
 }
 

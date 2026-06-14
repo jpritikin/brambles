@@ -53,9 +53,11 @@ function newDest(originX: number, originY: number, radius: number): [number, num
 }
 
 function init(): void {
-    const top = document.getElementById("butterfly-anchor-top");
-    const bottom = document.getElementById("butterfly-anchor-bottom");
-    if (!top || !bottom) return;
+    const topAnchor = document.getElementById("butterfly-anchor-top");
+    const bottomAnchor = document.getElementById("butterfly-anchor-bottom");
+    if (!topAnchor || !bottomAnchor) return;
+    const top: HTMLElement = topAnchor;
+    const bottom: HTMLElement = bottomAnchor;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const el = document.createElement("span");
