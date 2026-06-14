@@ -11,6 +11,7 @@
 import { GroupArcTransfer } from "../ascii-sprites";
 import { rand } from "../rng";
 import {
+    BARLEY_BOWL_BASE_CELL_INDICES,
     BARLEY_POWDER_DROP,
     BARLEY_POWDER_POSITIONS,
     DISH_LIQUID_POSITIONS,
@@ -25,36 +26,45 @@ import {
     STIR_ROD_REST_Y,
     STIR_ROD_START_Y,
     TAP_WATER_DROP,
+    travelDuration,
     type ObjectLayout,
 } from "../stahl-props";
-import { buildStickPourSequence, buildTipPourSequence, StickPourEffect, STICK_DESCEND_DURATION, STICK_POUR_DURATION } from "./step2-mix";
+import {
+    buildStickPourSequence,
+    buildTipPourSequence,
+    tipPourTravelDuration,
+    BowlTipEffect,
+    StickPourEffect,
+    buildStickBowlTipEffect,
+    STICK_DUMP_DURATION,
+    STICK_PRE_POUR_PAUSE_DURATION,
+} from "./step2-mix";
 import { concatSequences, type Sequence, type Step, type StepEffect } from "../stahl-timeline";
 import { type SceneAnimator } from "../stahl-animator";
 
-const TAU = Math.PI * 2;
 const STEP5_GLASS2_X = 7.5 + 5 * PANE_WIDTH;
 const STEP5_DISH_X = INITIAL_LAYOUT.dish.x;
 
 // Phase durations for the barley grass scoop's pour sequence: descend above
-// glass2, tip to dump its scoop, then right itself and ascend back
-// off-screen, mirroring the stick's tartaric-acid pour.
-export const BARLEY_SCOOP_DESCEND_DURATION = 500;
-export const BARLEY_SCOOP_POUR_DURATION = 700;
-export const BARLEY_SCOOP_ASCEND_DURATION = 500;
-export const BARLEY_SCOOP_TIP_ROTATION = TAU * (30 / 360);
+// glass2 (duration from travel distance, see tipPourTravelDuration), sit for
+// BARLEY_SCOOP_PRE_POUR_PAUSE_DURATION, dump its load over
+// BARLEY_SCOOP_DUMP_DURATION, then ascend back off-screen, mirroring the
+// stick's tartaric-acid pour.
+export const BARLEY_SCOOP_PRE_POUR_PAUSE_DURATION = 1400;
+export const BARLEY_SCOOP_DUMP_DURATION = 1400;
+export const BARLEY_SCOOP_POUR_DURATION = BARLEY_SCOOP_PRE_POUR_PAUSE_DURATION + BARLEY_SCOOP_DUMP_DURATION;
 
 // How long the dumped barley grass powder takes to fall into glass2, and the
 // spacing between each of its particles.
 export const BARLEY_POWDER_DROP_SPACING = 150;
 export const BARLEY_POWDER_FALL_DURATION = 500;
 
-// How long the scraper takes to descend onto the dish, scrape (a short
-// up-and-right motion), pause while the residue arcs into glass2, and ascend
-// back off-screen.
-export const SCRAPER_DESCEND_DURATION = 500;
+// How long the scraper takes to scrape (a short up-and-right motion), pause
+// while the residue arcs into glass2, and ascend back off-screen. Its
+// descend/ascend durations are computed from travel distance (see
+// SCRAPER_TRAVEL_DURATION).
 export const SCRAPER_SCRAPE_DURATION = 400;
 export const SCRAPER_TRANSFER_DURATION = 800;
-export const SCRAPER_ASCEND_DURATION = 500;
 
 // How far the scraper moves up and to the right while scraping.
 export const SCRAPER_SCRAPE_DX = 3;
@@ -62,6 +72,10 @@ export const SCRAPER_SCRAPE_DY = -1;
 
 // World y the scraper descends to, level with the dish's residue.
 export const SCRAPER_REST_Y = 6;
+
+// How long the scraper takes to descend from its parked position to the
+// dish (and, symmetrically, to ascend back), at PROP_TRAVEL_SPEED.
+const SCRAPER_TRAVEL_DURATION = travelDuration(INITIAL_LAYOUT.scraper.x, PROP_PARK_Y, STEP5_DISH_X, SCRAPER_REST_Y);
 
 // How long the tap water takes to fall into glass2 and fill it, once its
 // phase begins.
@@ -80,9 +94,9 @@ export const TAP_WATER_PHASE_DURATION = 1200;
 // separately by ResidueScrapeEffect, computed from this sequence's offset in
 // the concatenated order.
 function buildScraperSequence(): Sequence {
-    const scrapeEnd = SCRAPER_DESCEND_DURATION + SCRAPER_SCRAPE_DURATION;
+    const scrapeEnd = SCRAPER_TRAVEL_DURATION + SCRAPER_SCRAPE_DURATION;
     const transferEnd = scrapeEnd + SCRAPER_TRANSFER_DURATION;
-    const duration = transferEnd + SCRAPER_ASCEND_DURATION;
+    const duration = transferEnd + SCRAPER_TRAVEL_DURATION;
     const parkX = INITIAL_LAYOUT.scraper.x;
     const scrapeX = STEP5_DISH_X + SCRAPER_SCRAPE_DX;
     const scrapeY = SCRAPER_REST_Y + SCRAPER_SCRAPE_DY;
@@ -90,7 +104,7 @@ function buildScraperSequence(): Sequence {
         duration,
         keyframes: [
             { t: 0, objects: { scraper: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
-            { t: SCRAPER_DESCEND_DURATION, objects: { scraper: { x: STEP5_DISH_X, y: SCRAPER_REST_Y, rotation: 0 } } },
+            { t: SCRAPER_TRAVEL_DURATION, objects: { scraper: { x: STEP5_DISH_X, y: SCRAPER_REST_Y, rotation: 0 } } },
             { t: scrapeEnd, objects: { scraper: { x: scrapeX, y: scrapeY, rotation: 0 } } },
             // Holds the scraped pose through the residue transfer, so it
             // doesn't start ascending until the residue has landed.
@@ -106,17 +120,14 @@ function buildTapWaterSequence(): Sequence {
     return { duration: TAP_WATER_PHASE_DURATION, keyframes: [] };
 }
 
-// The barley grass scoop's descend/tip/dump/ascend motion, mirroring the
-// stick's tartaric-acid pour but into glass2.
+// The barley grass scoop's descend/dump/ascend motion, mirroring the stick's
+// tartaric-acid pour but into glass2.
 function buildBarleyScoopSequence(): Sequence {
     return buildTipPourSequence(
         "barleyScoop",
         INITIAL_LAYOUT.barleyScoop.x,
         STEP5_GLASS2_X,
-        BARLEY_SCOOP_DESCEND_DURATION,
         BARLEY_SCOOP_POUR_DURATION,
-        BARLEY_SCOOP_ASCEND_DURATION,
-        BARLEY_SCOOP_TIP_ROTATION,
     );
 }
 
@@ -142,7 +153,7 @@ function buildStirRod2Sequence(): Sequence {
 // timeline where its sequence's keyframes (if any) place it.
 const STEP5_PHASES: Array<{ id: "scraper" | "stick" | "barley" | "water"; sequence: Sequence }> = [
     { id: "scraper", sequence: buildScraperSequence() },
-    { id: "stick", sequence: buildStickPourSequence(INITIAL_LAYOUT.stick.x, STEP5_GLASS2_X) },
+    { id: "stick", sequence: buildStickPourSequence("stick2", INITIAL_LAYOUT.stick2.x, STEP5_GLASS2_X) },
     { id: "barley", sequence: buildBarleyScoopSequence() },
     { id: "water", sequence: buildTapWaterSequence() },
 ];
@@ -168,9 +179,17 @@ const STEP5_TIMELINE = concatSequences([...STEP5_PHASES.map((p) => p.sequence), 
 // Per-frame effects
 // ---------------------------------------------------------------------------
 
+// The barley scoop's bowl-tip during its pour pause: sits still for
+// BARLEY_SCOOP_PRE_POUR_PAUSE_DURATION, then tips for
+// BARLEY_SCOOP_DUMP_DURATION.
+function buildBarleyBowlTipEffect(barleyOffset: number, barleyTravelDuration: number): BowlTipEffect {
+    const dumpStart = barleyOffset + barleyTravelDuration + BARLEY_SCOOP_PRE_POUR_PAUSE_DURATION;
+    return new BowlTipEffect("barleyScoop", BARLEY_BOWL_BASE_CELL_INDICES, dumpStart, dumpStart + BARLEY_SCOOP_DUMP_DURATION);
+}
+
 // The dish's dried residue arcing from `anim.dishResidueGroup` into
 // `anim.glass2Group`, once the scraper has scraped (STEP5_SCRAPER_OFFSET +
-// SCRAPER_DESCEND_DURATION + SCRAPER_SCRAPE_DURATION). By the time step 5
+// SCRAPER_TRAVEL_DURATION + SCRAPER_SCRAPE_DURATION). By the time step 5
 // plays, step 4's evaporation effect won't have run (its loop only starts
 // after step 4's transition completes), so `dishResidueGroup` is seeded here
 // with a full dish of residue if it's still empty.
@@ -179,7 +198,7 @@ class ResidueScrapeEffect implements StepEffect {
 
     tick(t: number, anim: SceneAnimator): void {
         if (!this.transfer) {
-            const releaseT = STEP5_SCRAPER_OFFSET + SCRAPER_DESCEND_DURATION + SCRAPER_SCRAPE_DURATION;
+            const releaseT = STEP5_SCRAPER_OFFSET + SCRAPER_TRAVEL_DURATION + SCRAPER_SCRAPE_DURATION;
             if (t < releaseT) return;
             if (anim.dishResidueGroup.members.length === 0) {
                 for (const [relX, relY] of DISH_LIQUID_POSITIONS) {
@@ -238,7 +257,11 @@ class TapWaterEffect implements StepEffect {
 class BarleyScoopEffect implements StepEffect {
     private spawned = false;
     private landed: boolean;
-    private readonly dropStart = STEP5_BARLEY_OFFSET + BARLEY_SCOOP_DESCEND_DURATION + BARLEY_SCOOP_POUR_DURATION / 2;
+    private readonly dropStart =
+        STEP5_BARLEY_OFFSET +
+        tipPourTravelDuration(INITIAL_LAYOUT.barleyScoop.x, STEP5_GLASS2_X) +
+        BARLEY_SCOOP_PRE_POUR_PAUSE_DURATION +
+        BARLEY_SCOOP_DUMP_DURATION / 2;
     private readonly landT =
         this.dropStart + ((BARLEY_POWDER_POSITIONS.length - 1) * BARLEY_POWDER_DROP_SPACING) + BARLEY_POWDER_FALL_DURATION;
 
@@ -251,7 +274,7 @@ class BarleyScoopEffect implements StepEffect {
             const scoop = anim.getObject("barleyScoop");
             const glass2 = anim.getObject("glass2");
             for (const [i, [relX]] of BARLEY_POWDER_POSITIONS.entries()) {
-                const from: ObjectLayout = { x: scoop.x, y: scoop.y + 1, z: scoop.z - 1, rotation: 0 };
+                const from: ObjectLayout = { x: scoop.x, y: scoop.y, z: scoop.z - 1, rotation: 0 };
                 const to: ObjectLayout = { x: glass2.x + relX, y: glass2.y, z: glass2.z - 1, rotation: 0 };
                 const dropStart = t + i * BARLEY_POWDER_DROP_SPACING;
                 anim.spawnDrop(BARLEY_POWDER_DROP, from, to, dropStart, BARLEY_POWDER_FALL_DURATION);
@@ -268,11 +291,15 @@ class BarleyScoopEffect implements StepEffect {
 }
 
 function buildStep5Effects(anim: SceneAnimator): StepEffect[] {
-    const stickDropStart = STEP5_STICK_OFFSET + STICK_DESCEND_DURATION + STICK_POUR_DURATION / 2;
+    const stickTravelDuration = tipPourTravelDuration(INITIAL_LAYOUT.stick2.x, STEP5_GLASS2_X);
+    const stickDropStart = STEP5_STICK_OFFSET + stickTravelDuration + STICK_PRE_POUR_PAUSE_DURATION + STICK_DUMP_DURATION / 2;
+    const barleyTravelDuration = tipPourTravelDuration(INITIAL_LAYOUT.barleyScoop.x, STEP5_GLASS2_X);
     return [
         new ResidueScrapeEffect(),
-        new StickPourEffect(stickDropStart, "glass2"),
+        new StickPourEffect(stickDropStart, "glass2", "stick2"),
+        buildStickBowlTipEffect("stick2", STEP5_STICK_OFFSET, INITIAL_LAYOUT.stick2.x, STEP5_GLASS2_X),
         new BarleyScoopEffect(anim),
+        buildBarleyBowlTipEffect(STEP5_BARLEY_OFFSET, barleyTravelDuration),
         new TapWaterEffect(anim),
     ];
 }

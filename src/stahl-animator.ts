@@ -470,6 +470,12 @@ export class SceneAnimator {
                 const obj = this.objects.get(id);
                 if (obj) Object.assign(obj, layout);
             }
+            // Re-entering step 1 ends any in-progress stir pulse (step 2/5's
+            // `loops`), but that loop's `applyBladeRadius` mutation persists on
+            // the sprite's cells, so reset both stir rods back to their
+            // resting (unpulsed) glyph.
+            applyBladeRadius(this.objects.get("stirRod")!.sprite, 0);
+            applyBladeRadius(this.objects.get("stirRod2")!.sprite, 0);
             this.rebuildSeedState();
             this.seedGroup.setOrigin(INITIAL_LAYOUT.seedPile.x, INITIAL_LAYOUT.seedPile.y, INITIAL_LAYOUT.seedPile.z, INITIAL_LAYOUT.seedPile.rotation);
             this.grinderGroup.setOrigin(

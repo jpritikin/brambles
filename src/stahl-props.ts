@@ -4,7 +4,7 @@
 // look like and where they start. Per-step timing/behavior lives in
 // stahl-timeline.ts and src/stahl-steps/*.
 
-import { type Sprite } from "./ascii-compositor";
+import { type Sprite, type SpriteCell } from "./ascii-compositor";
 import {
     bladeSprite,
     cell,
@@ -26,6 +26,17 @@ export const PROP_PARK_Y = -5;
 // Pause between the viewport settling on a new step's pane and that step's
 // transition starting.
 export const STEP_PAUSE_DURATION = 1000;
+
+// Speed (grid units per ms) used for a prop's straight-line travel (e.g. the
+// stick/scoop descending to and ascending from the glass), so travel time
+// scales with distance instead of being a guessed fixed duration.
+export const PROP_TRAVEL_SPEED = 0.01;
+
+// Duration (ms) for a prop to travel in a straight line between two points at
+// PROP_TRAVEL_SPEED.
+export function travelDuration(x1: number, y1: number, x2: number, y2: number): number {
+    return Math.hypot(x2 - x1, y2 - y1) / PROP_TRAVEL_SPEED;
+}
 
 // ---------------------------------------------------------------------------
 // Layout types
@@ -204,18 +215,44 @@ export const BOTTLE: Sprite = polygonSprite(BOTTLE_POINTS);
 // Ethanol drop particle: a single "~" falling from the bottle's neck.
 export const ETHANOL_DROP: Sprite = { cells: [cell(0, 0, staticRole("~"))] };
 
-// Measuring stick (tartaric acid): a vertical line with a small cup at the
-// tip, built from wallCells (like STIR_ROD used to be) so it can tilt to
-// "pour". Origin (0,0) sits at the cup.
-export const STICK: Sprite = {
-    cells: [wallCell(0, -2, Math.PI / 2), wallCell(0, -1, Math.PI / 2), wallCell(0, 0, Math.PI / 2), cell(0, 1, staticRole("u"))],
-};
+// A "(_)"-shaped bowl (carrying a scoop's contents) attached to the near end
+// of a horizontal stick that extends to the right. The bowl's "_" cell(s)
+// sit at dy=0 while carrying and move to dy=-1 while dumping, tipping the
+// load out without rotating the stick itself. `bowlHalfWidth` controls the
+// bowl's size: 1 for a small "(_)`, 2 for a wider "(___)`.
+const BOWL_LEFT_ROLE = staticRole("(");
+const BOWL_RIGHT_ROLE = staticRole(")");
+const BOWL_BASE_ROLE = staticRole("_");
+export interface ScoopSprite {
+    sprite: Sprite;
+    baseCellIndices: number[];
+}
+function buildScoopSprite(bowlHalfWidth: number): ScoopSprite {
+    const cells: SpriteCell[] = [cell(-bowlHalfWidth, 0, BOWL_LEFT_ROLE)];
+    const baseCellIndices: number[] = [];
+    for (let dx = -bowlHalfWidth + 1; dx <= bowlHalfWidth - 1; dx++) {
+        baseCellIndices.push(cells.length);
+        cells.push(cell(dx, 0, BOWL_BASE_ROLE));
+    }
+    cells.push(cell(bowlHalfWidth, 0, BOWL_RIGHT_ROLE));
+    for (let dx = bowlHalfWidth + 1; dx <= bowlHalfWidth + 3; dx++) {
+        cells.push(wallCell(dx, 0, 0));
+    }
+    return { sprite: { cells }, baseCellIndices };
+}
+
+// Measuring stick (tartaric acid): a small "(_)" bowl at the near end of a
+// horizontal stick. Origin (0,0) sits at the bowl's center.
+export const { sprite: STICK, baseCellIndices: STICK_BOWL_BASE_CELL_INDICES } = buildScoopSprite(1);
 
 // Tartaric acid drop particle: a single "." falling from the stick's cup.
 export const ACID_DROP: Sprite = { cells: [cell(0, 0, staticRole("."))] };
 
 // World y the bottle/stick descend to, just above the glass rim, to pour.
 export const POUR_PROP_Y = 3;
+
+// The bottle's resting tilt (parked/descended/ascended), clockwise.
+export const BOTTLE_REST_ROTATION = TAU * (45 / 360);
 
 // ---------------------------------------------------------------------------
 // Scraper (step 5)
@@ -230,11 +267,9 @@ export const SCRAPER: Sprite = {
 // A single "~" tap water particle poured into glass2 (see LIQUID_POSITIONS).
 export const TAP_WATER_DROP: Sprite = { cells: [cell(0, 0, staticRole("~"))] };
 
-// Barley grass powder scoop: a vertical line with a small cup at the tip,
-// like STICK, so it can tilt to dump its scoop. Origin (0,0) sits at the cup.
-export const BARLEY_SCOOP: Sprite = {
-    cells: [wallCell(0, -2, Math.PI / 2), wallCell(0, -1, Math.PI / 2), wallCell(0, 0, Math.PI / 2), cell(0, 1, staticRole("c"))],
-};
+// Barley grass powder scoop: like STICK but with a slightly wider "(___)"
+// bowl. Origin (0,0) sits at the bowl's center.
+export const { sprite: BARLEY_SCOOP, baseCellIndices: BARLEY_BOWL_BASE_CELL_INDICES } = buildScoopSprite(2);
 
 // A single barley grass powder particle dumped from the scoop's cup.
 export const BARLEY_POWDER_DROP: Sprite = { cells: [cell(0, 0, staticRole(","))] };
@@ -360,6 +395,7 @@ export const SPRITES: Record<string, Sprite> = {
     stirRod2: STIR_ROD,
     bottle: BOTTLE,
     stick: STICK,
+    stick2: STICK,
     scraper: SCRAPER,
     barleyScoop: BARLEY_SCOOP,
     dish: DISH,
@@ -379,11 +415,14 @@ export const INITIAL_LAYOUT: FullLayout = {
     // Sits in step 6's pane, visible alongside step 5's, as step 5's "second
     // glass" before its own contents are added.
     glass2: { x: 7.5 + 5 * PANE_WIDTH, y: 6, z: 1, rotation: 0 },
-    stirRod: { x: 7.5 + 2 * PANE_WIDTH, y: 4.5, z: 3, rotation: 0 },
+    stirRod: { x: 7.5 + 2 * PANE_WIDTH, y: STIR_ROD_START_Y, z: 3, rotation: 0 },
     // Parked off-screen above until step 5's transition lowers it into glass2.
     stirRod2: { x: 7.5 + 5 * PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },
-    bottle: { x: 7.5 + PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },
+    bottle: { x: 7.5 + PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: BOTTLE_REST_ROTATION },
     stick: { x: 10 + PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },
+    // Step 5's own tartaric acid stick, parked off-screen above glass2 until
+    // step 5's transition descends it to pour.
+    stick2: { x: 5 + 5 * PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },
     // Parked off-screen above the dish until step 5's transition descends it
     // to scrape the dish's residue into glass2.
     scraper: { x: 7.5 + 4 * PANE_WIDTH, y: PROP_PARK_Y, z: 3, rotation: 0 },

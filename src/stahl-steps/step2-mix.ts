@@ -10,22 +10,24 @@
 // pour-fall and drop-particle effects fire at the same point in the timeline
 // where each sequence's grinder/bottle/stick keyframes place it.
 
-import { rotateOffset } from "../ascii-compositor";
 import { GroupArcTransfer } from "../ascii-sprites";
 import { rand } from "../rng";
 import {
     ACID_DROP,
+    BOTTLE_REST_ROTATION,
     ETHANOL_DROP,
     GLASS_POWDER_POSITIONS,
     INITIAL_LAYOUT,
     PANE_WIDTH,
     POUR_PROP_Y,
     PROP_PARK_Y,
+    STICK_BOWL_BASE_CELL_INDICES,
     STIR_ROD_DESCEND_DURATION,
     STIR_ROD_PULSE_PERIOD,
     STIR_ROD_RADIUS,
     STIR_ROD_REST_Y,
     STIR_ROD_START_Y,
+    travelDuration,
     type ObjectLayout,
 } from "../stahl-props";
 import { concatSequences, type Sequence, type Step, type StepEffect } from "../stahl-timeline";
@@ -49,18 +51,34 @@ export const POUR_PAUSE_DURATION = 1200;
 
 // Phase durations for the bottle's (ethanol) and stick's (tartaric acid)
 // pour sequences: descend above the glass, pause while pouring drops, then
-// ascend (bottle) or right itself and ascend (stick) back off-screen.
-export const BOTTLE_DESCEND_DURATION = 500;
-export const BOTTLE_POUR_DURATION = 800;
-export const BOTTLE_ASCEND_DURATION = 500;
+// ascend (bottle) or right itself and ascend (stick) back off-screen. The
+// bottle's descend/ascend durations are computed from travel distance (see
+// bottlePourTravelDuration).
+// The bottle's pause/pour phase (BOTTLE_POUR_DURATION) is split into: a brief
+// pause at rest, rotating to the tip angle, a pause while tipped, then
+// rotating back to rest. Ethanol drops fall throughout this whole window
+// (see BottlePourEffect).
+export const BOTTLE_PRE_TIP_PAUSE_DURATION = 400;
+export const BOTTLE_ROTATE_DURATION = 350;
+export const BOTTLE_TIPPED_PAUSE_DURATION = 2000;
+export const BOTTLE_POUR_DURATION =
+    BOTTLE_PRE_TIP_PAUSE_DURATION + BOTTLE_ROTATE_DURATION + BOTTLE_TIPPED_PAUSE_DURATION + BOTTLE_ROTATE_DURATION;
+// A final pause at rest, back over the glass, before ascending off-screen.
+export const BOTTLE_POST_POUR_PAUSE_DURATION = 500;
 export const BOTTLE_DROP_COUNT = 3;
 export const BOTTLE_DROP_FALL_DURATION = 500;
 
-export const STICK_DESCEND_DURATION = 500;
-export const STICK_POUR_DURATION = 700;
-export const STICK_ASCEND_DURATION = 500;
-export const STICK_TIP_ROTATION = TAU * (30 / 360);
+// The stick sits still over the glass for STICK_PRE_POUR_PAUSE_DURATION
+// before its bowl tips to dump (STICK_DUMP_DURATION). Its descend/ascend
+// durations are computed from travel distance (see tipPourTravelDuration).
+export const STICK_PRE_POUR_PAUSE_DURATION = 1400;
+export const STICK_DUMP_DURATION = 1400;
+export const STICK_POUR_DURATION = STICK_PRE_POUR_PAUSE_DURATION + STICK_DUMP_DURATION;
 export const STICK_DROP_FALL_DURATION = 500;
+
+// How far the bottle tips while pouring, beyond its resting tilt
+// (BOTTLE_REST_ROTATION), clockwise.
+export const BOTTLE_TIP_ROTATION = BOTTLE_REST_ROTATION + TAU * (65 / 360);
 
 // ---------------------------------------------------------------------------
 // Pour sequences
@@ -88,50 +106,106 @@ function buildGrinderPourSequence(parkX: number, glassX: number): Sequence {
     };
 }
 
-// The bottle descends above the glass, pauses while ethanol drops fall, then
-// ascends back off-screen.
+// How long the bottle takes to descend from its parked position to its pour
+// spot above the glass (and, symmetrically, to ascend back), at
+// PROP_TRAVEL_SPEED.
+export function bottlePourTravelDuration(parkX: number, glassX: number): number {
+    return travelDuration(parkX, PROP_PARK_Y, glassX, POUR_PROP_Y - 2);
+}
+
+// The bottle descends above the glass, pauses, rotates to pour while ethanol
+// drops fall, rotates back, pauses again, then ascends back off-screen.
 function buildBottlePourSequence(parkX: number, glassX: number): Sequence {
-    const duration = BOTTLE_DESCEND_DURATION + BOTTLE_POUR_DURATION + BOTTLE_ASCEND_DURATION;
+    const travelDur = bottlePourTravelDuration(parkX, glassX);
+    const duration = travelDur + BOTTLE_POUR_DURATION + BOTTLE_POST_POUR_PAUSE_DURATION + travelDur;
+    const arrive = travelDur;
+    const preTipPauseEnd = arrive + BOTTLE_PRE_TIP_PAUSE_DURATION;
+    const tippedStart = preTipPauseEnd + BOTTLE_ROTATE_DURATION;
+    const tippedPauseEnd = tippedStart + BOTTLE_TIPPED_PAUSE_DURATION;
+    const pourEnd = tippedPauseEnd + BOTTLE_ROTATE_DURATION;
+    const postPourPauseEnd = pourEnd + BOTTLE_POST_POUR_PAUSE_DURATION;
+    const pourY = POUR_PROP_Y - 2;
     return {
         duration,
         keyframes: [
-            { t: 0, objects: { bottle: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
-            { t: BOTTLE_DESCEND_DURATION, objects: { bottle: { x: glassX, y: POUR_PROP_Y, rotation: 0 } } },
-            { t: BOTTLE_DESCEND_DURATION + BOTTLE_POUR_DURATION, objects: { bottle: { x: glassX, y: POUR_PROP_Y, rotation: 0 } } },
-            { t: duration, objects: { bottle: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
+            { t: 0, objects: { bottle: { x: parkX, y: PROP_PARK_Y, rotation: BOTTLE_REST_ROTATION } } },
+            { t: arrive, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
+            { t: preTipPauseEnd, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
+            { t: tippedStart, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_TIP_ROTATION } } },
+            { t: tippedPauseEnd, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_TIP_ROTATION } } },
+            { t: pourEnd, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
+            { t: postPourPauseEnd, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
+            { t: duration, objects: { bottle: { x: parkX, y: PROP_PARK_Y, rotation: BOTTLE_REST_ROTATION } } },
         ],
     };
 }
 
-// A prop descends above the glass, tips to pour, rights itself, then ascends
-// back off-screen. Not private: used for the stick's tartaric-acid pour
-// (step 2 and step 5) and step 5's barley grass scoop.
+// How long a prop takes to descend from its parked position to POUR_PROP_Y
+// above the glass (and, symmetrically, to ascend back), at PROP_TRAVEL_SPEED.
+// Not private: used by step 5's barley grass scoop and by callers computing
+// effect offsets relative to the descend phase.
+export function tipPourTravelDuration(parkX: number, glassX: number): number {
+    return travelDuration(parkX, PROP_PARK_Y, glassX, POUR_PROP_Y);
+}
+
+// A prop descends above the glass, pauses while pouring (its cup cell swaps
+// glyphs via a CupTipEffect rather than the whole prop rotating), then
+// ascends back off-screen at the same constant speed. Not private: used for
+// the stick's tartaric-acid pour (step 2 and step 5) and step 5's barley
+// grass scoop.
 export function buildTipPourSequence(
     objectId: string,
     parkX: number,
     glassX: number,
-    descendDuration: number,
     pourDuration: number,
-    ascendDuration: number,
-    tipRotation: number,
 ): Sequence {
-    const duration = descendDuration + pourDuration + ascendDuration;
+    const travelDur = tipPourTravelDuration(parkX, glassX);
+    const duration = travelDur + pourDuration + travelDur;
     return {
         duration,
         keyframes: [
             { t: 0, objects: { [objectId]: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
-            { t: descendDuration, objects: { [objectId]: { x: glassX, y: POUR_PROP_Y, rotation: 0 } } },
-            { t: descendDuration + pourDuration, objects: { [objectId]: { x: glassX, y: POUR_PROP_Y, rotation: tipRotation } } },
+            { t: travelDur, objects: { [objectId]: { x: glassX, y: POUR_PROP_Y, rotation: 0 } } },
+            { t: travelDur + pourDuration, objects: { [objectId]: { x: glassX, y: POUR_PROP_Y, rotation: 0 } } },
             { t: duration, objects: { [objectId]: { x: parkX, y: PROP_PARK_Y, rotation: 0 } } },
         ],
     };
 }
 
-// The stick descends above the glass, tips to pour a single tartaric acid
-// drop, rights itself, then ascends back off-screen. Not private: reused by
-// step 5's tartaric-acid pour into glass2.
-export function buildStickPourSequence(parkX: number, glassX: number): Sequence {
-    return buildTipPourSequence("stick", parkX, glassX, STICK_DESCEND_DURATION, STICK_POUR_DURATION, STICK_ASCEND_DURATION, STICK_TIP_ROTATION);
+// The stick descends above the glass, pauses while pouring a single tartaric
+// acid drop, then ascends back off-screen. Not private: reused by step 5's
+// own tartaric-acid stick ("stick2") pouring into glass2.
+export function buildStickPourSequence(objectId: string, parkX: number, glassX: number): Sequence {
+    return buildTipPourSequence(objectId, parkX, glassX, STICK_POUR_DURATION);
+}
+
+// Tips `objectId`'s "(_)" bowl to dump: after sitting still through a pause
+// (`dumpStart`..`dumpEnd`), the bowl's "_" cell(s) (at `baseCellIndices`) move
+// from dy=0 (carrying) to dy=-1 (tipped open), then move back. Not private:
+// shared by the stick's tartaric-acid pour (step 2 and step 5) and step 5's
+// barley grass scoop.
+export class BowlTipEffect implements StepEffect {
+    constructor(
+        private objectId: string,
+        private baseCellIndices: number[],
+        private dumpStart: number,
+        private dumpEnd: number,
+    ) { }
+
+    tick(t: number, anim: SceneAnimator): void {
+        const obj = anim.getObject(this.objectId);
+        const dy = t >= this.dumpStart && t < this.dumpEnd ? -1 : 0;
+        for (const i of this.baseCellIndices) obj.sprite.cells[i].dy = dy;
+    }
+}
+
+// The stick's bowl-tip during its pour pause: sits still for
+// STICK_PRE_POUR_PAUSE_DURATION, then tips for STICK_DUMP_DURATION. Not
+// private: reused by step 5's own tartaric-acid stick ("stick2") pouring
+// into glass2.
+export function buildStickBowlTipEffect(objectId: string, stickOffset: number, parkX: number, glassX: number): BowlTipEffect {
+    const dumpStart = stickOffset + tipPourTravelDuration(parkX, glassX) + STICK_PRE_POUR_PAUSE_DURATION;
+    return new BowlTipEffect(objectId, STICK_BOWL_BASE_CELL_INDICES, dumpStart, dumpStart + STICK_DUMP_DURATION);
 }
 
 // The stir rod descends from above the viewport into the bottom of the glass,
@@ -155,10 +229,14 @@ function buildStirRodSequence(): Sequence {
 // pour-fall and drop-particle effects fire at the same point in the timeline
 // where each sequence's grinder/bottle/stick keyframes place it.
 const STEP2_GLASS_X = 7.5 + 2 * PANE_WIDTH;
+// The bottle's tipped pour rotation swings its spout to the left of its
+// origin, so its pour position is offset left to land the spout above the
+// glass.
+const BOTTLE_POUR_X_OFFSET = -7;
 const STEP2_POUR_SEQUENCES: Array<{ id: "grinder" | "bottle" | "stick"; sequence: Sequence }> = [
     { id: "grinder", sequence: buildGrinderPourSequence(7.5 + PANE_WIDTH, STEP2_GLASS_X) },
-    { id: "bottle", sequence: buildBottlePourSequence(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X) },
-    { id: "stick", sequence: buildStickPourSequence(INITIAL_LAYOUT.stick.x, STEP2_GLASS_X) },
+    { id: "bottle", sequence: buildBottlePourSequence(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET) },
+    { id: "stick", sequence: buildStickPourSequence("stick", INITIAL_LAYOUT.stick.x, STEP2_GLASS_X) },
 ];
 for (let i = STEP2_POUR_SEQUENCES.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
@@ -207,12 +285,13 @@ class SeedPourEffect implements StepEffect {
 
 // Drops a few ethanol particles from the bottle's spout into the glass once
 // the bottle's pause/pour phase begins (STEP2_BOTTLE_OFFSET +
-// BOTTLE_DESCEND_DURATION), and fills the glass with liquid particles once
+// bottlePourTravelDuration), and fills the glass with liquid particles once
 // the last drop lands.
 class BottlePourEffect implements StepEffect {
     private spawned = false;
     private filled: boolean;
-    private readonly dropStart = STEP2_BOTTLE_OFFSET + BOTTLE_DESCEND_DURATION;
+    private readonly dropStart =
+        STEP2_BOTTLE_OFFSET + bottlePourTravelDuration(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET);
     private readonly fillT =
         this.dropStart + ((BOTTLE_DROP_COUNT - 1) * BOTTLE_POUR_DURATION) / BOTTLE_DROP_COUNT + BOTTLE_DROP_FALL_DURATION;
 
@@ -241,20 +320,17 @@ class BottlePourEffect implements StepEffect {
 
 // Drops a single tartaric-acid particle from the stick's cup into `glassId`
 // once `dropStart` (transition-elapsed ms) is reached. Not private: reused by
-// step 5's tartaric-acid pour into glass2.
+// step 5's own tartaric-acid stick ("stick2") pouring into glass2.
 export class StickPourEffect implements StepEffect {
     private spawned = false;
 
-    constructor(private dropStart: number, private glassId: string = "glass") {}
+    constructor(private dropStart: number, private glassId: string = "glass", private objectId: string = "stick") { }
 
     tick(t: number, anim: SceneAnimator): void {
         if (this.spawned || t < this.dropStart) return;
-        const stick = anim.getObject("stick");
+        const stick = anim.getObject(this.objectId);
         const glass = anim.getObject(this.glassId);
-        const cos = Math.cos(stick.rotation);
-        const sin = Math.sin(stick.rotation);
-        const { rx, ry } = rotateOffset(0, 1, cos, sin);
-        const from: ObjectLayout = { x: stick.x + rx, y: stick.y + ry, z: stick.z - 1, rotation: 0 };
+        const from: ObjectLayout = { x: stick.x, y: stick.y, z: stick.z - 1, rotation: 0 };
         const to: ObjectLayout = { x: glass.x, y: glass.y + 1, z: glass.z - 1, rotation: 0 };
         anim.spawnDrop(ACID_DROP, from, to, t, STICK_DROP_FALL_DURATION);
         this.spawned = true;
@@ -262,8 +338,14 @@ export class StickPourEffect implements StepEffect {
 }
 
 function buildStep2Effects(anim: SceneAnimator): StepEffect[] {
-    const stickDropStart = STEP2_STICK_OFFSET + STICK_DESCEND_DURATION + STICK_POUR_DURATION / 2;
-    return [new SeedPourEffect(), new BottlePourEffect(anim), new StickPourEffect(stickDropStart)];
+    const stickTravelDuration = tipPourTravelDuration(INITIAL_LAYOUT.stick.x, STEP2_GLASS_X);
+    const stickDropStart = STEP2_STICK_OFFSET + stickTravelDuration + STICK_PRE_POUR_PAUSE_DURATION + STICK_DUMP_DURATION / 2;
+    return [
+        new SeedPourEffect(),
+        new BottlePourEffect(anim),
+        new StickPourEffect(stickDropStart),
+        buildStickBowlTipEffect("stick", STEP2_STICK_OFFSET, INITIAL_LAYOUT.stick.x, STEP2_GLASS_X),
+    ];
 }
 
 export const STEP2: Step = {
