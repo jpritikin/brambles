@@ -102,6 +102,10 @@ export class SceneAnimator {
     // swirl liquid particles around glass2's center while step 5's stirRod2
     // is active.
     private liquid2Vortex: Array<{ angle: number; radius: number }> = [];
+    // Stir rod ids ("stirRod"/"stirRod2") whose pulse/vortex loop has been
+    // stopped via `stopStirring` (e.g. once their countdown completes), even
+    // though the rod itself remains visible in place.
+    private stoppedStirring = new Set<string>();
     // Holds the individual "~" liquid particles once step 4's pour transfers
     // them from `liquidGroup` into the dish; empty until then. Tracks the
     // "dish" object's position each frame, like `liquidGroup` tracks "glass".
@@ -139,6 +143,9 @@ export class SceneAnimator {
     // requestAnimationFrame handle for the active countdown timer, if any;
     // cancelled by `stop`.
     private countdownRafHandle: number | null = null;
+    // State of the active countdown timer, if any, kept in sync with the
+    // closure in `startCountdown` so `skipCountdown` can fast-forward it.
+    private activeCountdown: { start: number; totalSeconds: number; preElapsed: number; paneCenterX: number } | null = null;
 
     constructor(compositor: Compositor) {
         this.compositor = compositor;
@@ -215,6 +222,8 @@ export class SceneAnimator {
             cancelAnimationFrame(this.countdownRafHandle);
             this.countdownRafHandle = null;
         }
+        this.activeCountdown = null;
+        this.stoppedStirring.clear();
         for (const id of this.transientIds) this.compositor.removeObject(id);
         this.transientIds.clear();
         if (this.grindRafHandle !== null) {
@@ -620,9 +629,10 @@ export class SceneAnimator {
     // reaches 0. Cancelled by `stop` (which also removes the timer sprite).
     private startCountdown(countdown: CountdownConfig, index: number): void {
         const { totalSeconds, startDelay, preElapsed = 0, onComplete } = countdown;
-        const start = performance.now() + startDelay;
         const paneCenterX = Math.round(index * PANE_WIDTH + PANE_WIDTH / 2);
+        this.activeCountdown = { start: performance.now() + startDelay, totalSeconds, preElapsed, paneCenterX };
         const tick = (now: number): void => {
+            const { start } = this.activeCountdown!;
             const elapsedSinceStart = Math.max(0, now - start) / 1000;
             const remaining = Math.max(0, totalSeconds - preElapsed - elapsedSinceStart);
             if (now >= start) {
@@ -645,6 +655,7 @@ export class SceneAnimator {
                 this.countdownRafHandle = requestAnimationFrame(tick);
             } else {
                 this.countdownRafHandle = null;
+                this.activeCountdown = null;
                 this.compositor.removeObject(COUNTDOWN_TIMER_ID);
                 this.transientIds.delete(COUNTDOWN_TIMER_ID);
                 onComplete?.(this);
@@ -652,6 +663,34 @@ export class SceneAnimator {
             }
         };
         this.countdownRafHandle = requestAnimationFrame(tick);
+    }
+
+    // Halts a stir rod's blade pulse and its glass's liquid vortex once
+    // stirring finishes, leaving the rod resting (hub only) in place rather
+    // than parking it out of view.
+    stopStirring(rodId: "stirRod" | "stirRod2"): void {
+        this.stoppedStirring.add(rodId);
+        applyBladeRadius(this.objects.get(rodId)!.sprite, 0);
+    }
+
+    // Secret easter egg: fast-forwards the active countdown timer (if any and
+    // already visible) by a random 1-3 minutes by shifting its start time
+    // backward. Returns true if a countdown was skipped.
+    skipCountdown(): boolean {
+        const countdown = this.activeCountdown;
+        if (!countdown || performance.now() < countdown.start) return false;
+        const skipSeconds = (1 + Math.floor(rand() * 3)) * 60;
+        countdown.start -= skipSeconds * 1000;
+        return true;
+    }
+
+    // The grid row/columns the countdown timer currently occupies, or null if
+    // it isn't shown. Used to hit-test clicks for `skipCountdown`.
+    getCountdownCellRange(): { row: number; cols: number[] } | null {
+        const obj = this.compositor.getObject(COUNTDOWN_TIMER_ID);
+        if (!obj || !obj.visible) return null;
+        const cols = obj.sprite.cells.map((cell) => Math.round(obj.x - this.compositor.viewOffsetX + cell.dx));
+        return { row: Math.round(obj.y), cols };
     }
 
     // Returns the current layout/sprite of the named scene object (e.g.
@@ -796,13 +835,13 @@ export class SceneAnimator {
                 if (!obj) continue;
                 if (loop.kind === "spin") {
                     obj.rotation += loop.angularVelocity * dt;
-                } else {
+                } else if (!this.stoppedStirring.has(loop.id)) {
                     const radius = bladePulseRadius(elapsed, loop.maxRadius, loop.period);
                     applyBladeRadius(obj.sprite, radius);
                 }
             }
-            if (stirring) this.updateVortex(this.liquidGroup, this.liquidVortex, dt);
-            if (stirring2) this.updateVortex(this.liquid2Group, this.liquid2Vortex, dt);
+            if (stirring && !this.stoppedStirring.has("stirRod")) this.updateVortex(this.liquidGroup, this.liquidVortex, dt);
+            if (stirring2 && !this.stoppedStirring.has("stirRod2")) this.updateVortex(this.liquid2Group, this.liquid2Vortex, dt);
             this.compositor.render();
             this.rafHandle = requestAnimationFrame(tick);
         };

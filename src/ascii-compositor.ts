@@ -253,6 +253,13 @@ export class Compositor {
         return this.objects.get(id);
     }
 
+    // The mounted <span> for a given grid cell, or null if out of bounds or
+    // not yet mounted.
+    getCellElement(row: number, col: number): HTMLElement | null {
+        if (!this.spans || row < 0 || row >= this.height || col < 0 || col >= this.width) return null;
+        return this.spans[row][col];
+    }
+
     removeObject(id: string): void {
         this.objects.delete(id);
     }

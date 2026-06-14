@@ -20,7 +20,19 @@ function buildScene(container: HTMLElement): SceneAnimator {
   const compositor = new Compositor(GRID_WIDTH, GRID_HEIGHT);
   compositor.mount(grid);
 
-  return new SceneAnimator(compositor);
+  const animator = new SceneAnimator(compositor);
+
+  // Secret: clicking the countdown timer skips it ahead by a random 1-3
+  // minutes. No visual hint, deliberately undiscoverable.
+  grid.addEventListener("click", (event) => {
+    const range = animator.getCountdownCellRange();
+    if (!range) return;
+    const target = event.target as Node;
+    const hit = range.cols.some((col) => compositor.getCellElement(range.row, col) === target);
+    if (hit) animator.skipCountdown();
+  });
+
+  return animator;
 }
 
 // Builds a slider for manually panning the viewport's world-x offset. Below

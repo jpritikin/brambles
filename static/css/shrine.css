@@ -137,7 +137,8 @@
   outline: none;
 }
 .recipe-ss-tick-active {
-  color: #2e7d32;
+  color: #fff;
+  background: #2e7d32;
   font-weight: bold;
   border-color: #2e7d32;
 }

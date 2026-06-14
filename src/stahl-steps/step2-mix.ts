@@ -355,14 +355,13 @@ export const STEP2: Step = {
     effects: buildStep2Effects,
     // The recipe's "stir for ten minutes" countdown appears 5s after
     // stirring starts, already showing 5s elapsed. Once it finishes, the
-    // stir rod is lifted out and put away.
+    // stir rod stops pulsing and the liquid settles, but both stay put.
     countdown: {
         totalSeconds: 10 * 60,
         startDelay: 5000,
         preElapsed: 5,
         onComplete: (anim) => {
-            const stirRod = anim.getObject("stirRod");
-            stirRod.y = PROP_PARK_Y;
+            anim.stopStirring("stirRod");
         },
     },
 };
