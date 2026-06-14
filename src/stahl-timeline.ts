@@ -145,4 +145,8 @@ export interface Step {
     // Countdown timer to show once the transition (plus `startDelay`)
     // finishes; see CountdownConfig.
     countdown?: CountdownConfig;
+    // Called once the transition finishes for real (not during fast-forward
+    // or instant replays of earlier steps). Used for one-shot effects outside
+    // the keyframe/loop/countdown system, e.g. step 6's fireworks finale.
+    onSettle?: (anim: SceneAnimator) => void;
 }

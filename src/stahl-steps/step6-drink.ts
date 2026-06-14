@@ -6,6 +6,7 @@
 import { INITIAL_LAYOUT, PANE_WIDTH, PROP_PARK_Y } from "../stahl-props";
 import { type Step, type StepEffect } from "../stahl-timeline";
 import { type SceneAnimator } from "../stahl-animator";
+import { launchFireworks } from "../stahl-fireworks";
 
 // World x glass2 rests at once it descends back into view, centered in step
 // 6's own pane (one pane right of its step 5 resting spot).
@@ -27,6 +28,10 @@ const STEP6_PRE_LIFT_END = STEP6_STIR_LIFT_DURATION + STEP6_PRE_LIFT_PAUSE;
 const STEP6_LIFT_END = STEP6_PRE_LIFT_END + STEP6_GLASS_LIFT_DURATION;
 const STEP6_EMPTY_END = STEP6_LIFT_END + STEP6_GLASS_EMPTY_PAUSE;
 const STEP6_TRANSITION_DURATION = STEP6_EMPTY_END + STEP6_GLASS_RETURN_DURATION;
+
+// Delay after the empty cup settles back into view before the fireworks
+// finale fires.
+const STEP6_FIREWORKS_DELAY = 1000;
 
 // Empties glass2 (its scraped residue and tap water from step 5) once it's
 // risen off-screen, so it descends back into view empty.
@@ -54,4 +59,7 @@ export const STEP6: Step = {
         { t: STEP6_TRANSITION_DURATION, objects: { glass2: { x: STEP6_GLASS_X, y: INITIAL_LAYOUT.glass2.y } } },
     ],
     effects: () => [new GlassEmptyEffect()],
+    onSettle: () => {
+        window.setTimeout(launchFireworks, STEP6_FIREWORKS_DELAY);
+    },
 };

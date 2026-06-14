@@ -596,6 +596,7 @@ export class SceneAnimator {
                     if (loops.length > 0) this.startLoops(loops, step.transitionDuration);
                     if (isSeedFlight) this.startGrinding(false);
                     if (step.countdown) this.startCountdown(step.countdown, index);
+                    step.onSettle?.(this);
                 }
             },
             {

@@ -6,6 +6,7 @@
 
 import { Compositor } from "./ascii-compositor";
 import { GRID_HEIGHT, GRID_WIDTH, PANE_WIDTH, SceneAnimator, STEPS } from "./stahl-scene";
+import { SLIDESHOW_REVEALED_EVENT } from "./stahl-events";
 
 function buildScene(container: HTMLElement): SceneAnimator {
   const viewport = document.createElement("div");
@@ -85,6 +86,7 @@ function init(): void {
   function selectStep(index: number): void {
     steps.forEach((el, i) => el.classList.toggle("recipe-step-active", i === index));
     tickEls.forEach((el, i) => el.classList.toggle("recipe-ss-tick-active", i === index));
+    if (container!.hidden) document.dispatchEvent(new CustomEvent(SLIDESHOW_REVEALED_EVENT));
     container!.hidden = false;
     animator.playStep(STEPS[index], index + 1);
   }

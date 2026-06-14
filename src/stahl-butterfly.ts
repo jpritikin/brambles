@@ -1,7 +1,10 @@
 // A single butterfly that drifts around the recipe steps. It wanders toward
 // random points inside a circle whose center bounces around the bounding
 // box spanning #butterfly-anchor-top to #butterfly-anchor-bottom at
-// semi-random angles.
+// semi-random angles. Once the ASCII slideshow is revealed, the circle is
+// freed to drift offscreen and the butterfly disappears for good.
+
+import { SLIDESHOW_REVEALED_EVENT } from "./stahl-events";
 
 const ORIGIN_RADIUS_MAX = 90; // px, drift circle radius on tall/narrow boxes
 const ACCEL = 80; // px/s² toward dest
@@ -60,6 +63,14 @@ function init(): void {
     el.textContent = "🦋";
     el.setAttribute("aria-hidden", "true");
     document.body.appendChild(el);
+
+    // Once true, the drift circle's origin is no longer bounced back into the
+    // anchor box, so it wanders offscreen via its existing drift physics; the
+    // butterfly is then removed once it's fully out of view.
+    let released = false;
+    document.addEventListener(SLIDESHOW_REVEALED_EVENT, () => {
+        released = true;
+    }, { once: true });
 
     const debug = isDebugMode();
     let debugCanvas: HTMLCanvasElement | null = null;
@@ -157,24 +168,28 @@ function init(): void {
         box = getBox(top, bottom);
         radius = Math.max(20, Math.min(ORIGIN_RADIUS_MAX, (box.bottom - box.top) / 2, (box.right - box.left) / 2));
 
-        // Drift the circle origin, bouncing off the box walls at semi-random angles.
+        // Drift the circle origin, bouncing off the box walls at semi-random
+        // angles — unless released, in which case the origin is left free to
+        // wander past the box edges and offscreen.
         originX += Math.cos(driftAngle) * ORIGIN_SPEED * dt;
         originY += Math.sin(driftAngle) * ORIGIN_SPEED * dt;
-        const minX = box.left + radius, maxX = box.right - radius;
-        const minY = box.top + radius, maxY = box.bottom - radius;
-        if (originX < minX) {
-            originX = minX;
-            driftAngle = avoidVertical(Math.PI - driftAngle + bounceJitter());
-        } else if (originX > maxX) {
-            originX = maxX;
-            driftAngle = avoidVertical(Math.PI - driftAngle + bounceJitter());
-        }
-        if (originY < minY) {
-            originY = minY;
-            driftAngle = avoidVertical(-driftAngle + bounceJitter());
-        } else if (originY > maxY) {
-            originY = maxY;
-            driftAngle = avoidVertical(-driftAngle + bounceJitter());
+        if (!released) {
+            const minX = box.left + radius, maxX = box.right - radius;
+            const minY = box.top + radius, maxY = box.bottom - radius;
+            if (originX < minX) {
+                originX = minX;
+                driftAngle = avoidVertical(Math.PI - driftAngle + bounceJitter());
+            } else if (originX > maxX) {
+                originX = maxX;
+                driftAngle = avoidVertical(Math.PI - driftAngle + bounceJitter());
+            }
+            if (originY < minY) {
+                originY = minY;
+                driftAngle = avoidVertical(-driftAngle + bounceJitter());
+            } else if (originY > maxY) {
+                originY = maxY;
+                driftAngle = avoidVertical(-driftAngle + bounceJitter());
+            }
         }
 
         // Accelerate toward dest, apply friction, integrate
@@ -204,6 +219,15 @@ function init(): void {
         }
 
         render();
+
+        // Once released and fully clear of the viewport, stop and remove the
+        // butterfly for good.
+        if (released && (x < -50 || x > window.innerWidth + 50 || y < -50 || y > window.innerHeight + 50)) {
+            el.remove();
+            if (debugCanvas) debugCanvas.remove();
+            return;
+        }
+
         requestAnimationFrame(tick);
     }
 
