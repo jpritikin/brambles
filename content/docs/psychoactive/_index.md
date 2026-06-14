@@ -110,12 +110,12 @@ I have first-hand experience with
 *   [Muscimol](https://en.wikipedia.org/wiki/Muscimol) (Amanita muscaria extract) 🍄
 *   Psilomethoxin ([orally active 5-methoxy-N,N-dimethyltryptamine](https://www.youtube.com/watch?v=SeROOGFnwek)) 🐸
 *   Psilocybin
-*   Salvia divinorum
+*   Salvia divinorum 🍃
 *   Mescaline 🌵
 *   5-MAPB (5-(2-methylaminopropyl)benzofuran), 80mg single occasion
 *   [Metocin]({{< relref "metocin" >}}) (4-HO-MET)
-*   5-MeO-DMT
-*   Tetrahydroharmine[^stahl2026]
+*   5-MeO-DMT 🐸
+*   [Tetrahydroharmine]({{< relref "thh" >}})[^stahl2026]
 
 In general, I use psychoactive substances as [entheogens](https://en.wikipedia.org/wiki/Entheogen).
 My preferred substances generally align with the opinions of the 1972 Church of the Tree of Life.[^bigwood2024]

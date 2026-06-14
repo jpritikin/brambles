@@ -33,7 +33,7 @@ Daime contains three psychoactive substances with different durations. This make
 
 **Tetrahydroharmine (THH)** is a serotonin reuptake inhibitor with effects lasting 36–48 hours. If you feel unusually reflective, emotionally open, or have disrupted sleep the day after a work, that is likely THH.
 
-People sometimes wonder how ayahuasca was ever discovered. The Amazon contains tens of thousands of plant species, and the odds of randomly combining *Banisteriopsis caapi* with *Psychotria viridis* seem vanishingly small. But the puzzle dissolves if you consider that THH alone—from *B. caapi*—produces subtle but noticeable psychoactive effects. That experience would have made *B. caapi* a well-known and widely experimented-with plant long before ayahuasca was formulated. Combining it with other plants to explore synergies would have been a natural next step.
+People sometimes wonder how ayahuasca was ever discovered. The Amazon contains tens of thousands of plant species, and the odds of randomly combining *Banisteriopsis caapi* with *Psychotria viridis* seem vanishingly small. But the puzzle dissolves if you consider that *B. caapi* alone produces noticeable psychoactive effects. That experience would have made *B. caapi* a widely experimented-with plant long before ayahuasca was formulated. Combining it with other plants to explore synergies would have been a natural next step.
 
 ### Group Experience
 
