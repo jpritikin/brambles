@@ -1,6 +1,6 @@
 +++
 title = "The Hiccups Strike Again"
-tags = ["funny"]
+tags = []
 date = "2026-06-14"
 categories = ["journal"]
 menu = "main"

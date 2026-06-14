@@ -2,7 +2,7 @@
 title = "Internal Vocalization as an Acute Pain Management Strategy?"
 tags = ["psychology"]
 date = "2025-03-21"
-categories = ["question"]
+categories = ["journal"]
 menu = "main"
 +++
 

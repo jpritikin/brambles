@@ -2,7 +2,7 @@
 title = "LuaLaTeX Footnote Maze"
 tags = ["LaTeX"]
 date = "2025-09-01"
-categories = ["tech"]
+categories = ["journal"]
 menu = "main"
 +++
 

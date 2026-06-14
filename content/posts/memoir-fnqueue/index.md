@@ -2,11 +2,11 @@
 title = "Full Control Over Footnote Placement for memoir"
 tags = ["LaTeX"]
 date = "2026-03-31"
-categories = ["tech"]
+categories = ["journal"]
 menu = "main"
 +++
 
-This is a follow-up to [LuaLaTeX Footnote Maze](../memoir-tcolorbox), which documented the long road to making memoir paragraph footnotes work inside breakable tcolorbox environments with hyperref. That solved half the problem. This post solves the rest of the problem: deciding exactly where on the page footnotes appear.
+This is a follow-up to [LuaLaTeX Footnote Maze]({{< relref "/posts/memoir-tcolorbox" >}}), which documented the long road to making memoir paragraph footnotes work inside breakable tcolorbox environments with hyperref. That solved half the problem. This post solves the rest of the problem: deciding exactly where on the page footnotes appear.
 
 **Downloads:** [memoir-fnqueue.sty](memoir-fnqueue.sty) · [memoir-tcolorbox.sty](memoir-tcolorbox.sty) · [test-fn.tex](test-fn.tex) · [test-fn.py](test-fn.py)
 

@@ -1,8 +1,8 @@
 +++
 title = "Free lunch"
-tags = ["kindness"]
+tags = []
 date = "2024-08-11"
-categories = ["news"]
+categories = ["journal"]
 menu = "main"
 bookToc = true
 +++

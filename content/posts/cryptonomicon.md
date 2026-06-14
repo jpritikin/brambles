@@ -1,6 +1,6 @@
 +++
 title = "Cryptonomicon (2000)"
-tags = ["funny"]
+tags = []
 date = "2025-05-16"
 categories = ["book"]
 menu = "main"
