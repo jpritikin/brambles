@@ -11,6 +11,12 @@ bookToc: true
 We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and <span class="rainbow-letters" style="font-size: larger">**the pursuit of Happiness**</span>.
 {{% /hint %}}
 
+### What does "psychoactive" actually mean?
+
+A substance is *psychoactive* if it crosses the blood-brain barrier and changes how the brain processes information, altering mood, perception, cognition, or behavior. This is a broad category. Caffeine, alcohol, nicotine, antidepressants, and antihistamines are all psychoactive, alongside the substances more commonly associated with the word, such as cannabis and classical psychedelics (e.g., LSD and psilocybin).
+
+Is oatmeal psychoactive? It depends on which definition you reach for. Eating a bowl of oatmeal raises blood sugar gradually, which influences insulin, satiety hormones, and ultimately mood and alertness. So in the broadest sense, yes, oatmeal changes brain chemistry and therefore qualifies. But if "psychoactive" means a substance taken *for* its mental effects, with effects strong enough to be the point, oatmeal clearly doesn't belong in the same conversation as LSD or a cup of coffee. The boundary isn't in the chemistry; it's in the directness of the effect and the intention behind taking it.
+
 ### On drug (mis)regulation 🚧
 
 {{% details "Nora Volkow interview May 25, 2023" %}}
