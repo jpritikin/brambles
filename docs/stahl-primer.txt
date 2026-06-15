@@ -158,6 +158,20 @@ Core architecture
    scripts/*.ts depend on (`GRID_HEIGHT`, `GRID_WIDTH`, `PANE_WIDTH`,
    `GRINDER_BLADE`, `GRINDER_BLADE_RADIUS`, `GRINDER_BODY`).
 
+8. src/iso.ts — voxel grid + projection for the fluid sim (docs/plan.txt
+   step 4), not yet wired into SceneAnimator. Containers are cylindrical or
+   box-shaped and viewed straight-on at their widest cross-section: grid x =
+   diameter (screen column), y = height above the table (screen row), z =
+   depth into the screen. `Grid3D<M>`/`makeGrid3D` build a dense [x][y][z]
+   array of `Voxel<M> | null`. `projectColumn`/`projectGrid` walk each (x,y)
+   column front-to-back (z=0 = closest to camera), blending by each
+   material's `opacity` so transparent voxels (e.g. ethanol) let whatever's
+   behind them (seed fragments, residue) show through, while opaque ones win
+   outright. `liquidRole` maps a projected cell's material to a glyph role
+   (registered via `staticRole`, same pattern as `seedGrindRole`) — "~" for
+   ethanol/water, "." for seed fragments/barley powder, "@" for residue, "*"
+   for steam.
+
 Debug / dev tooling
 --------------------
 - src/rng.ts: swap-in seeded PRNG (`setSeed(n)`) for reproducible traces of
@@ -180,6 +194,12 @@ Debug / dev tooling
          so StepEffects (fridge arc, cover drop, ice particles, etc.) run
          exactly as at runtime. Useful for checking timing/positions of
          multi-phase effects without a browser.
+
+- scripts/check-iso.ts:
+    npx tsx scripts/check-iso.ts
+      -> assertion-based sanity checks for src/iso.ts's voxel grid +
+         front-to-back occlusion projection (used by the fluid sim, step 4
+         of docs/plan.txt). Exits non-zero on the first failed assertion.
 
 Debug UI (localhost only)
 --------------------------
