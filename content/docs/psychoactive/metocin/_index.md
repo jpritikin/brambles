@@ -2,6 +2,7 @@
 title: Metocin
 bookToc: true
 weight: 15
+bookHidden: true
 ---
 
 # Metocin (4-HO-MET)

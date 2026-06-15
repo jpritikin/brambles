@@ -110,7 +110,7 @@ I have first-hand experience with
 *   [Muscimol](https://en.wikipedia.org/wiki/Muscimol) (Amanita muscaria extract) 🍄
 *   Psilomethoxin ([orally active 5-methoxy-N,N-dimethyltryptamine](https://www.youtube.com/watch?v=SeROOGFnwek)) 🐸
 *   Psilocybin
-*   Salvia divinorum 🍃
+*   [Salvia divinorum]({{< relref "salvia" >}}) 🍃
 *   Mescaline 🌵
 *   5-MAPB (5-(2-methylaminopropyl)benzofuran), 80mg single occasion
 *   [Metocin]({{< relref "metocin" >}}) (4-HO-MET)
