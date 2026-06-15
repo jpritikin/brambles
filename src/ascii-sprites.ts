@@ -57,6 +57,69 @@ export function polygonSprite(points: Array<[number, number]>, closed = true): S
   return { cells: [], polygon: points, polygonClosed: closed };
 }
 
+// Height/width ratio of a polygon's bounding box, e.g. for correcting
+// circular motion to an ellipse matching a container's proportions.
+export function boundingAspectRatio(polygon: Array<[number, number]>): number {
+  const xs = polygon.map(([x]) => x);
+  const ys = polygon.map(([, y]) => y);
+  const width = Math.max(...xs) - Math.min(...xs);
+  const height = Math.max(...ys) - Math.min(...ys);
+  return height / width;
+}
+
+// Shortest distance from (x, y) to the segment a-b.
+function distToSegment(x: number, y: number, ax: number, ay: number, bx: number, by: number): number {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  let t = lenSq === 0 ? 0 : ((x - ax) * dx + (y - ay) * dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(x - (ax + t * dx), y - (ay + t * dy));
+}
+
+// True if (x, y) is inside `polygon` (standard ray-casting test).
+function pointInPolygon(x: number, y: number, polygon: Array<[number, number]>): boolean {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+// Scan-fills the interior of a closed polygon (local dx/dy units) with a grid
+// of points spacingX/spacingY apart, keeping only points at least `margin`
+// away from every edge so generated particles don't render on top of the
+// container's walls. Used to derive a fluid container's particle positions
+// from its outline (e.g. GLASS_POINTS, DISH_POINTS) instead of hardcoding
+// them separately.
+export function fillRegion(
+  polygon: Array<[number, number]>,
+  margin: number,
+  spacingX: number,
+  spacingY: number,
+): Array<[number, number]> {
+  const xs = polygon.map(([x]) => x);
+  const ys = polygon.map(([, y]) => y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const points: Array<[number, number]> = [];
+  for (let y = minY; y <= maxY + 1e-9; y += spacingY) {
+    for (let x = minX; x <= maxX + 1e-9; x += spacingX) {
+      if (!pointInPolygon(x, y, polygon)) continue;
+      let minDist = Infinity;
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        minDist = Math.min(minDist, distToSegment(x, y, polygon[i][0], polygon[i][1], polygon[j][0], polygon[j][1]));
+      }
+      if (minDist >= margin - 1e-9) points.push([x, y]);
+    }
+  }
+  return points;
+}
+
 // Builds a sprite from a multi-line ASCII art string. `originCol`/`originRow`
 // mark which character sits at local (0,0). Spaces are treated as
 // transparent (alpha 0) and skipped.

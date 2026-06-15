@@ -8,6 +8,7 @@ import { type Sprite, type SpriteCell } from "./ascii-compositor";
 import {
     bladeSprite,
     cell,
+    fillRegion,
     polygonSprite,
     staticRole,
     wallCell,
@@ -130,23 +131,6 @@ export const GLASS2_POWDER_POSITIONS: Array<[number, number]> = [
     [-2, 2], [-1, 2], [0, 2], [1, 2], [2, 2],
 ];
 
-// Rest offsets (relative to the glass's center) where individual "~" liquid
-// particles settle once the bottle's ethanol pour lands, filling the glass
-// interior above the powder layer (dy 1, 1.5).
-export const LIQUID_POSITIONS: Array<[number, number]> = [
-    [-2, -1], [-1, -1], [0, -1], [1, -1], [2, -1],
-    [-2, -0.5], [-1, -0.5], [0, -0.5], [1, -0.5], [2, -0.5],
-    [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0],
-    [-2, 0.5], [-1, 0.5], [0, 0.5], [1, 0.5], [2, 0.5],
-];
-
-// Radius (relative to the glass center) liquid particles swirl out toward
-// while the stir rod is active.
-export const LIQUID_VORTEX_RADIUS = 2.5;
-
-// Angular velocity (radians/sec) of the liquid vortex while stirring.
-export const LIQUID_VORTEX_SPEED = TAU * 0.6;
-
 // Shot glass: an open-topped polygon (left wall, floor, right wall) so it can
 // rotate as a rigid shape during step 4's lift/pour into the baking dish. The
 // floor is a single row at the bottom (dy = height/2); the top (dy =
@@ -166,6 +150,21 @@ export const GLASS_POINTS: Array<[number, number]> = [
 // together.
 export const GLASS_PIVOT: [number, number] = [GLASS_WIDTH / 2, GLASS_HEIGHT / 2];
 export const GLASS: Sprite = { ...polygonSprite(GLASS_POINTS, false), pivot: GLASS_PIVOT };
+
+// Rest offsets (relative to the glass's center) where individual "~" liquid
+// particles settle once the bottle's ethanol pour lands, filling the glass
+// interior above the powder layer (dy 1, 1.5), derived from the glass's own
+// outline so the fill region tracks GLASS_POINTS if it changes.
+export const LIQUID_POSITIONS: Array<[number, number]> = fillRegion(GLASS_POINTS, 1, 1, 0.5).filter(
+    ([, relY]) => relY < GLASS_HEIGHT / 2 - 1,
+);
+
+// Radius (relative to the glass center) liquid particles swirl out toward
+// while the stir rod is active.
+export const LIQUID_VORTEX_RADIUS = 2.5;
+
+// Angular velocity (radians/sec) of the liquid vortex while stirring.
+export const LIQUID_VORTEX_SPEED = TAU * 0.6;
 
 // A single "~" liquid particle (see LIQUID_POSITIONS).
 export const LIQUID_PARTICLE: Sprite = { cells: [cell(0, 0, staticRole("~"))] };
@@ -331,13 +330,13 @@ export const RESIDUE_CLUMP_PARTICLE: Sprite = { cells: [cell(0, 0, staticRole("@
 
 // Rest offsets (relative to the dish's center) where individual "~" liquid
 // particles settle once the glass pours into the dish, one per
-// LIQUID_POSITIONS entry. The dish floor is a single row at dy = DISH_HEIGHT
-// / 2 = 1, so the liquid settles just above it.
-export const DISH_LIQUID_POSITIONS: Array<[number, number]> = [
-    [-4, 0.5], [-2.5, 0.5], [-1, 0.5], [0.5, 0.5], [2, 0.5], [3.5, 0.5],
-    [-4.5, 0], [-3, 0], [-1.5, 0], [0, 0], [1.5, 0], [3, 0], [4.5, 0],
-    [-4, -0.5], [-2.5, -0.5], [-1, -0.5], [0.5, -0.5], [2, -0.5], [3.5, -0.5], [-3.5, 0.5],
-];
+// LIQUID_POSITIONS entry (GroupArcTransfer requires exactly that many
+// targets), derived from the dish's own outline so the fill region tracks
+// DISH_POINTS if it changes.
+export const DISH_LIQUID_POSITIONS: Array<[number, number]> = fillRegion(DISH_POINTS, 0.5, 1.25, 0.5).slice(
+    0,
+    LIQUID_POSITIONS.length,
+);
 
 // ---------------------------------------------------------------------------
 // Refrigerator (step 3)

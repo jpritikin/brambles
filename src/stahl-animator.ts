@@ -5,11 +5,10 @@
 
 import { type PropGroupMember, type SceneObject, type Sprite, Compositor, PropGroup } from "./ascii-compositor";
 import { rand } from "./rng";
-import { applyBladeRadius, arcLerp, bladePulseRadius, MemberFlight, ouStep, runFrames, seedGrindRole, textSprite } from "./ascii-sprites";
+import { applyBladeRadius, arcLerp, bladePulseRadius, boundingAspectRatio, MemberFlight, ouStep, runFrames, seedGrindRole, textSprite } from "./ascii-sprites";
 import {
-    GLASS_HEIGHT,
     GLASS_PIVOT,
-    GLASS_WIDTH,
+    GLASS_POINTS,
     GRIND_DURATION_MAX,
     GRIND_DURATION_MIN,
     GRIND_SCATTER_X,
@@ -56,6 +55,11 @@ function shortestAngleLerp(a: number, b: number, t: number): number {
     if (diff < -Math.PI) diff += TAU;
     return a + diff * t;
 }
+
+// Height/width ratio of the glass's interior, used by updateVortex to make
+// the liquid swirl in an ellipse matching the glass's proportions rather
+// than a circle.
+const GLASS_ASPECT_RATIO = boundingAspectRatio(GLASS_POINTS);
 
 // One container of "~" liquid particles (glass1, glass2, or the dish), plus
 // its per-particle vortex state (parallel to `group.members`, unused/empty
@@ -901,7 +905,7 @@ export class SceneAnimator {
             state.angle += LIQUID_VORTEX_SPEED * dt;
             state.radius = Math.min(LIQUID_VORTEX_RADIUS, state.radius + LIQUID_VORTEX_RADIUS * dt);
             member.relX = Math.cos(state.angle) * state.radius;
-            member.relY = Math.sin(state.angle) * state.radius * (GLASS_HEIGHT / GLASS_WIDTH);
+            member.relY = Math.sin(state.angle) * state.radius * GLASS_ASPECT_RATIO;
         }
         container.group.applyOrigin();
     }
