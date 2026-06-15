@@ -211,8 +211,11 @@ export const BOTTLE_POINTS: Array<[number, number]> = [
 ];
 export const BOTTLE: Sprite = polygonSprite(BOTTLE_POINTS);
 
-// Ethanol drop particle: a single "~" falling from the bottle's neck.
-export const ETHANOL_DROP: Sprite = { cells: [cell(0, 0, staticRole("~"))] };
+// Fill positions for the bottle's "~" ethanol particles (19 points spanning
+// the neck and shoulder/body), derived from the bottle's own outline so the
+// fill region tracks BOTTLE_POINTS if it changes. See LIQUID_POSITIONS for
+// the glass's equivalent.
+export const BOTTLE_LIQUID_POSITIONS: Array<[number, number]> = fillRegion(BOTTLE_POINTS, 0.4, 1, 0.5);
 
 // A "(_)"-shaped bowl (carrying a scoop's contents) attached to the near end
 // of a horizontal stick that extends to the right. The bowl's "_" cell(s)

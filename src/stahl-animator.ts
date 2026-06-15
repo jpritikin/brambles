@@ -7,6 +7,7 @@ import { type PropGroupMember, type SceneObject, type Sprite, Compositor, PropGr
 import { rand } from "./rng";
 import { applyBladeRadius, arcLerp, bladePulseRadius, boundingAspectRatio, MemberFlight, ouStep, runFrames, seedGrindRole, textSprite } from "./ascii-sprites";
 import {
+    BOTTLE_LIQUID_POSITIONS,
     GLASS_PIVOT,
     GLASS_POINTS,
     GRIND_DURATION_MAX,
@@ -119,7 +120,7 @@ export class SceneAnimator {
     // EvaporationEffect transfer/release members into/from the "dish"
     // container, and step 5/6's effects populate/empty the "glass2"
     // container.
-    private fluidContainers = new Map<"glass" | "glass2" | "dish", FluidContainer>();
+    private fluidContainers = new Map<"glass" | "glass2" | "dish" | "bottle" | "grinder", FluidContainer>();
     get liquidGroup(): PropGroup {
         return this.fluidContainers.get("glass")!.group;
     }
@@ -128,6 +129,17 @@ export class SceneAnimator {
     }
     get dishLiquidGroup(): PropGroup {
         return this.fluidContainers.get("dish")!.group;
+    }
+    get bottleLiquidGroup(): PropGroup {
+        return this.fluidContainers.get("bottle")!.group;
+    }
+    // Holds the ground seed dust as uniform "." powder particles once
+    // grinding finishes (see `startGrinding`'s `finish`), ready to be poured
+    // out like the bottle's ethanol. Empty until grinding completes. Not
+    // private: step 2's SeedPourEffect transfers members out of this group
+    // into `glassGroup`.
+    get grinderPowderGroup(): PropGroup {
+        return this.fluidContainers.get("grinder")!.group;
     }
     // Stir rod ids ("stirRod"/"stirRod2") whose pulse/vortex loop has been
     // stopped via `stopStirring` (e.g. once their countdown completes), even
@@ -216,6 +228,8 @@ export class SceneAnimator {
         );
         this.grinderBladeMember = this.grinderGroup.members[1];
 
+        this.fluidContainers.set("grinder", makeFluidContainer(compositor, "grinder-powder", grinderLayout));
+
         const glassLayout = INITIAL_LAYOUT.glass;
         this.glassGroup = new PropGroup(compositor, "powder", [], glassLayout, GLASS_PIVOT);
         this.fluidContainers.set("glass", makeFluidContainer(compositor, "liquid", glassLayout, GLASS_PIVOT));
@@ -230,6 +244,10 @@ export class SceneAnimator {
 
         const scraperLayout = INITIAL_LAYOUT.scraper;
         this.scraperGroup = new PropGroup(compositor, "scraper-clump", [], scraperLayout);
+
+        const bottleLayout = INITIAL_LAYOUT.bottle;
+        this.fluidContainers.set("bottle", makeFluidContainer(compositor, "bottle-liquid", bottleLayout));
+        this.fillBottleLiquid();
 
         compositor.viewOffsetX = this.currentViewOffset;
         compositor.render();
@@ -285,6 +303,8 @@ export class SceneAnimator {
         this.glass2Group.destroy();
         this.liquid2Group.destroy();
         this.scraperGroup.destroy();
+        this.bottleLiquidGroup.destroy();
+        this.grinderPowderGroup.destroy();
 
         const seedLayout = INITIAL_LAYOUT.seedPile;
         this.objects.set("seedPile", { id: "seedPile", sprite: SEED_SPRITE, ...seedLayout, visible: true });
@@ -310,6 +330,13 @@ export class SceneAnimator {
 
         const scraperLayout = this.objects.get("scraper")!;
         this.scraperGroup = new PropGroup(this.compositor, "scraper-clump", [], scraperLayout);
+
+        const grinderBodyLayout = this.objects.get("grinderBody")!;
+        this.fluidContainers.set("grinder", makeFluidContainer(this.compositor, "grinder-powder", grinderBodyLayout));
+
+        const bottleLayout = this.objects.get("bottle")!;
+        this.fluidContainers.set("bottle", makeFluidContainer(this.compositor, "bottle-liquid", bottleLayout));
+        this.fillBottleLiquid();
     }
 
     // Populates the "glass"/"glass2" fluid container with one "~" particle
@@ -327,6 +354,30 @@ export class SceneAnimator {
             angle: Math.atan2(relY, relX),
             radius: Math.hypot(relX, relY),
         }));
+    }
+
+    // Initializes the "glass" container's vortex state from its members'
+    // current rest offsets. Not private: called by step 2's BottlePourEffect
+    // once its GroupArcTransfer lands the bottle's ethanol particles in the
+    // glass, so they swirl like a `fillLiquidContainer`-filled glass once the
+    // stir rod starts.
+    initLiquidVortex(id: "glass" | "glass2"): void {
+        const container = this.fluidContainers.get(id)!;
+        container.vortex = container.group.members.map((member) => ({
+            angle: Math.atan2(member.relY, member.relX),
+            radius: Math.hypot(member.relX, member.relY),
+        }));
+    }
+
+    // Populates the "bottle" fluid container with one "~" particle per
+    // `BOTTLE_LIQUID_POSITIONS` entry, settled at rest. Called at construction
+    // (and rebuild) so the bottle starts full; step 2's BottlePourEffect drains
+    // it via GroupArcTransfer into the glass.
+    private fillBottleLiquid(): void {
+        const container = this.fluidContainers.get("bottle")!;
+        for (const [relX, relY] of BOTTLE_LIQUID_POSITIONS) {
+            container.group.addMember({ sprite: LIQUID_PARTICLE, relX, relY, relZ: 0 });
+        }
     }
 
     // Removes every particle from `glass2Group`/`liquid2Group` (the scraped
@@ -610,6 +661,7 @@ export class SceneAnimator {
 
             const grinderBody = this.objects.get("grinderBody")!;
             this.grinderGroup.setOrigin(grinderBody.x, grinderBody.y, grinderBody.z, grinderBody.rotation);
+            this.grinderPowderGroup.setOrigin(grinderBody.x, grinderBody.y, grinderBody.z, grinderBody.rotation);
 
             // Keep the powder/liquid groups tracking the glass's current
             // position every frame, regardless of step: empty groups (steps
@@ -631,6 +683,12 @@ export class SceneAnimator {
             const glass2 = this.objects.get("glass2")!;
             this.glass2Group.setOrigin(glass2.x, glass2.y, glass2.z, glass2.rotation);
             this.liquid2Group.setOrigin(glass2.x, glass2.y, glass2.z, glass2.rotation);
+
+            // Keep the bottle's liquid group tracking its position/rotation
+            // every frame, same as liquidGroup above, so the ethanol inside
+            // tips and pours along with the bottle.
+            const bottle = this.objects.get("bottle")!;
+            this.bottleLiquidGroup.setOrigin(bottle.x, bottle.y, bottle.z, bottle.rotation);
 
             for (const effect of effects) effect.tick(t, this);
 
@@ -846,7 +904,10 @@ export class SceneAnimator {
         const finish = (): void => {
             this.grinderGroup.setOrigin(this.grinderGroup.x, this.grinderGroup.y, this.grinderGroup.z, baseRotation);
             applyBladeRadius(this.grinderBladeMember.obj.sprite, 0);
-            for (const seed of seeds) seed.obj.sprite.cells[0].role = seedGrindRole(1);
+            for (const seed of seeds) {
+                seed.obj.sprite.cells[0].role = seedGrindRole(1);
+                this.grinderGroup.transferTo(seed, this.grinderPowderGroup, seed.relX, seed.relY, seed.relZ);
+            }
             if (!instant) this.compositor.render();
         };
 

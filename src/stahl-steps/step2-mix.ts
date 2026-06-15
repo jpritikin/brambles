@@ -15,9 +15,9 @@ import { rand } from "../rng";
 import {
     ACID_DROP,
     BOTTLE_REST_ROTATION,
-    ETHANOL_DROP,
     GLASS_POWDER_POSITIONS,
     INITIAL_LAYOUT,
+    LIQUID_POSITIONS,
     PANE_WIDTH,
     POUR_PROP_Y,
     PROP_PARK_Y,
@@ -65,8 +65,10 @@ export const BOTTLE_POUR_DURATION =
     BOTTLE_PRE_TIP_PAUSE_DURATION + BOTTLE_ROTATE_DURATION + BOTTLE_TIPPED_PAUSE_DURATION + BOTTLE_ROTATE_DURATION;
 // A final pause at rest, back over the glass, before ascending off-screen.
 export const BOTTLE_POST_POUR_PAUSE_DURATION = 500;
-export const BOTTLE_DROP_COUNT = 3;
-export const BOTTLE_DROP_FALL_DURATION = 500;
+
+// How long the ethanol particles take to arc from the bottle into the glass
+// once the pour begins (see BottlePourEffect).
+export const BOTTLE_POUR_FLIGHT_DURATION = 1000;
 
 // The stick sits still over the glass for STICK_PRE_POUR_PAUSE_DURATION
 // before its bowl tips to dump (STICK_DUMP_DURATION). Its descend/ascend
@@ -261,18 +263,18 @@ const STEP2_TIMELINE = concatSequences([...STEP2_POUR_SEQUENCES.map((p) => p.seq
 
 // The ground seed dust falling from the tipped grinder into the glass, once
 // it's done pausing above the glass. Wraps a `GroupArcTransfer` from
-// `anim.grinderGroup` (the seeds, attached since step 1's grind) to
-// `anim.glassGroup`, releasing/landing relative to `STEP2_GRINDER_OFFSET`'s
-// position in the shuffled timeline.
+// `anim.grinderPowderGroup` (the seeds, ground to powder and transferred there
+// at the end of step 1's grind) to `anim.glassGroup`, releasing/landing
+// relative to `STEP2_GRINDER_OFFSET`'s position in the shuffled timeline.
 class SeedPourEffect implements StepEffect {
     private transfer: GroupArcTransfer | null = null;
 
     tick(t: number, anim: SceneAnimator): void {
         if (!this.transfer) {
             const releaseT = STEP2_GRINDER_OFFSET + POUR_TIP_DURATION + POUR_PAUSE_DURATION;
-            const seedCount = anim.grinderGroup.members.length - 2;
+            const seedCount = anim.grinderPowderGroup.members.length;
             this.transfer = new GroupArcTransfer(
-                anim.grinderGroup,
+                anim.grinderPowderGroup,
                 anim.glassGroup,
                 releaseT,
                 POUR_FLIGHT_DURATION,
@@ -283,37 +285,39 @@ class SeedPourEffect implements StepEffect {
     }
 }
 
-// Drops a few ethanol particles from the bottle's spout into the glass once
-// the bottle's pause/pour phase begins (STEP2_BOTTLE_OFFSET +
-// bottlePourTravelDuration), and fills the glass with liquid particles once
-// the last drop lands.
+// Drains the bottle's ethanol particles into the glass via a GroupArcTransfer
+// once the bottle's pause/pour phase begins (STEP2_BOTTLE_OFFSET +
+// bottlePourTravelDuration), then initializes the glass's vortex state once
+// they land.
 class BottlePourEffect implements StepEffect {
-    private spawned = false;
-    private filled: boolean;
-    private readonly dropStart =
-        STEP2_BOTTLE_OFFSET + bottlePourTravelDuration(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET);
-    private readonly fillT =
-        this.dropStart + ((BOTTLE_DROP_COUNT - 1) * BOTTLE_POUR_DURATION) / BOTTLE_DROP_COUNT + BOTTLE_DROP_FALL_DURATION;
+    private transfer: GroupArcTransfer | null = null;
+    private vortexInitialized: boolean;
+    // Releases once the bottle has arrived, paused, and tipped over to pour.
+    private readonly releaseT =
+        STEP2_BOTTLE_OFFSET +
+        bottlePourTravelDuration(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET) +
+        BOTTLE_PRE_TIP_PAUSE_DURATION +
+        BOTTLE_ROTATE_DURATION;
 
     constructor(anim: SceneAnimator) {
-        this.filled = anim.liquidGroup.members.length > 0;
+        this.vortexInitialized = anim.liquidGroup.members.length > 0;
     }
 
     tick(t: number, anim: SceneAnimator): void {
-        if (!this.spawned && t >= this.dropStart) {
-            const bottle = anim.getObject("bottle");
-            const glass = anim.getObject("glass");
-            for (let i = 0; i < BOTTLE_DROP_COUNT; i++) {
-                const from: ObjectLayout = { x: bottle.x, y: bottle.y, z: bottle.z - 1, rotation: 0 };
-                const to: ObjectLayout = { x: glass.x + (i - 1), y: glass.y + 1, z: glass.z - 1, rotation: 0 };
-                const dropStart = t + (i * BOTTLE_POUR_DURATION) / BOTTLE_DROP_COUNT;
-                anim.spawnDrop(ETHANOL_DROP, from, to, dropStart, BOTTLE_DROP_FALL_DURATION);
-            }
-            this.spawned = true;
+        if (!this.transfer) {
+            const count = anim.bottleLiquidGroup.members.length;
+            this.transfer = new GroupArcTransfer(
+                anim.bottleLiquidGroup,
+                anim.liquidGroup,
+                this.releaseT,
+                BOTTLE_POUR_FLIGHT_DURATION,
+                LIQUID_POSITIONS.slice(0, count),
+            );
         }
-        if (!this.filled && t >= this.fillT) {
-            anim.fillLiquidContainer("glass");
-            this.filled = true;
+        this.transfer.tick(t);
+        if (!this.vortexInitialized && this.transfer.isLanded) {
+            anim.initLiquidVortex("glass");
+            this.vortexInitialized = true;
         }
     }
 }
