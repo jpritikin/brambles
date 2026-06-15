@@ -1,5 +1,5 @@
 ---
-title: Tetrahydroharmine
+title: THH💎
 bookToc: false
 weight: 1
 ---
