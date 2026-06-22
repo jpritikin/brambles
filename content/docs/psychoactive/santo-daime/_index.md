@@ -25,7 +25,7 @@ There are a number of areas that I think could be improved.
 
 Before suggesting improvements, let's talk about Daime.
 
-Daime contains three psychoactive substances with different durations.[^harmaline] This makes it possible to attribute what you feel to specific compounds.
+Daime contains three psychoactive substances with different durations.[^harmaline][^callaway2005] This makes it possible to attribute what you feel to specific compounds.
 
 **DMT** produces the acute visionary experience. It is metabolized quickly: onset within 30–60 minutes of ingestion, fully resolved within 2–3 hours.
 
@@ -278,9 +278,9 @@ Guess what this gesture means.
 [^muraresku2020]: It could be argued that the respectability of Santo Daime was in part due to its embrace of Christianity. Christian missionaries have often violently crushed traditions centered around the use of psychoactive sacraments that did not acknowlege Christianity (Muraresku 2020).
     - Muraresku, B. C. (2020). *The Immortality Key: The Secret History of the Religion with No Name.* St. Martin's Press.
 
-[^picot2020]: Picot, C., Berard, A., Grenet, G., Ripoche, E., Cucherat, M., & Cottin, J. (2020). Risk of malformation after ondansetron in pregnancy: An updated systematic review and meta‐analysis. *Birth Defects Research, 112*(13), 996-1013.
+[^picot2020]: Picot, C., Berard, A., Grenet, G., Ripoche, E., Cucherat, M., & Cottin, J. (2020). Risk of malformation after ondansetron in pregnancy: An updated systematic review and meta‐analysis. *Birth Defects Research, 112*(13), 996–1013.
 
-[^macrae1998]: MacRae, E. (1998). Santo Daime and Santa Maria–The licit ritual use of ayabuasca and the illicit use of cannabis in a Brazilian Amazonian religion. *International Journal of Drug Policy, 9*(5), 325-338.
+[^macrae1998]: MacRae, E. (1998). Santo Daime and Santa Maria–The licit ritual use of ayabuasca and the illicit use of cannabis in a Brazilian Amazonian religion. *International Journal of Drug Policy, 9*(5), 325–338.
 
 [^weiss2018]: [Everything You Need to Avoid Before You Take Ayahuasca](https://www.vice.com/en/article/pawkek/what-not-to-eat-or-take-before-ayahuasca)
 
@@ -289,8 +289,10 @@ Guess what this gesture means.
 [^stone1998]: [Continuous Partial Attention](https://en.wikipedia.org/wiki/Continuous_partial_attention)
 
 [^fiber]: You can access a 2018 fiber database [here](1-s2.0-S0889157518301182-mmc1.xlsx). I received this file from Eleanor Beck on 20 Nov 2024. She said that I could share it.
-    - Fuller, S., Tapsell, L. C., & Beck, E. J. (2018). Creation of a fibre categories database to quantify different dietary fibres. *Journal of Food Composition and Analysis, 71*, 36-43.
+    - Fuller, S., Tapsell, L. C., & Beck, E. J. (2018). Creation of a fibre categories database to quantify different dietary fibres. *Journal of Food Composition and Analysis, 71*, 36–43.
 
 [^harmaline]: Brews also contain [harmaline](https://en.wikipedia.org/wiki/Harmaline), but typically only 0–20mg per serving. Harmaline produces uncomfortable sleepiness and does not contribute anything important to the psychoactive effects ([Stahl 2026]({{< relref "stahl-shrine" >}}), p. 184).
 
 [^dawson2013]: Dawson, A. (2013). *Santo Daime: A New World Religion.*  Bloomsbury Academic.
+
+[^callaway2005]: Callaway, J. C. (2005). Various alkaloid profiles in decoctions of Banisteriopsis caapi. *Journal of Psychoactive Drugs*, *37*(2), 151–155.
