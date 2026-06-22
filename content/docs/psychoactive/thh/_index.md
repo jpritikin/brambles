@@ -29,7 +29,7 @@ Since it's hard to tell 5mg from 300mg at baseline, judging THH's intensity seem
 
 ## Tolerability
 
-Ables et al. (2024) found that many people seem able to tolerate a dose of 300mg of harmine.[^ables2024] Above that, nausea and other unpleasant effects can occur, but nothing life-threatening.
+No tolerability study of pure THH exists. However, harmine—a closely related beta-carboline—has been tested: Ables et al. (2024) found that healthy volunteers tolerated doses up to 300mg of harmine.[^ables2024] Above that, nausea and other unpleasant effects can occur, but nothing life-threatening. THH and harmine are not identical molecules, so these results are suggestive rather than definitive for THH.
 
 ## Notes
 
