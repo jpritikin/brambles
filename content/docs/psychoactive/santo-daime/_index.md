@@ -25,7 +25,7 @@ There are a number of areas that I think could be improved.
 
 Before suggesting improvements, let's talk about Daime.
 
-Daime contains three psychoactive substances with different durations. This makes it possible to attribute what you feel to specific compounds.
+Daime contains three psychoactive substances with different durations.[^harmaline] This makes it possible to attribute what you feel to specific compounds.
 
 **DMT** produces the acute visionary experience. It is metabolized quickly: onset within 30–60 minutes of ingestion, fully resolved within 2–3 hours.
 
@@ -290,5 +290,7 @@ Guess what this gesture means.
 
 [^fiber]: You can access a 2018 fiber database [here](1-s2.0-S0889157518301182-mmc1.xlsx). I received this file from Eleanor Beck on 20 Nov 2024. She said that I could share it.
     - Fuller, S., Tapsell, L. C., & Beck, E. J. (2018). Creation of a fibre categories database to quantify different dietary fibres. *Journal of Food Composition and Analysis, 71*, 36-43.
+
+[^harmaline]: Brews also contain [harmaline](https://en.wikipedia.org/wiki/Harmaline), but typically only 0–20mg per serving. Harmaline produces uncomfortable sleepiness and does not contribute anything important to the psychoactive effects ([Stahl 2026]({{< relref "stahl-shrine" >}}), p. 184).
 
 [^dawson2013]: Dawson, A. (2013). *Santo Daime: A New World Religion.*  Bloomsbury Academic.
