@@ -449,9 +449,11 @@ export class PropGroup {
         }
     }
 
-    // Detaches `member` from the group's shared transform so it can be
-    // animated independently (e.g. falling into a glass). Its current
-    // x/y/z/rotation are left as-is as the starting point for that animation.
+    clear(): void {
+        for (const m of this.members) this.compositor.removeObject(m.obj.id);
+        this.members.length = 0;
+    }
+
     release(member: PropGroupMember): void {
         member.released = true;
     }

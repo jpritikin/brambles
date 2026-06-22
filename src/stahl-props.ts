@@ -168,6 +168,22 @@ export const LIQUID_VORTEX_SPEED = TAU * 0.6;
 
 // A single "~" liquid particle (see LIQUID_POSITIONS).
 export const LIQUID_PARTICLE: Sprite = { cells: [cell(0, 0, staticRole("~"))] };
+export const POWDER_PARTICLE: Sprite = { cells: [cell(0, 0, staticRole("."))] };
+
+// 3D fluid sim grid resolution for the glass interior.
+// radius = grid cells from center to wall; height = total vertical cells.
+// The grid is (2*radius+1) × height × (2*radius+1), revolved from the profile.
+export const GLASS_FLUID_DIMS = { radius: 5, height: 10 };
+export const GLASS_FLUID_FILL = 0.95;
+
+// Interior polygon for the glass's fluid sim boundary (GLASS_POINTS inset by
+// the same 1-unit margin LIQUID_POSITIONS uses).
+export const GLASS_INTERIOR_MARGIN = 0;
+
+// Stir impulse constants (replacements for LIQUID_VORTEX_RADIUS/_SPEED in the
+// fluid sim's coordinate space).
+export const STIR_IMPULSE_RADIUS = 2;
+export const STIR_IMPULSE_STRENGTH = 140;
 
 // ---------------------------------------------------------------------------
 // Stir rod (steps 2, 5)

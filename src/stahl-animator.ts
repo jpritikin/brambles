@@ -6,10 +6,15 @@
 import { type PropGroupMember, type SceneObject, type Sprite, Compositor, PropGroup } from "./ascii-compositor";
 import { rand } from "./rng";
 import { applyBladeRadius, arcLerp, bladePulseRadius, boundingAspectRatio, MemberFlight, ouStep, runFrames, seedGrindRole, textSprite } from "./ascii-sprites";
+import { type FluidSim, type StirImpulse, makeFluidSim, fillFluidSim, seedFluidFromPositions, seedPowderAtBottom, stepFluid, projectFluidSim, gridToRel, interiorBounds } from "./fluid-sim";
 import {
     BOTTLE_LIQUID_POSITIONS,
+    GLASS_FLUID_DIMS,
+    GLASS_FLUID_FILL,
+    GLASS_INTERIOR_MARGIN,
     GLASS_PIVOT,
     GLASS_POINTS,
+    GLASS_POWDER_POSITIONS,
     GRIND_DURATION_MAX,
     GRIND_DURATION_MIN,
     GRIND_SCATTER_X,
@@ -23,11 +28,14 @@ import {
     INITIAL_LAYOUT,
     LIQUID_PARTICLE,
     LIQUID_POSITIONS,
+    POWDER_PARTICLE,
     LIQUID_VORTEX_RADIUS,
     LIQUID_VORTEX_SPEED,
     PANE_WIDTH,
     SEED_PILE_POSITIONS,
     SEED_SPRITE,
+    STIR_IMPULSE_RADIUS,
+    STIR_IMPULSE_STRENGTH,
     SPRITES,
     STEP_PAUSE_DURATION,
     TAU,
@@ -61,6 +69,7 @@ function shortestAngleLerp(a: number, b: number, t: number): number {
 // the liquid swirl in an ellipse matching the glass's proportions rather
 // than a circle.
 const GLASS_ASPECT_RATIO = boundingAspectRatio(GLASS_POINTS);
+const GLASS_INTERIOR = interiorBounds(GLASS_POINTS, GLASS_INTERIOR_MARGIN);
 
 // One container of "~" liquid particles (glass1, glass2, or the dish), plus
 // its per-particle vortex state (parallel to `group.members`, unused/empty
@@ -68,6 +77,7 @@ const GLASS_ASPECT_RATIO = boundingAspectRatio(GLASS_POINTS);
 interface FluidContainer {
     group: PropGroup;
     vortex: Array<{ angle: number; radius: number }>;
+    sim?: FluidSim;
 }
 
 function makeFluidContainer(
@@ -141,6 +151,11 @@ export class SceneAnimator {
     get grinderPowderGroup(): PropGroup {
         return this.fluidContainers.get("grinder")!.group;
     }
+    getGlassFluidSim(): FluidSim | undefined {
+        return this.fluidContainers.get("glass")?.sim;
+    }
+    stirStrengthOverride: number | null = null;
+    fillLevelOverride: number | null = null;
     // Stir rod ids ("stirRod"/"stirRod2") whose pulse/vortex loop has been
     // stopped via `stopStirring` (e.g. once their countdown completes), even
     // though the rod itself remains visible in place.
@@ -347,6 +362,14 @@ export class SceneAnimator {
     // lands.
     fillLiquidContainer(id: "glass" | "glass2"): void {
         const container = this.fluidContainers.get(id)!;
+        if (id === "glass") {
+            container.sim = makeFluidSim(GLASS_FLUID_DIMS, GLASS_POINTS);
+            fillFluidSim(container.sim, this.fillLevelOverride ?? GLASS_FLUID_FILL);
+            seedPowderAtBottom(container.sim, GLASS_POWDER_POSITIONS.length);
+            this.glassGroup.clear();
+            this.syncLiquidParticles(container);
+            return;
+        }
         for (const [relX, relY] of LIQUID_POSITIONS) {
             container.group.addMember({ sprite: LIQUID_PARTICLE, relX, relY, relZ: 0 });
         }
@@ -363,6 +386,13 @@ export class SceneAnimator {
     // stir rod starts.
     initLiquidVortex(id: "glass" | "glass2"): void {
         const container = this.fluidContainers.get(id)!;
+        if (id === "glass") {
+            container.sim = makeFluidSim(GLASS_FLUID_DIMS, GLASS_POINTS);
+            fillFluidSim(container.sim, this.fillLevelOverride ?? GLASS_FLUID_FILL);
+            seedPowderAtBottom(container.sim, GLASS_POWDER_POSITIONS.length);
+            this.glassGroup.clear();
+            return;
+        }
         container.vortex = container.group.members.map((member) => ({
             angle: Math.atan2(member.relY, member.relX),
             radius: Math.hypot(member.relX, member.relY),
@@ -947,12 +977,62 @@ export class SceneAnimator {
                     applyBladeRadius(obj.sprite, radius);
                 }
             }
-            if (stirring && !this.stoppedStirring.has("stirRod")) this.updateVortex(this.fluidContainers.get("glass")!, dt);
+            if (stirring && !this.stoppedStirring.has("stirRod")) this.updateFluid(this.fluidContainers.get("glass")!, dt, true);
             if (stirring2 && !this.stoppedStirring.has("stirRod2")) this.updateVortex(this.fluidContainers.get("glass2")!, dt);
             this.compositor.render();
             this.rafHandle = requestAnimationFrame(tick);
         };
         this.rafHandle = requestAnimationFrame(tick);
+    }
+
+    private fluidDebugCounter = 0;
+
+    private updateFluid(container: FluidContainer, dt: number, stirring: boolean): void {
+        if (!container.sim) { this.updateVortex(container, dt); return; }
+        const sim = container.sim;
+        const stir: StirImpulse | null = stirring && sim.bounds
+            ? { cx: sim.bounds.cx, cz: sim.bounds.cz, cy: sim.dims.height - 3, yRadius: 3, radius: STIR_IMPULSE_RADIUS, strength: this.stirStrengthOverride ?? STIR_IMPULSE_STRENGTH }
+            : null;
+        stepFluid(sim, dt, stir);
+        this.syncLiquidParticles(container);
+        if (++this.fluidDebugCounter % 60 === 0) {
+            const ethanol = sim.particles.filter(p => p.kind === "ethanol").length;
+            const powder = sim.particles.filter(p => p.kind === "powder").length;
+            let maxV = 0;
+            for (const p of sim.particles) {
+                const s = Math.sqrt(p.vx ** 2 + p.vy ** 2 + p.vz ** 2);
+                if (s > maxV) maxV = s;
+            }
+            console.log(`[fluid] members=${container.group.members.length} ethanol=${ethanol} powder=${powder} maxV=${maxV.toFixed(2)} stir=${!!stir} dt=${dt.toFixed(3)}`);
+        }
+    }
+
+    private syncLiquidParticles(container: FluidContainer): void {
+        const projected = projectFluidSim(container.sim!);
+        const dims = container.sim!.dims;
+        let memberIdx = 0;
+        for (let x = 0; x < dims.width; x++) {
+            for (let y = 0; y < dims.height; y++) {
+                const cell = projected[x][y];
+                if (!cell) continue;
+                const sprite = cell.material === "powder" ? POWDER_PARTICLE : LIQUID_PARTICLE;
+                const [relX, relY] = gridToRel(x, y, dims, GLASS_INTERIOR);
+                if (memberIdx < container.group.members.length) {
+                    const m = container.group.members[memberIdx];
+                    m.relX = relX;
+                    m.relY = relY;
+                    m.obj.sprite = sprite;
+                } else {
+                    container.group.addMember({ sprite, relX, relY, relZ: 0 });
+                }
+                memberIdx++;
+            }
+        }
+        while (container.group.members.length > memberIdx) {
+            const m = container.group.members.pop()!;
+            this.compositor.removeObject(m.obj.id);
+        }
+        container.group.applyOrigin();
     }
 
     // While a stir rod is active, swirls each of `container`'s liquid

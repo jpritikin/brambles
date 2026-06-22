@@ -85,9 +85,10 @@ export function projectGrid<M extends string>(
 // Replaces the hardcoded `staticRole("~")` used for every liquid particle
 // today — the sim's projected grid picks a role per cell based on what's
 // actually visible there (ethanol vs. a seed fragment vs. residue, etc.).
-const MATERIAL_GLYPHS: Record<string, string> = {
+export const MATERIAL_GLYPHS: Record<string, string> = {
   ethanol: "~",
   water: "~",
+  powder: ".",
   seedFragment: ".",
   barleyPowder: ".",
   residue: "@",

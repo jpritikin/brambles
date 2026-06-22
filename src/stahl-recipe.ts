@@ -5,6 +5,7 @@
 // the two via the compositor.
 
 import { Compositor } from "./ascii-compositor";
+import { initFluidDebug3D } from "./fluid-debug-3d";
 import { GRID_HEIGHT, GRID_WIDTH, PANE_WIDTH, SceneAnimator, STEPS } from "./stahl-scene";
 import { SLIDESHOW_REVEALED_EVENT } from "./stahl-events";
 
@@ -94,6 +95,7 @@ function init(): void {
   if (!container || steps.length !== STEPS.length) return;
 
   const animator = buildScene(container);
+  initFluidDebug3D(animator);
 
   function selectStep(index: number): void {
     steps.forEach((el, i) => el.classList.toggle("recipe-step-active", i === index));
