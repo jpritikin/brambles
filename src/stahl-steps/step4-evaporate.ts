@@ -8,14 +8,20 @@
 // starts a beat after the glass lands, and spins until the liquid is gone.
 
 import { type PropGroupMember } from "../ascii-compositor";
-import { arcLerp, GroupArcTransfer } from "../ascii-sprites";
+import { arcLerp } from "../ascii-sprites";
 import { rand } from "../rng";
 import {
     DISH_LIQUID_POSITIONS,
     DISH_RESIDUE_PARTICLE,
     DISH_WIDTH,
+    GLASS_HEIGHT,
+    GLASS_PIVOT,
+    GLASS_POWDER_POSITIONS,
+    GLASS_WIDTH,
     INITIAL_LAYOUT,
+    LIQUID_PARTICLE,
     PANE_WIDTH,
+    POWDER_PARTICLE,
     PROP_PARK_Y,
     type ObjectLayout,
 } from "../stahl-props";
@@ -60,8 +66,14 @@ export const STEP4_GLASS_ARC_HEIGHT = 2.5;
 export const STEP4_POUR_X = 7.5 + 4 * PANE_WIDTH - DISH_WIDTH / 2 + 1.5 - 8;
 export const STEP4_POUR_Y = 5 - 3;
 export const STEP4_POUR_ROTATION = TAU * (110 / 360);
-export const STEP4_GLASS_TIP_DURATION = 500;
-export const STEP4_POUR_DURATION = 800;
+export const STEP4_GLASS_TIP_DURATION = 2400;
+// The pour starts partway through the tip (once tilted enough) and finishes
+// at STEP4_POUR_DURATION after STEP4_POUR_START. Particles release in small
+// batches spread across this window for a gradual stream.
+export const STEP4_POUR_START_FRACTION = 0.15;
+export const STEP4_POUR_DURATION = 2400;
+const POUR_RELEASE_FRACTION = 0.2;
+const POUR_FLIGHT_DURATION = 1000;
 
 // How long the glass pauses tipped over the dish (after the last drop lands)
 // before rotating back upright, and how long that rotation back takes (also
@@ -85,8 +97,9 @@ export const STEP4_FAN_START_DELAY = 1000;
 const STEP4_COVER_LIFT_END = STEP4_COVER_LIFT_DURATION;
 const STEP4_PRE_POUR_PAUSE_END = STEP4_COVER_LIFT_END + STEP4_PRE_POUR_PAUSE;
 const STEP4_GLASS_ARC_END = STEP4_PRE_POUR_PAUSE_END + STEP4_GLASS_ARC_DURATION;
+const STEP4_POUR_START = STEP4_GLASS_ARC_END + STEP4_GLASS_TIP_DURATION * STEP4_POUR_START_FRACTION;
 const STEP4_GLASS_TIP_END = STEP4_GLASS_ARC_END + STEP4_GLASS_TIP_DURATION;
-const STEP4_POUR_END = STEP4_GLASS_TIP_END + STEP4_POUR_DURATION;
+const STEP4_POUR_END = Math.max(STEP4_GLASS_TIP_END, STEP4_POUR_START + STEP4_POUR_DURATION * POUR_RELEASE_FRACTION + POUR_FLIGHT_DURATION);
 const STEP4_POUR_TO_RETURN_PAUSE_END = STEP4_POUR_END + STEP4_POUR_TO_RETURN_PAUSE;
 const STEP4_GLASS_RIGHT_END = STEP4_POUR_TO_RETURN_PAUSE_END + STEP4_GLASS_RIGHT_DURATION;
 const STEP4_RIGHT_TO_RETURN_PAUSE_END = STEP4_GLASS_RIGHT_END + STEP4_RIGHT_TO_RETURN_PAUSE;
@@ -147,28 +160,108 @@ class GlassLiftArcEffect implements StepEffect {
     }
 }
 
-// Transfers `anim.liquidGroup`'s particles into `anim.dishLiquidGroup` once
-// the glass has tipped over the dish (after the cover lift, pre-pour pause,
-// glass lift-arc, and tip phases), arcing each into its DISH_LIQUID_POSITIONS
-// rest offset over STEP4_POUR_DURATION.
+// Gradually pours liquid ("~") particles from `anim.liquidGroup` into
+// `anim.dishLiquidGroup` as the glass tips. Particles release in small
+// batches spread across STEP4_POUR_DURATION starting at STEP4_POUR_START
+// (partway through the tip), each arcing individually to the dish.
+// Powder ("." seed fragment) particles stay in the glass.
+interface PouringParticle {
+    member: PropGroupMember;
+    releaseT: number;
+    from: ObjectLayout;
+    targetRelX: number;
+    targetRelY: number;
+    landed: boolean;
+}
+
+const DROP_INTERVAL = 250;
+
 class LiquidPourEffect implements StepEffect {
-    private transfer: GroupArcTransfer | null = null;
+    private initialized = false;
+    private particles: PouringParticle[] = [];
+    private allLanded = false;
+    private powderAdded = false;
+    private nextDropT = 0;
 
     get isLanded(): boolean {
-        return this.transfer?.isLanded ?? false;
+        return this.allLanded;
     }
 
     tick(t: number, anim: SceneAnimator): void {
-        if (!this.transfer) {
-            this.transfer = new GroupArcTransfer(
-                anim.liquidGroup,
-                anim.dishLiquidGroup,
-                STEP4_GLASS_TIP_END,
-                STEP4_POUR_DURATION,
-                DISH_LIQUID_POSITIONS.map(([relX, relY]): [number, number, number] => [relX, relY, 0]),
+        if (this.allLanded) return;
+        if (t < STEP4_POUR_START) return;
+
+        if (!this.initialized) {
+            const liquidMembers = anim.liquidGroup.members.filter(
+                (m) => m.obj.sprite === LIQUID_PARTICLE,
             );
+            const count = liquidMembers.length;
+            const releaseDuration = STEP4_POUR_DURATION * POUR_RELEASE_FRACTION;
+            for (let i = 0; i < count; i++) {
+                const releaseT = STEP4_POUR_START + (releaseDuration * i) / Math.max(1, count - 1);
+                const targetIdx = Math.min(i, DISH_LIQUID_POSITIONS.length - 1);
+                const [relX, relY] = DISH_LIQUID_POSITIONS[targetIdx];
+                this.particles.push({
+                    member: liquidMembers[i],
+                    releaseT,
+                    from: { x: 0, y: 0, z: 0, rotation: 0 },
+                    targetRelX: relX,
+                    targetRelY: relY,
+                    landed: false,
+                });
+            }
+            this.nextDropT = STEP4_POUR_START;
+            this.initialized = true;
         }
-        this.transfer.tick(t);
+
+        const releaseDuration = STEP4_POUR_DURATION * POUR_RELEASE_FRACTION;
+        const releaseEnd = STEP4_POUR_START + releaseDuration;
+
+        if (t >= this.nextDropT && t <= releaseEnd + POUR_FLIGHT_DURATION && !anim.instant) {
+            const glass = anim.getObject("glass");
+            const dish = anim.getObject("dish");
+            const [pivotX, pivotY] = GLASS_PIVOT;
+            const lipX = -GLASS_WIDTH / 2 - pivotX;
+            const lipY = -GLASS_HEIGHT / 2 - pivotY;
+            const cos = Math.cos(glass.rotation);
+            const sin = Math.sin(glass.rotation);
+            const worldLipX = glass.x + pivotX + lipX * cos - lipY * sin;
+            const worldLipY = glass.y + pivotY + lipX * sin + lipY * cos;
+            const from: ObjectLayout = { x: worldLipX, y: worldLipY, z: STEP4_GLASS_RAISED_Z + 1, rotation: 0 };
+            const to: ObjectLayout = { x: dish.x, y: dish.y - 1, z: STEP4_GLASS_RAISED_Z + 1, rotation: 0 };
+            anim.spawnDrop(LIQUID_PARTICLE, from, to, t, POUR_FLIGHT_DURATION, 0);
+            this.nextDropT = t + DROP_INTERVAL;
+        }
+
+        for (const p of this.particles) {
+            if (p.landed) continue;
+            if (t < p.releaseT) continue;
+
+            if (!p.member.released) {
+                anim.liquidGroup.release(p.member);
+                p.member.obj.visible = false;
+            }
+
+            if (t >= p.releaseT + POUR_FLIGHT_DURATION) {
+                anim.liquidGroup.transferTo(p.member, anim.dishLiquidGroup, p.targetRelX, p.targetRelY, -1);
+                p.member.obj.visible = true;
+                p.landed = true;
+            }
+        }
+
+        if (this.particles.length > 0 && this.particles.every(p => p.landed)) {
+            anim.dishLiquidGroup.setOrigin(
+                anim.dishLiquidGroup.x, anim.dishLiquidGroup.y,
+                anim.dishLiquidGroup.z, anim.dishLiquidGroup.rotation,
+            );
+            if (!this.powderAdded) {
+                for (const [relX, relY] of GLASS_POWDER_POSITIONS) {
+                    anim.liquidGroup.addMember({ sprite: POWDER_PARTICLE, relX, relY, relZ: 0 });
+                }
+                this.powderAdded = true;
+            }
+            this.allLanded = true;
+        }
     }
 }
 
@@ -206,10 +299,10 @@ class EvaporationEffect implements StepEffect {
         if (!this.pour.isLanded || this.fanSpin.startedAt === null) return;
 
         if (!this.particles) {
-            this.particles = anim.dishLiquidGroup.members.map((member, i) => ({
+            this.particles = anim.dishLiquidGroup.members.map((member) => ({
                 member,
-                restX: DISH_LIQUID_POSITIONS[i][0],
-                restY: DISH_LIQUID_POSITIONS[i][1],
+                restX: member.relX,
+                restY: member.relY,
                 evaporateAt: this.fanSpin.startedAt! + EVAPORATE_DELAY_MIN + rand() * (EVAPORATE_DELAY_MAX - EVAPORATE_DELAY_MIN),
                 phase: "pending",
                 phaseStart: t,

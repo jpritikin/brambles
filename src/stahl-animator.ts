@@ -183,6 +183,8 @@ export class SceneAnimator {
     // first fast-forward steps `currentStepIndex+1 .. N-1` to their resting
     // states before animating step N normally.
     private currentStepIndex = 0;
+    private _instant = false;
+    get instant(): boolean { return this._instant; }
     // Pending STEP_PAUSE_DURATION pause between the viewport settling and the
     // step's transition starting, set by `playStep` and cleared by `stop`.
     private pauseTimeout: number | null = null;
@@ -334,16 +336,16 @@ export class SceneAnimator {
         this.seedFlight = new MemberFlight(this.seedGroup, SEED_PILE_POSITIONS, 2, 4, 16);
 
         const glassLayout = this.objects.get("glass")!;
-        this.glassGroup = new PropGroup(this.compositor, "powder", [], glassLayout);
-        this.fluidContainers.set("glass", makeFluidContainer(this.compositor, "liquid", glassLayout));
+        this.glassGroup = new PropGroup(this.compositor, "powder", [], glassLayout, GLASS_PIVOT);
+        this.fluidContainers.set("glass", makeFluidContainer(this.compositor, "liquid", glassLayout, GLASS_PIVOT));
 
         const dishLayout = this.objects.get("dish")!;
         this.fluidContainers.set("dish", makeFluidContainer(this.compositor, "dish-liquid", dishLayout));
         this.dishResidueGroup = new PropGroup(this.compositor, "dish-residue", [], dishLayout);
 
         const glass2Layout = this.objects.get("glass2")!;
-        this.glass2Group = new PropGroup(this.compositor, "powder2", [], glass2Layout);
-        this.fluidContainers.set("glass2", makeFluidContainer(this.compositor, "liquid2", glass2Layout));
+        this.glass2Group = new PropGroup(this.compositor, "powder2", [], glass2Layout, GLASS_PIVOT);
+        this.fluidContainers.set("glass2", makeFluidContainer(this.compositor, "liquid2", glass2Layout, GLASS_PIVOT));
 
         const scraperLayout = this.objects.get("scraper")!;
         this.scraperGroup = new PropGroup(this.compositor, "scraper-clump", [], scraperLayout);
@@ -666,6 +668,7 @@ export class SceneAnimator {
         snapped?: ReturnType<SceneAnimator["snapToInitial"]>,
         onFrame?: (elapsed: number, anim: SceneAnimator) => void,
     ): void {
+        this._instant = instant;
         const { timelines, isSeedFlight, flightStart, flightEnd } = snapped ?? this.snapToInitial(step, index);
         const endViewOffset = (index - 1) * PANE_WIDTH;
         const effects = step.effects?.(this) ?? [];
@@ -737,6 +740,8 @@ export class SceneAnimator {
             step.transitionDuration,
             frame,
             () => {
+                this._instant = false;
+                this.instantFilled.clear();
                 if (instant) {
                     if (isSeedFlight) this.startGrinding(true);
                 } else {
@@ -838,7 +843,15 @@ export class SceneAnimator {
         sim.particles.push({ x: cx, y: 0, z: cz, vx: 0, vy: 3, vz: 0, kind: "ethanol" });
     }
 
+    private instantFilled = new Set<string>();
     stepFluidSettling(id: "glass" | "glass2", dt: number): void {
+        if (this._instant) {
+            if (!this.instantFilled.has(id)) {
+                this.fillLiquidContainer(id);
+                this.instantFilled.add(id);
+            }
+            return;
+        }
         const container = this.fluidContainers.get(id)!;
         if (container.sim) this.updateFluid(container, dt, false);
     }
@@ -899,10 +912,10 @@ export class SceneAnimator {
     // until it lands, at which point `updateDrops` removes it from the
     // compositor. Not private: called by step 2's BottlePourEffect/
     // StickPourEffect to spawn ethanol/acid drops.
-    spawnDrop(sprite: Sprite, from: ObjectLayout, to: ObjectLayout, startT: number, duration: number): void {
+    spawnDrop(sprite: Sprite, from: ObjectLayout, to: ObjectLayout, startT: number, duration: number, arcHeight = 2): void {
         const obj: SceneObject = { id: `drop-${this.nextDropId++}`, sprite, ...from, visible: true };
         this.compositor.setObject(obj);
-        this.dropAnimations.push({ obj, from, to, startT, duration });
+        this.dropAnimations.push({ obj, from, to, startT, duration, arcHeight });
     }
 
     // Advances every pending/active drop particle for transition-elapsed time
@@ -913,7 +926,7 @@ export class SceneAnimator {
         this.dropAnimations = this.dropAnimations.filter((drop) => {
             if (t < drop.startT) return true;
             const span = drop.duration > 0 ? Math.min(1, (t - drop.startT) / drop.duration) : 1;
-            Object.assign(drop.obj, arcLerp(drop.from, drop.to, span, 2));
+            Object.assign(drop.obj, arcLerp(drop.from, drop.to, span, drop.arcHeight));
             if (span >= 1) {
                 this.compositor.removeObject(drop.obj.id);
                 return false;

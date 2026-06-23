@@ -77,6 +77,7 @@ export interface DropAnimation {
     to: ObjectLayout;
     startT: number;
     duration: number;
+    arcHeight: number;
 }
 
 // A self-contained per-frame side effect for a step's transition, beyond the
