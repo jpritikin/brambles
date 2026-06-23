@@ -35,6 +35,6 @@ No tolerability study of pure THH exists. However, harmine—a closely related b
 
 [^tihkal]: Shulgin, A., & Shulgin, A. (1997). *TiHKAL: The Continuation.* Transform Press.
 
-[^novisuals]: I do not experience anything like the visuals that [Stahl (2026)]({{< relref "docs/psychoactive/stahl-shrine" >}}) described on page 161. This also makes me think of 5-MAPB—it doesn't do much for me because the MDMA headspace is similar to my typical state of mind already.
+[^novisuals]: I do not experience anything like the visuals that [Stahl (2026)]({{< relref "docs/psychoactive/stahl-shrine" >}}) described on pages 161 and 170. This also makes me think of 5-MAPB—it doesn't do much for me because the MDMA headspace is similar to my typical state of mind already.
 
 [^ables2024]: Ables, J. L., Israel, L., Wood, O., Govindarajulu, U., Fremont, R. T., Banerjee, R., ... & Stewart, A. F. (2024). A Phase 1 single ascending dose study of pure oral harmine in healthy volunteers. *Journal of Psychopharmacology, 38*(10), 911-923.
