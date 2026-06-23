@@ -31,7 +31,7 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 - 25 HBWR (*Argyreia nervosa*, Hawaiian baby woodrose) seeds
 - 40mg tartaric acid (30mg + 10mg)
 - 30ml of 95% ethanol (or purer)
-- 3g young barley grass powder
+- 3g young barley grass powder (**must** be fresh; look for individually sealed packets)
 - 60ml holy water
 
 **Tools of the Rite**
