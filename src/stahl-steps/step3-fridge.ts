@@ -207,10 +207,24 @@ export class IceParticleEffect implements StepEffect {
     }
 }
 
+class FluidSettleEffect implements StepEffect {
+    private lastT: number | null = null;
+
+    constructor(private coverDrop: CoverDropEffect) {}
+
+    tick(t: number, anim: SceneAnimator): void {
+        if (!this.coverDrop.isLanded) { this.lastT = t; return; }
+        const dt = this.lastT !== null ? Math.max(0, t - this.lastT) / 1000 : 0;
+        this.lastT = t;
+        if (dt > 0) anim.stepFluidSettling("glass", dt);
+    }
+}
+
 function buildStep3Effects(anim: SceneAnimator): StepEffect[] {
+    anim.stopStirring("stirRod");
     const glassArc = new GlassFridgeArcEffect(anim);
     const coverDrop = new CoverDropEffect(glassArc);
-    return [glassArc, coverDrop, new IceParticleEffect(coverDrop)];
+    return [glassArc, coverDrop, new IceParticleEffect(coverDrop), new FluidSettleEffect(coverDrop)];
 }
 
 export const STEP3: Step = {
@@ -223,8 +237,12 @@ export const STEP3: Step = {
     // Keeps spawning ice particles for as long as step 3 is shown, well
     // beyond the transition's own duration.
     loops: (effects) => {
-        const iceEffect = effects.find((e): e is IceParticleEffect => e instanceof IceParticleEffect);
-        return iceEffect ? [{ kind: "effect", effect: iceEffect }] : [];
+        const loops: Array<{ kind: "effect"; effect: StepEffect }> = [];
+        for (const e of effects) {
+            if (e instanceof IceParticleEffect || e instanceof FluidSettleEffect)
+                loops.push({ kind: "effect", effect: e });
+        }
+        return loops;
     },
     // The "refrigerate for 20 minutes" countdown appears 5s after the
     // cover has finished dropping into place, already showing 5s elapsed.

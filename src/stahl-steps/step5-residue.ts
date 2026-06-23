@@ -27,7 +27,7 @@ import {
     STIR_ROD_RADIUS,
     STIR_ROD_REST_Y,
     STIR_ROD_START_Y,
-    TAP_WATER_DROP,
+    LIQUID_PARTICLE,
     travelDuration,
     type ObjectLayout,
 } from "../stahl-props";
@@ -115,10 +115,10 @@ const SCRAPER_RETURN_DURATION = travelDuration(SCRAPER_GLASS2_X, SCRAPER_GLASS2_
 
 // How long the tap water takes to fall into glass2 and fill it, once its
 // phase begins.
-export const TAP_WATER_DROP_COUNT = 3;
-export const TAP_WATER_DROP_SPACING = 300;
-export const TAP_WATER_FALL_DURATION = 500;
-export const TAP_WATER_PHASE_DURATION = 1200;
+export const TAP_WATER_DROP_COUNT = 12;
+export const TAP_WATER_DROP_SPACING = 200;
+export const TAP_WATER_FALL_DURATION = 400;
+export const TAP_WATER_PHASE_DURATION = (TAP_WATER_DROP_COUNT - 1) * TAP_WATER_DROP_SPACING + TAP_WATER_FALL_DURATION + 500;
 
 // ---------------------------------------------------------------------------
 // Phase sequences
@@ -359,33 +359,48 @@ class ScraperArcEffect implements StepEffect {
 }
 
 // Drops a few tap water particles from above glass2 once its phase begins
-// (STEP5_WATER_OFFSET), and fills glass2 with liquid particles once the last
-// drop lands.
+// Fills glass2 with a stream of tap water drops falling in a single column.
+// Initializes an empty fluid sim at pour start; injects particles at a steady
+// rate so the liquid fills and sloshes gradually. Cosmetic drops are visual only.
 class TapWaterEffect implements StepEffect {
-    private spawned = false;
-    private filled: boolean;
+    private nextDrop = 0;
+    private simInitialized = false;
+    private lastT: number | null = null;
+    private particlesAdded = 0;
     private readonly dropStart = STEP5_WATER_OFFSET;
-    private readonly fillT =
-        this.dropStart + ((TAP_WATER_DROP_COUNT - 1) * TAP_WATER_DROP_SPACING) + TAP_WATER_FALL_DURATION;
+    private readonly pourDuration = (TAP_WATER_DROP_COUNT - 1) * TAP_WATER_DROP_SPACING + TAP_WATER_FALL_DURATION;
 
     constructor(anim: SceneAnimator) {
-        this.filled = anim.liquid2Group.members.length > 0;
+        this.simInitialized = anim.liquid2Group.members.length > 0;
     }
 
     tick(t: number, anim: SceneAnimator): void {
-        if (!this.spawned && t >= this.dropStart) {
-            const glass2 = anim.getObject("glass2");
-            for (let i = 0; i < TAP_WATER_DROP_COUNT; i++) {
-                const from: ObjectLayout = { x: glass2.x + (i - 1), y: PROP_PARK_Y, z: glass2.z - 1, rotation: 0 };
-                const to: ObjectLayout = { x: glass2.x + (i - 1), y: glass2.y + 1, z: glass2.z - 1, rotation: 0 };
-                const dropStart = t + i * TAP_WATER_DROP_SPACING;
-                anim.spawnDrop(TAP_WATER_DROP, from, to, dropStart, TAP_WATER_FALL_DURATION);
-            }
-            this.spawned = true;
+        if (t < this.dropStart) return;
+        if (!this.simInitialized) {
+            anim.initEmptyFluidSim("glass2");
+            this.simInitialized = true;
         }
-        if (!this.filled && t >= this.fillT) {
-            anim.fillLiquidContainer("glass2");
-            this.filled = true;
+        const dt = this.lastT !== null ? Math.max(0, t - this.lastT) / 1000 : 0;
+        this.lastT = t;
+        if (dt > 0) anim.stepFluidSettling("glass2", dt);
+        if (this.nextDrop < TAP_WATER_DROP_COUNT) {
+            const glass2 = anim.getObject("glass2");
+            while (this.nextDrop < TAP_WATER_DROP_COUNT) {
+                const dropT = this.dropStart + this.nextDrop * TAP_WATER_DROP_SPACING;
+                if (dropT > t) break;
+                const from: ObjectLayout = { x: glass2.x, y: PROP_PARK_Y, z: glass2.z - 1, rotation: 0 };
+                const to: ObjectLayout = { x: glass2.x, y: glass2.y + 1, z: glass2.z - 1, rotation: 0 };
+                anim.spawnDrop(LIQUID_PARTICLE, from, to, dropT, TAP_WATER_FALL_DURATION);
+                this.nextDrop++;
+            }
+        }
+        const targetParticles = anim.getFluidTargetCount("glass2");
+        const elapsed = t - this.dropStart;
+        const fraction = Math.min(1, elapsed / this.pourDuration);
+        const target = Math.floor(fraction * targetParticles);
+        while (this.particlesAdded < target) {
+            anim.addFluidParticle("glass2");
+            this.particlesAdded++;
         }
     }
 }

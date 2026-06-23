@@ -436,6 +436,13 @@ export class SceneAnimator {
     // Removes a residue particle the scraper has just swept over from
     // `dishResidueGroup` and the compositor. Not private: called by step 5's
     // ResidueScrapeEffect as the scraper sweeps across the dish.
+    removeBottleLiquidParticle(member: PropGroupMember): void {
+        const container = this.fluidContainers.get("bottle")!;
+        this.compositor.removeObject(member.obj.id);
+        const idx = container.group.members.indexOf(member);
+        if (idx !== -1) container.group.members.splice(idx, 1);
+    }
+
     removeDishResidueParticle(member: PropGroupMember): void {
         this.compositor.removeObject(member.obj.id);
         const idx = this.dishResidueGroup.members.indexOf(member);
@@ -795,6 +802,47 @@ export class SceneAnimator {
     // Halts a stir rod's blade pulse and its glass's liquid vortex once
     // stirring finishes, leaving the rod resting (hub only) in place rather
     // than parking it out of view.
+    initEmptyFluidSim(id: "glass" | "glass2"): void {
+        const container = this.fluidContainers.get(id)!;
+        const powderCount = id === "glass"
+            ? GLASS_POWDER_POSITIONS.length
+            : GLASS2_POWDER_POSITIONS.length + BARLEY_POWDER_POSITIONS.length;
+        const group = id === "glass" ? this.glassGroup : this.glass2Group;
+        container.sim = makeFluidSim(GLASS_FLUID_DIMS, GLASS_POINTS);
+        seedPowderAtBottom(container.sim, powderCount);
+        group.clear();
+        this.syncLiquidParticles(container);
+    }
+
+    getFluidTargetCount(id: "glass" | "glass2"): number {
+        const container = this.fluidContainers.get(id)!;
+        if (!container.sim) return 0;
+        const { dims, solid } = container.sim;
+        const fill = this.fillLevelOverride ?? GLASS_FLUID_FILL;
+        const cutoff = Math.floor(dims.height * fill);
+        let count = 0;
+        for (let x = 0; x < dims.width; x++)
+            for (let y = dims.height - cutoff; y < dims.height; y++)
+                for (let z = 0; z < dims.depth; z++)
+                    if (!solid[(x * dims.height + y) * dims.depth + z]) count++;
+        return count;
+    }
+
+    addFluidParticle(id: "glass" | "glass2"): void {
+        const container = this.fluidContainers.get(id)!;
+        if (!container.sim) return;
+        const sim = container.sim;
+        const { dims } = sim;
+        const cx = Math.floor(dims.width / 2);
+        const cz = Math.floor(dims.depth / 2);
+        sim.particles.push({ x: cx, y: 0, z: cz, vx: 0, vy: 3, vz: 0, kind: "ethanol" });
+    }
+
+    stepFluidSettling(id: "glass" | "glass2", dt: number): void {
+        const container = this.fluidContainers.get(id)!;
+        if (container.sim) this.updateFluid(container, dt, false);
+    }
+
     stopStirring(rodId: "stirRod" | "stirRod2"): void {
         this.stoppedStirring.add(rodId);
         applyBladeRadius(this.objects.get(rodId)!.sprite, 0);
@@ -981,6 +1029,8 @@ export class SceneAnimator {
     private fluidDebugCounter = 0;
 
     private updateFluid(container: FluidContainer, dt: number, stirring: boolean): void {
+        // Cap dt to avoid explosive forces when the tab resumes after being hidden.
+        dt = Math.min(dt, 0.1);
         if (!container.sim) { this.updateVortex(container, dt); return; }
         const sim = container.sim;
         const stir: StirImpulse | null = stirring && sim.bounds

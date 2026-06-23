@@ -10,6 +10,7 @@
 // pour-fall and drop-particle effects fire at the same point in the timeline
 // where each sequence's grinder/bottle/stick keyframes place it.
 
+import { type PropGroupMember } from "../ascii-compositor";
 import { GroupArcTransfer } from "../ascii-sprites";
 import { rand } from "../rng";
 import {
@@ -17,7 +18,7 @@ import {
     BOTTLE_REST_ROTATION,
     GLASS_POWDER_POSITIONS,
     INITIAL_LAYOUT,
-    LIQUID_POSITIONS,
+    LIQUID_PARTICLE,
     PANE_WIDTH,
     POUR_PROP_Y,
     PROP_PARK_Y,
@@ -27,13 +28,12 @@ import {
     STIR_ROD_RADIUS,
     STIR_ROD_REST_Y,
     STIR_ROD_START_Y,
+    TAU,
     travelDuration,
     type ObjectLayout,
 } from "../stahl-props";
 import { concatSequences, type Sequence, type Step, type StepEffect } from "../stahl-timeline";
 import { type SceneAnimator } from "../stahl-animator";
-
-const TAU = Math.PI * 2;
 
 // How long the ground seed dust takes to fall from the tipped grinder into
 // the glass during step 2's pour.
@@ -60,7 +60,7 @@ export const POUR_PAUSE_DURATION = 1200;
 // (see BottlePourEffect).
 export const BOTTLE_PRE_TIP_PAUSE_DURATION = 400;
 export const BOTTLE_ROTATE_DURATION = 350;
-export const BOTTLE_TIPPED_PAUSE_DURATION = 2000;
+export const BOTTLE_TIPPED_PAUSE_DURATION = 3000;
 export const BOTTLE_POUR_DURATION =
     BOTTLE_PRE_TIP_PAUSE_DURATION + BOTTLE_ROTATE_DURATION + BOTTLE_TIPPED_PAUSE_DURATION + BOTTLE_ROTATE_DURATION;
 // A final pause at rest, back over the glass, before ascending off-screen.
@@ -285,39 +285,75 @@ class SeedPourEffect implements StepEffect {
     }
 }
 
-// Drains the bottle's ethanol particles into the glass via a GroupArcTransfer
-// once the bottle's pause/pour phase begins (STEP2_BOTTLE_OFFSET +
-// bottlePourTravelDuration), then initializes the glass's vortex state once
-// they land.
+// Drains the bottle's ethanol particles one by one (top-to-bottom) once the
+// bottle has tipped, spawning a cosmetic "~" drop from the spout for each.
+// Initializes an empty fluid sim at pour start; injects particles at a steady
+// rate so the liquid fills and sloshes gradually.
 class BottlePourEffect implements StepEffect {
-    private transfer: GroupArcTransfer | null = null;
-    private vortexInitialized: boolean;
-    // Releases once the bottle has arrived, paused, and tipped over to pour.
-    private readonly releaseT =
+    private sorted: PropGroupMember[] | null = null;
+    private nextDrain = 0;
+    private simInitialized: boolean;
+    private lastT: number | null = null;
+    private particlesAdded = 0;
+    private readonly pourStart =
         STEP2_BOTTLE_OFFSET +
         bottlePourTravelDuration(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET) +
         BOTTLE_PRE_TIP_PAUSE_DURATION +
         BOTTLE_ROTATE_DURATION;
+    private readonly dropFlight = BOTTLE_POUR_FLIGHT_DURATION;
+    private readonly pourDuration = BOTTLE_TIPPED_PAUSE_DURATION + BOTTLE_POUR_FLIGHT_DURATION;
 
     constructor(anim: SceneAnimator) {
-        this.vortexInitialized = anim.liquidGroup.members.length > 0;
+        this.simInitialized = anim.liquidGroup.members.length > 0;
     }
 
     tick(t: number, anim: SceneAnimator): void {
-        if (!this.transfer) {
-            const count = anim.bottleLiquidGroup.members.length;
-            this.transfer = new GroupArcTransfer(
-                anim.bottleLiquidGroup,
-                anim.liquidGroup,
-                this.releaseT,
-                BOTTLE_POUR_FLIGHT_DURATION,
-                LIQUID_POSITIONS.slice(0, count),
-            );
+        if (t < this.pourStart) return;
+        if (!this.simInitialized) {
+            anim.initEmptyFluidSim("glass");
+            this.simInitialized = true;
         }
-        this.transfer.tick(t);
-        if (!this.vortexInitialized && this.transfer.isLanded) {
-            anim.initLiquidVortex("glass");
-            this.vortexInitialized = true;
+        const dt = this.lastT !== null ? Math.max(0, t - this.lastT) / 1000 : 0;
+        this.lastT = t;
+        if (dt > 0) anim.stepFluidSettling("glass", dt);
+        if (!this.sorted) {
+            this.sorted = [...anim.bottleLiquidGroup.members].sort((a, b) => a.relY - b.relY);
+        }
+        const count = this.sorted.length;
+        if (count > 0 && this.nextDrain < count) {
+            const elapsed = t - this.pourStart;
+            const drainUpTo = Math.min(count, Math.floor((elapsed / BOTTLE_TIPPED_PAUSE_DURATION) * count) + 1);
+            const bottle = anim.getObject("bottle");
+            const glass = anim.getObject("glass");
+            const spoutAngle = bottle.rotation;
+            const spoutDx = -3 * Math.sin(spoutAngle);
+            const spoutDy = -3 * Math.cos(spoutAngle);
+            while (this.nextDrain < drainUpTo) {
+                const member = this.sorted[this.nextDrain];
+                anim.removeBottleLiquidParticle(member);
+                const from: ObjectLayout = {
+                    x: bottle.x + spoutDx + 0,
+                    y: bottle.y + spoutDy - 1,
+                    z: bottle.z - 1,
+                    rotation: 0,
+                };
+                const to: ObjectLayout = {
+                    x: glass.x + 1 + (rand() - 0.5) * 2,
+                    y: glass.y + 0,
+                    z: glass.z - 1,
+                    rotation: 0,
+                };
+                anim.spawnDrop(LIQUID_PARTICLE, from, to, t, this.dropFlight);
+                this.nextDrain++;
+            }
+        }
+        const targetParticles = anim.getFluidTargetCount("glass");
+        const elapsed = t - this.pourStart;
+        const fraction = Math.min(1, elapsed / this.pourDuration);
+        const target = Math.floor(fraction * targetParticles);
+        while (this.particlesAdded < target) {
+            anim.addFluidParticle("glass");
+            this.particlesAdded++;
         }
     }
 }
