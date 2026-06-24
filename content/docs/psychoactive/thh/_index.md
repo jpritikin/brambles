@@ -15,11 +15,13 @@ Almost nothing is known about Tetrahydroharmine (THH). Shulgin reportedly took 3
 
 Some say THH is a stimulant, but I doubt it. It can prevent sleep, but it doesn't produce the jitteriness of coffee. I think it's more accurate to say that it increases alertness, which can interfere with sleep.
 
+Oh, and if you're hoping it'll spice things up in the bedroom—sorry, it won't. THH is chaste as a monastery.
+
 Pretty boring. Nothing to see here.
 
 ## But Combined With Other Substances...
 
-The picture changes completely. I'd say its main effect is to create more psychological distance from your experience. It's similar to MDMA, only more subtle and quiet. This is a drug that makes you feel sober! It helps keep you unblended.
+The picture changes completely. I'd say its main effect is to create more psychological distance from your experience. It's similar to MDMA, only more subtle and quiet. This is a drug that makes you feel sober! It helps keep you unblended (emotional distance).
 
 ## Dosage Experiment
 
