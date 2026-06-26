@@ -1,6 +1,7 @@
+import { CELL_ASPECT } from "./ascii-compositor";
 import type { SceneAnimator } from "./stahl-animator";
-import { type FluidSim, projectFluidSim } from "./fluid-sim";
-import { MATERIAL_GLYPHS } from "./iso";
+import type { FluidSim } from "./fluid-sim";
+import type { PourSim, ContainerState, Segment } from "./pour-sim";
 import { GLASS_FLUID_FILL } from "./stahl-props";
 
 const WIDTH = 500;
@@ -351,30 +352,67 @@ export function initFluidDebug3D(animator: SceneAnimator): void {
   });
   controls.appendChild(copyBtn);
 
+  // 2D Pour Sim debug canvas
+  const pourCanvas = document.createElement("canvas");
+  pourCanvas.width = WIDTH;
+  pourCanvas.height = HEIGHT;
+  pourCanvas.style.cssText = "display:block;margin:1em auto;border:1px solid #644;background:#111;";
+  controls.insertAdjacentElement("afterend", pourCanvas);
+
+  const pourControls = document.createElement("div");
+  pourControls.style.cssText = "text-align:center;color:#888;font-size:12px;font-family:monospace;margin-bottom:1em;";
+  pourCanvas.insertAdjacentElement("afterend", pourControls);
+
+  const SPEEDS = [0, 0.25, 0.5, 1];
+  const speedBtns: HTMLButtonElement[] = [];
+  for (const speed of SPEEDS) {
+    const btn = document.createElement("button");
+    btn.textContent = speed === 0 ? "Pause" : `${speed}x`;
+    btn.style.cssText = "cursor:pointer;font-family:monospace;font-size:12px;margin-right:4px;";
+    btn.addEventListener("click", () => { animator.playbackSpeed = speed; });
+    pourControls.appendChild(btn);
+    speedBtns.push(btn);
+  }
+
+  const pourLabel = document.createElement("span");
+  pourLabel.textContent = " Playback";
+  pourLabel.style.cssText = "margin-left:8px;";
+  pourControls.appendChild(pourLabel);
+
+  // Toggle between 3D fluid and 2D pour views—pour sim is default
+  const toggleRow = document.createElement("div");
+  toggleRow.style.cssText = "text-align:center;margin-top:0.5em;margin-bottom:0.5em;";
+  canvas.insertAdjacentElement("beforebegin", toggleRow);
+  const toggleBtn = document.createElement("button");
+  toggleBtn.textContent = "Show Fluid Sim";
+  toggleBtn.style.cssText = "cursor:pointer;font-family:monospace;font-size:12px;margin-right:8px;";
+  let showPourView = true;
+  canvas.style.display = "none";
+  controls.style.display = "none";
+  toggleBtn.addEventListener("click", () => {
+    showPourView = !showPourView;
+    toggleBtn.textContent = showPourView ? "Show Fluid Sim" : "Show Pour Sim";
+    canvas.style.display = showPourView ? "none" : "block";
+    controls.style.display = showPourView ? "none" : "";
+    pourCanvas.style.display = showPourView ? "block" : "none";
+    pourControls.style.display = showPourView ? "" : "none";
+  });
+  toggleRow.appendChild(toggleBtn);
+
+  // Copy ASCII from the live DOM grid—always available regardless of active view
   const asciiBtn = document.createElement("button");
   asciiBtn.textContent = "Copy ASCII";
-  asciiBtn.style.cssText = "margin-top:0.5em;margin-left:0.5em;cursor:pointer;";
+  asciiBtn.style.cssText = "cursor:pointer;font-family:monospace;font-size:12px;";
   asciiBtn.addEventListener("click", () => {
-    const sim = animator.getGlassFluidSim();
-    if (!sim) { navigator.clipboard.writeText("No fluid sim active"); return; }
-    const projected = projectFluidSim(sim);
-    const { width, height } = sim.dims;
-    const lines: string[] = [];
-    for (let y = 0; y < height; y++) {
-      let row = "";
-      for (let x = 0; x < width; x++) {
-        const cell = projected[x][y];
-        row += cell ? (MATERIAL_GLYPHS[cell.material] ?? "?") : " ";
-      }
-      lines.push(row);
-    }
-    navigator.clipboard.writeText(lines.join("\n"));
+    const text = animator.dumpAscii();
+    navigator.clipboard.writeText(text || "(no grid mounted)");
     asciiBtn.textContent = "Copied!";
     setTimeout(() => { asciiBtn.textContent = "Copy ASCII"; }, 1500);
   });
-  controls.appendChild(asciiBtn);
+  toggleRow.appendChild(asciiBtn);
 
   const ctx = canvas.getContext("2d")!;
+  const pourCtx = pourCanvas.getContext("2d")!;
   const cam: Camera = { azimuth: 0.6, elevation: -0.4, zoom: 40 };
 
   let dragging = false;
@@ -405,16 +443,192 @@ export function initFluidDebug3D(animator: SceneAnimator): void {
   }, { passive: false });
 
   function tick(): void {
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
-    const sim = animator.getGlassFluidSim();
-    if (!sim) {
-      ctx.fillStyle = "#666";
-      ctx.font = "14px monospace";
-      ctx.fillText("No fluid sim active", WIDTH / 2 - 70, HEIGHT / 2);
-    } else {
-      renderSim(ctx, sim, cam, showForces);
+    for (let i = 0; i < SPEEDS.length; i++) {
+      const active = SPEEDS[i] === animator.playbackSpeed;
+      speedBtns[i].style.fontWeight = active ? "bold" : "normal";
+      speedBtns[i].style.textDecoration = active ? "underline" : "none";
     }
+
+    if (!showPourView) {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      const sim = animator.getGlassFluidSim();
+      if (!sim) {
+        ctx.fillStyle = "#666";
+        ctx.font = "14px monospace";
+        ctx.fillText("No fluid sim active", WIDTH / 2 - 70, HEIGHT / 2);
+      } else {
+        renderSim(ctx, sim, cam, showForces);
+      }
+    } else {
+      pourCtx.clearRect(0, 0, WIDTH, HEIGHT);
+      const pourSims = animator.getActivePourSims();
+      if (pourSims.size === 0) {
+        pourCtx.fillStyle = "#666";
+        pourCtx.font = "14px monospace";
+        pourCtx.fillText("No pour sim active", WIDTH / 2 - 70, HEIGHT / 2);
+      } else {
+        renderPourSims(pourCtx, pourSims, animator.playbackSpeed);
+      }
+    }
+
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+}
+
+// Transform a point from a container's local physical space to world grid coords.
+function pourLocalToWorld(
+  lx: number, ly: number,
+  state: ContainerState, pivot: [number, number],
+): [number, number] {
+  const cos = Math.cos(state.rotation), sin = Math.sin(state.rotation);
+  const wx = lx * cos - ly * sin;
+  const wy = lx * sin + ly * cos;
+  return [state.x + pivot[0] + wx, state.y + pivot[1] + wy / CELL_ASPECT];
+}
+
+function drawWallsWorld(
+  ctx: CanvasRenderingContext2D,
+  walls: Segment[],
+  state: ContainerState,
+  pivot: [number, number],
+  scale: number, ox: number, oy: number,
+  color: string,
+): void {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  for (const seg of walls) {
+    const [x1, y1] = pourLocalToWorld(seg.x1, seg.y1, state, pivot);
+    const [x2, y2] = pourLocalToWorld(seg.x2, seg.y2, state, pivot);
+    ctx.beginPath();
+    ctx.moveTo(ox + x1 * scale, oy + y1 * scale);
+    ctx.lineTo(ox + x2 * scale, oy + y2 * scale);
+    ctx.stroke();
+  }
+}
+
+const POUR_COLORS = {
+  source: "rgba(100, 180, 100, 0.6)",
+  target: "rgba(100, 100, 220, 0.6)",
+  inSource: "rgba(60, 200, 60, 1)",
+  airborne: "rgba(255, 200, 50, 1)",
+  landed: "rgba(100, 100, 100, 0.5)",
+};
+
+function renderPourSims(
+  ctx: CanvasRenderingContext2D,
+  sims: Map<string, { sim: PourSim; sourceState: () => ContainerState; targetState: () => ContainerState }>,
+  speed: number,
+): void {
+  // Compute bounding box of all particles + wall endpoints in world coords
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+  const entries = [...sims.entries()];
+  const resolved = entries.map(([label, { sim, sourceState, targetState }]) => {
+    const src = sourceState();
+    const tgt = targetState();
+    return { label, sim, src, tgt };
+  });
+
+  for (const { sim, src, tgt } of resolved) {
+    for (const seg of sim.sourceWalls) {
+      for (const [lx, ly] of [[seg.x1, seg.y1], [seg.x2, seg.y2]] as const) {
+        const [wx, wy] = pourLocalToWorld(lx, ly, src, sim.sourcePivot);
+        minX = Math.min(minX, wx); maxX = Math.max(maxX, wx);
+        minY = Math.min(minY, wy); maxY = Math.max(maxY, wy);
+      }
+    }
+    for (const seg of sim.targetWalls) {
+      for (const [lx, ly] of [[seg.x1, seg.y1], [seg.x2, seg.y2]] as const) {
+        const [wx, wy] = pourLocalToWorld(lx, ly, tgt, sim.targetPivot);
+        minX = Math.min(minX, wx); maxX = Math.max(maxX, wx);
+        minY = Math.min(minY, wy); maxY = Math.max(maxY, wy);
+      }
+    }
+    for (const p of sim.particles) {
+      const pivot = p.airborne || p.landed ? sim.targetPivot : sim.sourcePivot;
+      const state = p.airborne || p.landed ? tgt : src;
+      const [wx, wy] = pourLocalToWorld(p.x, p.y, state, pivot);
+      minX = Math.min(minX, wx); maxX = Math.max(maxX, wx);
+      minY = Math.min(minY, wy); maxY = Math.max(maxY, wy);
+    }
+  }
+
+  if (!isFinite(minX)) return;
+
+  const pad = 2;
+  minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+  const rangeX = maxX - minX || 1;
+  const rangeY = maxY - minY || 1;
+  const scale = Math.min((WIDTH - 40) / rangeX, (HEIGHT - 60) / rangeY);
+  const ox = (WIDTH - rangeX * scale) / 2 - minX * scale;
+  const oy = (HEIGHT - rangeY * scale) / 2 - minY * scale + 10;
+
+  for (const { label, sim, src, tgt } of resolved) {
+    drawWallsWorld(ctx, sim.sourceWalls, src, sim.sourcePivot, scale, ox, oy, POUR_COLORS.source);
+    drawWallsWorld(ctx, sim.targetWalls, tgt, sim.targetPivot, scale, ox, oy, POUR_COLORS.target);
+
+    // Particles
+    let inSourceCount = 0, airborneCount = 0, landedCount = 0;
+    for (const p of sim.particles) {
+      const pivot = p.airborne || p.landed ? sim.targetPivot : sim.sourcePivot;
+      const state = p.airborne || p.landed ? tgt : src;
+      const [wx, wy] = pourLocalToWorld(p.x, p.y, state, pivot);
+      const sx = ox + wx * scale;
+      const sy = oy + wy * scale;
+
+      if (p.landed) {
+        ctx.fillStyle = POUR_COLORS.landed;
+        landedCount++;
+      } else if (p.airborne) {
+        ctx.fillStyle = POUR_COLORS.airborne;
+        airborneCount++;
+      } else {
+        ctx.fillStyle = POUR_COLORS.inSource;
+        inSourceCount++;
+      }
+      ctx.beginPath();
+      ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Velocity arrow
+      const speed = Math.hypot(p.vx, p.vy);
+      if (speed > 0.5 && !p.landed) {
+        const cos = Math.cos(state.rotation), sin = Math.sin(state.rotation);
+        const wvx = p.vx * cos - p.vy * sin;
+        const wvy = (p.vx * sin + p.vy * cos) / CELL_ASPECT;
+        const arrowLen = Math.min(20, speed * scale * 0.05);
+        const nvx = wvx / speed, nvy = wvy / speed;
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + nvx * arrowLen, sy + nvy * arrowLen);
+        ctx.stroke();
+      }
+    }
+
+    // Stats
+    ctx.fillStyle = "#fff";
+    ctx.font = "11px monospace";
+    const total = sim.particles.length;
+    const status = speed === 0 ? " [PAUSED]" : speed < 1 ? ` [${speed}x]` : "";
+    ctx.fillText(`${label}: ${total} particles (src:${inSourceCount} air:${airborneCount} landed:${landedCount})${status}`, 8, 14);
+  }
+
+  // Legend
+  const legY = HEIGHT - 30;
+  ctx.font = "10px monospace";
+  for (const [color, text, lx] of [
+    [POUR_COLORS.source, "source walls", 8],
+    [POUR_COLORS.target, "target walls", 110],
+    [POUR_COLORS.inSource, "in source", 210],
+    [POUR_COLORS.airborne, "airborne", 290],
+    [POUR_COLORS.landed, "landed", 360],
+  ] as const) {
+    ctx.fillStyle = color;
+    ctx.fillRect(lx, legY, 8, 8);
+    ctx.fillStyle = "#888";
+    ctx.fillText(text, lx + 12, legY + 8);
+  }
 }

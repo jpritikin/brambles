@@ -107,6 +107,8 @@ export const GRINDER_BOWL_POINTS: Array<[number, number]> = [
 ];
 export const GRINDER_BODY = polygonSprite(GRINDER_BOWL_POINTS);
 
+export const GRINDER_INTERIOR_POINTS: Array<[number, number]> = [...GRINDER_BOWL_POINTS.slice(1), GRINDER_BOWL_POINTS[0]];
+
 // ---------------------------------------------------------------------------
 // Shot glass + contents (powder/liquid, steps 2-4)
 // ---------------------------------------------------------------------------
@@ -216,22 +218,25 @@ export const STIR_ROD_DESCEND_DURATION = 600;
 // the shoulder, so descending the bottle to a y places its spout near that
 // point.
 export const BOTTLE_POINTS: Array<[number, number]> = [
-    [-1, -3], // top of neck
-    [1, -3], // top of neck
-    [1, 0], // neck-shoulder right
-    [2, 1], // shoulder
-    [2, 3], // body bottom-right
-    [-2, 3], // body bottom-left
-    [-2, 1], // shoulder
-    [-1, 0], // neck-shoulder left
+    [-1, -3],
+    [1, -3],
+    [1, 0],
+    [2.5, 1],
+    [2.5, 3],
+    [-2.5, 3],
+    [-2.5, 1],
+    [-1, 0],
 ];
 export const BOTTLE: Sprite = polygonSprite(BOTTLE_POINTS);
+
+// Same shape reordered so the neck opening is the gap in an open polygon.
+export const BOTTLE_INTERIOR_POINTS: Array<[number, number]> = [...BOTTLE_POINTS.slice(1), BOTTLE_POINTS[0]];
 
 // Fill positions for the bottle's "~" ethanol particles (19 points spanning
 // the neck and shoulder/body), derived from the bottle's own outline so the
 // fill region tracks BOTTLE_POINTS if it changes. See LIQUID_POSITIONS for
 // the glass's equivalent.
-export const BOTTLE_LIQUID_POSITIONS: Array<[number, number]> = fillRegion(BOTTLE_POINTS, 0.4, 1, 0.5);
+export const BOTTLE_LIQUID_POSITIONS: Array<[number, number]> = fillRegion(BOTTLE_POINTS, 0.3, 0.7, 0.7);
 
 // A "(_)"-shaped bowl (carrying a scoop's contents) attached to the near end
 // of a horizontal stick that extends to the right. The bowl's "_" cell(s)

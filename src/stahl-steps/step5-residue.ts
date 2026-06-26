@@ -41,7 +41,7 @@ import {
     STICK_DUMP_DURATION,
     STICK_PRE_POUR_PAUSE_DURATION,
 } from "./step2-mix";
-import { concatSequences, type Sequence, type Step, type StepEffect } from "../stahl-timeline";
+import { concatSequences, type Sequence, type Step, type StepEffect, type SubstepRange } from "../stahl-timeline";
 import { type SceneAnimator } from "../stahl-animator";
 
 const STEP5_GLASS2_X = 7.5 + 5 * PANE_WIDTH;
@@ -220,6 +220,13 @@ const STEP5_STICK_OFFSET = STEP5_PHASE_OFFSETS.get("stick")!;
 const STEP5_BARLEY_OFFSET = STEP5_PHASE_OFFSETS.get("barley")!;
 const STEP5_WATER_OFFSET = STEP5_PHASE_OFFSETS.get("water")!;
 const STEP5_TIMELINE = concatSequences([...STEP5_PHASES.map((p) => p.sequence), buildStirRod2Sequence()]);
+
+const SUBSTEP5_IDS: Record<string, string> = { scraper: "residue", stick: "tartaric-acid", barley: "barley-grass", water: "water" };
+const STEP5_SUBSTEPS: SubstepRange[] = STEP5_PHASES.map(({ id, sequence }) => ({
+    id: SUBSTEP5_IDS[id],
+    start: STEP5_PHASE_OFFSETS.get(id)!,
+    end: STEP5_PHASE_OFFSETS.get(id)! + sequence.duration,
+}));
 
 // ---------------------------------------------------------------------------
 // Per-frame effects
@@ -462,6 +469,7 @@ function buildStep5Effects(anim: SceneAnimator): StepEffect[] {
 
 export const STEP5: Step = {
     transitionDuration: STEP5_TIMELINE.duration,
+    substeps: STEP5_SUBSTEPS,
     transitionKeyframes: [
         // If step 4 was interrupted mid-pour (glass tipped over the dish),
         // snap it back to its upright step 2 resting spot before step 5

@@ -27,10 +27,13 @@ function buildScene(container: HTMLElement): SceneAnimator {
   // minutes. No visual hint, deliberately undiscoverable.
   grid.addEventListener("click", (event) => {
     const range = animator.getCountdownCellRange();
-    if (!range) return;
-    const target = event.target as Node;
-    const hit = range.cols.some((col) => compositor.getCellElement(range.row, col) === target);
-    if (hit) animator.skipCountdown();
+    if (range) {
+      const target = event.target as Node;
+      const hit = range.cols.some((col) => compositor.getCellElement(range.row, col) === target);
+      if (hit) { animator.skipCountdown(); return; }
+    }
+    const text = compositor.dumpAscii();
+    if (text) navigator.clipboard.writeText(text);
   });
 
   return animator;
@@ -95,18 +98,69 @@ function init(): void {
   if (!container || steps.length !== STEPS.length) return;
 
   const animator = buildScene(container);
-  initFluidDebug3D(animator);
+  const debug = new URLSearchParams(window.location.search).has("debug");
+
+  if (debug) initFluidDebug3D(animator);
+
+  let tickEls: HTMLElement[] = [];
+  const completedSteps = new Set<number>();
+  let activeSubstepEl: HTMLElement | null = null;
+  let lastSelectedIndex = -1;
+
+  function clearSubstepHighlight(): void {
+    if (activeSubstepEl) {
+      activeSubstepEl.classList.remove("recipe-substep-active");
+      activeSubstepEl = null;
+    }
+  }
 
   function selectStep(index: number): void {
-    steps.forEach((el, i) => el.classList.toggle("recipe-step-active", i === index));
+    clearSubstepHighlight();
+    if (index <= lastSelectedIndex) {
+      for (let i = index; i < steps.length; i++) completedSteps.delete(i);
+    } else {
+      for (let i = 0; i < index; i++) completedSteps.add(i);
+    }
+    lastSelectedIndex = index;
+    steps.forEach((el, i) => {
+      el.classList.remove("recipe-step-active", "recipe-step-next");
+      el.classList.toggle("recipe-step-done", completedSteps.has(i) && i !== index);
+    });
+    steps[index].classList.add("recipe-step-active");
+    steps[index].classList.remove("recipe-step-done");
     tickEls.forEach((el, i) => el.classList.toggle("recipe-ss-tick-active", i === index));
     if (container!.hidden) document.dispatchEvent(new CustomEvent(SLIDESHOW_REVEALED_EVENT));
     container!.hidden = false;
     animator.playStep(STEPS[index], index + 1);
   }
 
-  const { element: controls, tickEls } = buildViewportControls(animator);
-  container.appendChild(controls);
+  animator.onSubstepChange = (stepIndex, substepId) => {
+    clearSubstepHighlight();
+    if (substepId) {
+      const stepEl = steps[stepIndex - 1];
+      const el = stepEl?.querySelector<HTMLElement>(`.recipe-substep[data-substep="${substepId}"]`);
+      if (el) {
+        el.classList.add("recipe-substep-active");
+        activeSubstepEl = el;
+      }
+    }
+  };
+
+  animator.onStepComplete = (stepIndex) => {
+    completedSteps.add(stepIndex - 1);
+    clearSubstepHighlight();
+    steps[stepIndex - 1].classList.remove("recipe-step-active");
+    steps[stepIndex - 1].classList.add("recipe-step-done");
+    if (stepIndex < steps.length) {
+      steps[stepIndex].classList.add("recipe-step-next");
+    }
+  };
+
+  if (debug) {
+    const { element: controls, tickEls: tEls } = buildViewportControls(animator);
+    container.appendChild(controls);
+    tickEls = tEls;
+  }
 
   steps.forEach((el, i) => {
     el.addEventListener("click", () => selectStep(i));

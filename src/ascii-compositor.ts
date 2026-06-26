@@ -85,7 +85,7 @@ export function resolveGlyph(rotation: number, cell: SpriteCell): string {
 // square, badly distorting shapes; squashing dy by this ratio before
 // rotating and stretching it back after keeps rotated sprites' proportions
 // close to their unrotated ones.
-const CELL_ASPECT = 1.4 / 0.6;
+export const CELL_ASPECT = 1.4 / 0.6;
 
 // Picks among `-`, `|`, `/`, `\` for a line whose on-screen angle (radians,
 // already CELL_ASPECT-corrected) is `onScreenAngle`.
@@ -139,7 +139,7 @@ export function rasterizePolygon(points: Array<[number, number]>, rotation: numb
     for (let i = 0; i < edgeCount; i++) {
         const a = rotated[i];
         const b = rotated[(i + 1) % rotated.length];
-        const onScreenAngle = Math.atan2(b.ry - a.ry, b.rx - a.rx);
+        const onScreenAngle = Math.atan2((b.ry - a.ry) * CELL_ASPECT, b.rx - a.rx);
         edgeAngles.push(onScreenAngle);
         const char = glyphForOnScreenAngle(onScreenAngle);
         for (const [col, row] of bresenhamLine(Math.round(a.rx), Math.round(a.ry), Math.round(b.rx), Math.round(b.ry))) {
@@ -258,6 +258,20 @@ export class Compositor {
     getCellElement(row: number, col: number): HTMLElement | null {
         if (!this.spans || row < 0 || row >= this.height || col < 0 || col >= this.width) return null;
         return this.spans[row][col];
+    }
+
+    dumpAscii(): string {
+        if (!this.spans) return "";
+        const lines: string[] = [];
+        for (let row = 0; row < this.height; row++) {
+            let line = "";
+            for (let col = 0; col < this.width; col++) {
+                line += this.spans[row][col].textContent || " ";
+            }
+            lines.push(line.trimEnd());
+        }
+        while (lines.length > 0 && lines[lines.length - 1] === "") lines.pop();
+        return lines.join("\n");
     }
 
     removeObject(id: string): void {
@@ -440,10 +454,9 @@ export class PropGroup {
         const [pivotX, pivotY] = this.pivot;
         for (const member of this.members) {
             if (member.released) continue;
-            const relX = member.relX - pivotX;
-            const relY = member.relY - pivotY;
-            member.obj.x = this.x + pivotX + relX * cos - relY * sin;
-            member.obj.y = this.y + pivotY + relX * sin + relY * cos;
+            const { rx, ry } = rotateOffset(member.relX - pivotX, member.relY - pivotY, cos, sin);
+            member.obj.x = this.x + pivotX + rx;
+            member.obj.y = this.y + pivotY + ry;
             member.obj.z = this.z + member.relZ;
             member.obj.rotation = this.rotation;
         }

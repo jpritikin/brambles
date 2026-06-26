@@ -12,12 +12,12 @@ import { arcLerp } from "../ascii-sprites";
 import { rand } from "../rng";
 import {
     DISH_LIQUID_POSITIONS,
+    DISH_POINTS,
     DISH_RESIDUE_PARTICLE,
     DISH_WIDTH,
-    GLASS_HEIGHT,
     GLASS_PIVOT,
+    GLASS_POINTS,
     GLASS_POWDER_POSITIONS,
-    GLASS_WIDTH,
     INITIAL_LAYOUT,
     LIQUID_PARTICLE,
     PANE_WIDTH,
@@ -28,6 +28,7 @@ import {
 import { GLASS_FRIDGE_REST } from "./step3-fridge";
 import { type Step, type StepEffect } from "../stahl-timeline";
 import { type SceneAnimator } from "../stahl-animator";
+import { PourTransfer } from "../pour-transfer";
 
 const TAU = Math.PI * 2;
 const STEP2_GLASS_X = 7.5 + 2 * PANE_WIDTH;
@@ -160,109 +161,56 @@ class GlassLiftArcEffect implements StepEffect {
     }
 }
 
-// Gradually pours liquid ("~") particles from `anim.liquidGroup` into
-// `anim.dishLiquidGroup` as the glass tips. Particles release in small
-// batches spread across STEP4_POUR_DURATION starting at STEP4_POUR_START
-// (partway through the tip), each arcing individually to the dish.
-// Powder ("." seed fragment) particles stay in the glass.
-interface PouringParticle {
-    member: PropGroupMember;
-    releaseT: number;
-    from: ObjectLayout;
-    targetRelX: number;
-    targetRelY: number;
-    landed: boolean;
-}
-
-const DROP_INTERVAL = 250;
-
-class LiquidPourEffect implements StepEffect {
-    private initialized = false;
-    private particles: PouringParticle[] = [];
-    private allLanded = false;
-    private powderAdded = false;
-    private nextDropT = 0;
-
-    get isLanded(): boolean {
-        return this.allLanded;
-    }
-
-    tick(t: number, anim: SceneAnimator): void {
-        if (this.allLanded) return;
-        if (t < STEP4_POUR_START) return;
-
-        if (!this.initialized) {
-            const liquidMembers = anim.liquidGroup.members.filter(
-                (m) => m.obj.sprite === LIQUID_PARTICLE,
-            );
-            const count = liquidMembers.length;
-            const releaseDuration = STEP4_POUR_DURATION * POUR_RELEASE_FRACTION;
-            for (let i = 0; i < count; i++) {
-                const releaseT = STEP4_POUR_START + (releaseDuration * i) / Math.max(1, count - 1);
-                const targetIdx = Math.min(i, DISH_LIQUID_POSITIONS.length - 1);
-                const [relX, relY] = DISH_LIQUID_POSITIONS[targetIdx];
-                this.particles.push({
-                    member: liquidMembers[i],
-                    releaseT,
-                    from: { x: 0, y: 0, z: 0, rotation: 0 },
-                    targetRelX: relX,
-                    targetRelY: relY,
-                    landed: false,
-                });
+function buildLiquidPourTransfer(): PourTransfer {
+    let nextDestAdd = 0;
+    let powderAdded = false;
+    return new PourTransfer({
+        label: "glass→dish",
+        initT: STEP4_GLASS_ARC_END,
+        simConfig: {
+            sourcePoints: GLASS_POINTS,
+            sourceClosed: false,
+            sourcePivot: GLASS_PIVOT,
+            targetPoints: DISH_POINTS,
+            targetClosed: false,
+        },
+        visualIdPrefix: "pour-liquid",
+        visualZ: STEP4_GLASS_RAISED_Z + 1,
+        visualSprite: LIQUID_PARTICLE,
+        simParticleCount: 12,
+        getSourceMembers: (anim) => anim.liquidGroup.members.filter(
+            (m) => m.obj.sprite === LIQUID_PARTICLE,
+        ),
+        getSourceState: (anim) => { const g = anim.getObject("glass"); return { x: g.x, y: g.y, rotation: g.rotation }; },
+        getTargetState: (anim) => { const d = anim.getObject("dish"); return { x: d.x, y: d.y, rotation: d.rotation }; },
+        destTotal: (n) => Math.min(n, DISH_LIQUID_POSITIONS.length),
+        onDrain: (count, members, nextIdx, anim) => {
+            for (let j = 0; j < count && nextIdx < members.length; j++) {
+                const member = members[nextIdx++];
+                anim.liquidGroup.release(member);
+                member.obj.visible = false;
             }
-            this.nextDropT = STEP4_POUR_START;
-            this.initialized = true;
-        }
-
-        const releaseDuration = STEP4_POUR_DURATION * POUR_RELEASE_FRACTION;
-        const releaseEnd = STEP4_POUR_START + releaseDuration;
-
-        if (t >= this.nextDropT && t <= releaseEnd + POUR_FLIGHT_DURATION && !anim.instant) {
-            const glass = anim.getObject("glass");
-            const dish = anim.getObject("dish");
-            const [pivotX, pivotY] = GLASS_PIVOT;
-            const lipX = -GLASS_WIDTH / 2 - pivotX;
-            const lipY = -GLASS_HEIGHT / 2 - pivotY;
-            const cos = Math.cos(glass.rotation);
-            const sin = Math.sin(glass.rotation);
-            const worldLipX = glass.x + pivotX + lipX * cos - lipY * sin;
-            const worldLipY = glass.y + pivotY + lipX * sin + lipY * cos;
-            const from: ObjectLayout = { x: worldLipX, y: worldLipY, z: STEP4_GLASS_RAISED_Z + 1, rotation: 0 };
-            const to: ObjectLayout = { x: dish.x, y: dish.y - 1, z: STEP4_GLASS_RAISED_Z + 1, rotation: 0 };
-            anim.spawnDrop(LIQUID_PARTICLE, from, to, t, POUR_FLIGHT_DURATION, 0);
-            this.nextDropT = t + DROP_INTERVAL;
-        }
-
-        for (const p of this.particles) {
-            if (p.landed) continue;
-            if (t < p.releaseT) continue;
-
-            if (!p.member.released) {
-                anim.liquidGroup.release(p.member);
-                p.member.obj.visible = false;
+            return nextIdx;
+        },
+        onFill: (count, anim) => {
+            for (let j = 0; j < count && nextDestAdd < DISH_LIQUID_POSITIONS.length; j++) {
+                const [relX, relY] = DISH_LIQUID_POSITIONS[nextDestAdd++];
+                anim.dishLiquidGroup.addMember({ sprite: LIQUID_PARTICLE, relX, relY, relZ: -1 });
             }
-
-            if (t >= p.releaseT + POUR_FLIGHT_DURATION) {
-                anim.liquidGroup.transferTo(p.member, anim.dishLiquidGroup, p.targetRelX, p.targetRelY, -1);
-                p.member.obj.visible = true;
-                p.landed = true;
-            }
-        }
-
-        if (this.particles.length > 0 && this.particles.every(p => p.landed)) {
+        },
+        onAllLanded: (anim) => {
             anim.dishLiquidGroup.setOrigin(
                 anim.dishLiquidGroup.x, anim.dishLiquidGroup.y,
                 anim.dishLiquidGroup.z, anim.dishLiquidGroup.rotation,
             );
-            if (!this.powderAdded) {
+            if (!powderAdded) {
                 for (const [relX, relY] of GLASS_POWDER_POSITIONS) {
                     anim.liquidGroup.addMember({ sprite: POWDER_PARTICLE, relX, relY, relZ: 0 });
                 }
-                this.powderAdded = true;
+                powderAdded = true;
             }
-            this.allLanded = true;
-        }
-    }
+        },
+    });
 }
 
 // Per-particle evaporation state: `pending` until `evaporateAt`, then `rising`
@@ -288,7 +236,7 @@ interface EvaporatingParticle {
 class EvaporationEffect implements StepEffect {
     private particles: EvaporatingParticle[] | null = null;
 
-    constructor(private pour: LiquidPourEffect, private fanSpin: FanSpinEffect) { }
+    constructor(private pour: PourTransfer, private fanSpin: FanSpinEffect) { }
 
     // True once every poured particle has finished evaporating.
     get allEvaporated(): boolean {
@@ -423,9 +371,9 @@ class FanSpinEffect implements StepEffect {
     }
 }
 
-function buildStep4Effects(anim: SceneAnimator): StepEffect[] {
+function buildStep4Effects(_anim: SceneAnimator): StepEffect[] {
     const glassLift = new GlassLiftArcEffect();
-    const pour = new LiquidPourEffect();
+    const pour = buildLiquidPourTransfer();
     const glassReturn = new GlassReturnArcEffect();
     const fanSpin = new FanSpinEffect(glassReturn);
     const evaporation = new EvaporationEffect(pour, fanSpin);
@@ -490,7 +438,7 @@ export const STEP4: Step = {
     // Keeps the fan spinning and the dish's liquid evaporating for as
     // long as step 4 is shown, well beyond the transition's own duration.
     loops: (effects) => {
-        const pour = effects.find((e): e is LiquidPourEffect => e instanceof LiquidPourEffect);
+        const pour = effects.find((e): e is PourTransfer => e instanceof PourTransfer);
         const evaporation = effects.find((e): e is EvaporationEffect => e instanceof EvaporationEffect);
         const glassReturn = effects.find((e): e is GlassReturnArcEffect => e instanceof GlassReturnArcEffect);
         const fan = effects.find((e): e is FanSpinEffect => e instanceof FanSpinEffect);

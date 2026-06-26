@@ -45,8 +45,24 @@ function randomBetween(a: number, b: number): number {
     return a + Math.random() * (b - a);
 }
 
-// Pick a random dest within `radius` of the given origin
-function newDest(originX: number, originY: number, radius: number): [number, number] {
+function pointOverText(px: number, py: number, textRects: DOMRect[]): boolean {
+    for (const r of textRects) {
+        if (px >= r.left && px <= r.right && py >= r.top && py <= r.bottom) return true;
+    }
+    return false;
+}
+
+// Pick a random dest within `radius` of the given origin, using rejection
+// sampling to keep the butterfly over actual text when possible.
+const REJECTION_LIMIT = 30;
+function newDest(originX: number, originY: number, radius: number, textRects: DOMRect[]): [number, number] {
+    for (let i = 0; i < REJECTION_LIMIT; i++) {
+        const angle = randomBetween(0, Math.PI * 2);
+        const r = randomBetween(0, radius);
+        const px = originX + Math.cos(angle) * r;
+        const py = originY + Math.sin(angle) * r;
+        if (textRects.length === 0 || pointOverText(px, py, textRects)) return [px, py];
+    }
     const angle = randomBetween(0, Math.PI * 2);
     const r = randomBetween(0, radius);
     return [originX + Math.cos(angle) * r, originY + Math.sin(angle) * r];
@@ -92,10 +108,30 @@ function init(): void {
     let driftAngle = randomBetween(0, Math.PI * 2);
     let [x, y] = [originX, originY];
     let vx = 0, vy = 0;
-    let [destX, destY] = newDest(originX, originY, radius);
+    const stepEls = document.querySelectorAll<HTMLElement>(".recipe-step");
+    function getTextRects(): DOMRect[] {
+        const rects: DOMRect[] = [];
+        stepEls.forEach(el => rects.push(el.getBoundingClientRect()));
+        return rects;
+    }
+    let [destX, destY] = newDest(originX, originY, radius, getTextRects());
     let nextDestAt = 0;
-    let facing = 0; // radians, direction the butterfly faces
+    let facing = 0;
     let lastScrollY = window.scrollY;
+
+    const LAND_CHANCE = 0.1;
+    const LAND_DURATION_MIN = 5000; // ms
+    const LAND_DURATION_MAX = 10000;
+    const WIGGLE_MAX = 8 * Math.PI / 180;
+    const LAND_SETTLE_FRICTION = 0.05; // much stronger friction than flight
+    let landed = false;
+    let settling = false; // decelerating before full stop
+    let landEnd = 0;
+    let landFacing = 0;
+    let wiggleEnd = 0;
+    let wigglePauseEnd = 0;
+    let wiggleTarget = 0;
+    let wiggleProgress = 0;
 
     function bounceJitter(): number {
         return (Math.random() - 0.5) * 2 * MAX_BOUNCE_JITTER;
@@ -174,8 +210,10 @@ function init(): void {
         // angles — unless released, in which case the left/right walls no
         // longer bounce it, so the origin can wander offscreen horizontally;
         // the top/bottom walls keep bouncing it regardless.
-        originX += Math.cos(driftAngle) * ORIGIN_SPEED * dt;
-        originY += Math.sin(driftAngle) * ORIGIN_SPEED * dt;
+        if (!landed) {
+            originX += Math.cos(driftAngle) * ORIGIN_SPEED * dt;
+            originY += Math.sin(driftAngle) * ORIGIN_SPEED * dt;
+        }
         const minX = box.left + radius, maxX = box.right - radius;
         const minY = box.top + radius, maxY = box.bottom - radius;
         if (!released) {
@@ -195,30 +233,84 @@ function init(): void {
             driftAngle = avoidVertical(-driftAngle + bounceJitter());
         }
 
-        // Accelerate toward dest, apply friction, integrate
-        const toX = destX - x, toY = destY - y;
-        const dist = Math.sqrt(toX * toX + toY * toY) || 1;
-        vx += (toX / dist) * ACCEL * dt;
-        vy += (toY / dist) * ACCEL * dt;
-        const frictionFactor = Math.pow(FRICTION, dt);
-        vx *= frictionFactor;
-        vy *= frictionFactor;
-        x += vx * dt;
-        y += vy * dt;
+        if (landed && released) {
+            landed = false;
+            [destX, destY] = newDest(originX, originY, radius, []);
+            nextDestAt = 0;
+        }
 
-        const speed = Math.sqrt(vx * vx + vy * vy);
-        if (speed > 1) facing = Math.atan2(vy, vx);
-
-        // Pick a new dest once close to the current one and settled
-        const dxDest = x - destX, dyDest = y - destY;
-        if (dxDest * dxDest + dyDest * dyDest < 15 * 15) {
-            if (nextDestAt === 0) nextDestAt = now + randomBetween(100, 500);
-            if (now >= nextDestAt) {
-                [destX, destY] = newDest(originX, originY, radius);
+        if (landed) {
+            if (settling) {
+                const f = Math.pow(LAND_SETTLE_FRICTION, dt);
+                vx *= f;
+                vy *= f;
+                x += vx * dt;
+                y += vy * dt;
+                const speed = Math.sqrt(vx * vx + vy * vy);
+                if (speed > 1) facing = Math.atan2(vy, vx);
+                if (speed < 2) {
+                    settling = false;
+                    vx = 0;
+                    vy = 0;
+                    landFacing = facing;
+                    wiggleEnd = 0;
+                    wigglePauseEnd = now + randomBetween(300, 800);
+                }
+            } else {
+                if (now >= wigglePauseEnd && now >= wiggleEnd) {
+                    wiggleTarget = (Math.random() - 0.5) * 2 * WIGGLE_MAX;
+                    wiggleProgress = 0;
+                    wiggleEnd = now + randomBetween(200, 500);
+                    wigglePauseEnd = 0;
+                }
+                if (now < wiggleEnd) {
+                    wiggleProgress = Math.min(1, wiggleProgress + dt * 4);
+                    const eased = wiggleProgress * wiggleProgress * (3 - 2 * wiggleProgress);
+                    landFacing += wiggleTarget * eased * dt * 4;
+                } else if (wigglePauseEnd === 0) {
+                    wigglePauseEnd = now + randomBetween(400, 1200);
+                }
+                facing = landFacing;
+            }
+            if (now >= landEnd) {
+                landed = false;
+                settling = false;
+                [destX, destY] = newDest(originX, originY, radius, getTextRects());
                 nextDestAt = 0;
             }
         } else {
-            nextDestAt = 0;
+            // Accelerate toward dest, apply friction, integrate
+            const toX = destX - x, toY = destY - y;
+            const dist = Math.sqrt(toX * toX + toY * toY) || 1;
+            vx += (toX / dist) * ACCEL * dt;
+            vy += (toY / dist) * ACCEL * dt;
+            const frictionFactor = Math.pow(FRICTION, dt);
+            vx *= frictionFactor;
+            vy *= frictionFactor;
+            x += vx * dt;
+            y += vy * dt;
+
+            const speed = Math.sqrt(vx * vx + vy * vy);
+            if (speed > 1) facing = Math.atan2(vy, vx);
+
+            // Pick a new dest once close to the current one
+            const dxDest = x - destX, dyDest = y - destY;
+            if (dxDest * dxDest + dyDest * dyDest < 15 * 15) {
+                if (nextDestAt === 0) nextDestAt = now + randomBetween(100, 500);
+                if (now >= nextDestAt) {
+                    const rects = released ? [] : getTextRects();
+                    if (!released && Math.random() < LAND_CHANCE && pointOverText(x, y, rects)) {
+                        landed = true;
+                        settling = true;
+                        landEnd = now + randomBetween(LAND_DURATION_MIN, LAND_DURATION_MAX);
+                    } else {
+                        [destX, destY] = newDest(originX, originY, radius, rects);
+                    }
+                    nextDestAt = 0;
+                }
+            } else {
+                nextDestAt = 0;
+            }
         }
 
         render();

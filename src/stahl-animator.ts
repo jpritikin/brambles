@@ -7,6 +7,7 @@ import { type PropGroupMember, type SceneObject, type Sprite, Compositor, PropGr
 import { rand } from "./rng";
 import { applyBladeRadius, arcLerp, bladePulseRadius, boundingAspectRatio, MemberFlight, ouStep, runFrames, seedGrindRole, textSprite } from "./ascii-sprites";
 import { type FluidSim, type StirImpulse, makeFluidSim, fillFluidSim, seedFluidFromPositions, seedPowderAtBottom, stepFluid, projectFluidSim, gridToRel, interiorBounds } from "./fluid-sim";
+import type { PourSim, ContainerState } from "./pour-sim";
 import {
     BOTTLE_LIQUID_POSITIONS,
     GLASS_FLUID_DIMS,
@@ -156,6 +157,9 @@ export class SceneAnimator {
     getGlassFluidSim(): FluidSim | undefined {
         return this.fluidContainers.get("glass")?.sim;
     }
+    hasFluidSim(id: string): boolean {
+        return !!(this.fluidContainers.get(id as any)?.sim);
+    }
     stirStrengthOverride: number | null = null;
     fillLevelOverride: number | null = null;
     // Stir rod ids ("stirRod"/"stirRod2") whose pulse/vortex loop has been
@@ -204,6 +208,31 @@ export class SceneAnimator {
     // State of the active countdown timer, if any, kept in sync with the
     // closure in `startCountdown` so `skipCountdown` can fast-forward it.
     private activeCountdown: { start: number; totalSeconds: number; preElapsed: number; paneCenterX: number } | null = null;
+
+    // Active PourSim instances registered by StepEffects for debug visualization.
+    private activePourSims = new Map<string, { sim: PourSim; sourceState: () => ContainerState; targetState: () => ContainerState }>();
+    // 0 = paused, otherwise scales real-time dt for runFrames.
+    playbackSpeed = 1;
+
+    registerPourSim(label: string, sim: PourSim, sourceState: () => ContainerState, targetState: () => ContainerState): void {
+        this.activePourSims.set(label, { sim, sourceState, targetState });
+    }
+
+    unregisterPourSim(label: string): void {
+        this.activePourSims.delete(label);
+    }
+
+    getActivePourSims(): Map<string, { sim: PourSim; sourceState: () => ContainerState; targetState: () => ContainerState }> {
+        return this.activePourSims;
+    }
+
+    dumpAscii(): string {
+        return this.compositor.dumpAscii();
+    }
+
+    onSubstepChange: ((stepIndex: number, substepId: string | null) => void) | null = null;
+    onStepComplete: ((stepIndex: number) => void) | null = null;
+    private activeSubstep: string | null = null;
 
     constructor(compositor: Compositor) {
         this.compositor = compositor;
@@ -264,7 +293,7 @@ export class SceneAnimator {
         const scraperLayout = INITIAL_LAYOUT.scraper;
         this.scraperGroup = new PropGroup(compositor, "scraper-clump", [], scraperLayout);
 
-        const bottleLayout = INITIAL_LAYOUT.bottle;
+        const bottleLayout = { ...INITIAL_LAYOUT.bottle, z: INITIAL_LAYOUT.bottle.z - 1 };
         this.fluidContainers.set("bottle", makeFluidContainer(compositor, "bottle-liquid", bottleLayout));
         this.fillBottleLiquid();
 
@@ -290,6 +319,8 @@ export class SceneAnimator {
             this.countdownRafHandle = null;
         }
         this.activeCountdown = null;
+        this.activePourSims.clear();
+        this.playbackSpeed = 1;
         this.stoppedStirring.clear();
         for (const id of this.transientIds) this.compositor.removeObject(id);
         this.transientIds.clear();
@@ -353,8 +384,9 @@ export class SceneAnimator {
         const grinderBodyLayout = this.objects.get("grinderBody")!;
         this.fluidContainers.set("grinder", makeFluidContainer(this.compositor, "grinder-powder", grinderBodyLayout));
 
-        const bottleLayout = this.objects.get("bottle")!;
-        this.fluidContainers.set("bottle", makeFluidContainer(this.compositor, "bottle-liquid", bottleLayout));
+        const bottleObj = this.objects.get("bottle")!;
+        const bottleLayout2 = { x: bottleObj.x, y: bottleObj.y, z: bottleObj.z - 1, rotation: bottleObj.rotation };
+        this.fluidContainers.set("bottle", makeFluidContainer(this.compositor, "bottle-liquid", bottleLayout2));
         this.fillBottleLiquid();
     }
 
@@ -592,6 +624,7 @@ export class SceneAnimator {
     // t=0 anchor, with no snap.
     private snapToInitial(step: Step, index: number): {
         timelines: Map<string, Array<{ t: number; layout: Partial<ObjectLayout> }>>;
+        initials: Map<string, ObjectLayout>;
         isSeedFlight: boolean;
         flightStart: ObjectLayout;
         flightEnd: ObjectLayout;
@@ -627,30 +660,48 @@ export class SceneAnimator {
         // `applyAt`), so a step's effects (e.g. step 3's GlassFridgeArcEffect)
         // can freely own an object's position without it being reset back to
         // its t=0 anchor every frame.
-        const timelines = new Map<string, Array<{ t: number; layout: Partial<ObjectLayout> }>>();
+        const keyframes = step.timeline?.keyframes ?? step.transitionKeyframes ?? [];
+        const initials = new Map<string, ObjectLayout>();
         const ids = new Set<string>();
-        for (const kf of step.transitionKeyframes ?? []) {
+        for (const kf of keyframes) {
             for (const id of Object.keys(kf.objects)) ids.add(id);
         }
-
         for (const id of ids) {
             const obj = this.objects.get(id);
-            if (!obj) continue;
+            if (obj) initials.set(id, { x: obj.x, y: obj.y, z: obj.z, rotation: obj.rotation });
+        }
+
+        const timelines = this.buildTimelines(keyframes, initials);
+
+        const seedPile = this.objects.get("seedPile")!;
+        const grinderBody = this.objects.get("grinderBody")!;
+        const flightStart: ObjectLayout = { x: seedPile.x, y: seedPile.y, z: seedPile.z, rotation: seedPile.rotation };
+        const flightEnd: ObjectLayout = { x: grinderBody.x, y: grinderBody.y, z: 0, rotation: grinderBody.rotation };
+        return { timelines, initials, isSeedFlight, flightStart, flightEnd };
+    }
+
+    private buildTimelines(
+        keyframes: TransitionKeyframe[],
+        initials: Map<string, ObjectLayout>,
+    ): Map<string, Array<{ t: number; layout: Partial<ObjectLayout> }>> {
+        const timelines = new Map<string, Array<{ t: number; layout: Partial<ObjectLayout> }>>();
+        const ids = new Set<string>();
+        for (const kf of keyframes) {
+            for (const id of Object.keys(kf.objects)) ids.add(id);
+        }
+        for (const id of ids) {
+            const init = initials.get(id);
+            if (!init) continue;
             const points: Array<{ t: number; layout: Partial<ObjectLayout> }> = [];
-            points.push({ t: 0, layout: { x: obj.x, y: obj.y, z: obj.z, rotation: obj.rotation } });
-            for (const kf of step.transitionKeyframes ?? []) {
+            points.push({ t: 0, layout: init });
+            for (const kf of keyframes) {
                 const partial = kf.objects[id];
                 if (partial) points.push({ t: kf.t, layout: partial });
             }
             points.sort((a, b) => a.t - b.t);
             timelines.set(id, points);
         }
-
-        const seedPile = this.objects.get("seedPile")!;
-        const grinderBody = this.objects.get("grinderBody")!;
-        const flightStart: ObjectLayout = { x: seedPile.x, y: seedPile.y, z: seedPile.z, rotation: seedPile.rotation };
-        const flightEnd: ObjectLayout = { x: grinderBody.x, y: grinderBody.y, z: 0, rotation: grinderBody.rotation };
-        return { timelines, isSeedFlight, flightStart, flightEnd };
+        return timelines;
     }
 
     // If `instant` is true, the whole transition (and, for step 1, the
@@ -669,15 +720,34 @@ export class SceneAnimator {
         onFrame?: (elapsed: number, anim: SceneAnimator) => void,
     ): void {
         this._instant = instant;
-        const { timelines, isSeedFlight, flightStart, flightEnd } = snapped ?? this.snapToInitial(step, index);
+        const snapResult = snapped ?? this.snapToInitial(step, index);
+        let { timelines } = snapResult;
+        const { initials, isSeedFlight, flightStart, flightEnd } = snapResult;
         const endViewOffset = (index - 1) * PANE_WIDTH;
         const effects = step.effects?.(this) ?? [];
+        const tl = step.timeline ?? null;
+        let tlVersion = tl?.version ?? 0;
+        const getDuration = tl ? () => tl.duration : () => step.transitionDuration;
 
-        // Applies one frame of the transition at elapsed time `elapsed` (ms)
-        // with frame delta `dt` (s).
         const frame = (elapsed: number, dt: number): void => {
-            const t = Math.min(elapsed, step.transitionDuration);
-            const span = step.transitionDuration > 0 ? t / step.transitionDuration : 1;
+            if (tl) {
+                tl.update(elapsed);
+                if (tl.version !== tlVersion) {
+                    tlVersion = tl.version;
+                    for (const kf of tl.keyframes) {
+                        for (const id of Object.keys(kf.objects)) {
+                            if (!initials.has(id)) {
+                                const obj = this.objects.get(id);
+                                if (obj) initials.set(id, { x: obj.x, y: obj.y, z: obj.z, rotation: obj.rotation });
+                            }
+                        }
+                    }
+                    timelines = this.buildTimelines(tl.keyframes, initials);
+                }
+            }
+            const dur = getDuration();
+            const t = dur === Infinity ? elapsed : Math.min(elapsed, dur);
+            const span = dur > 0 && dur !== Infinity ? t / dur : (dur === Infinity ? 0 : 1);
 
             for (const [id, points] of timelines) {
                 const obj = this.objects.get(id);
@@ -721,7 +791,7 @@ export class SceneAnimator {
             // every frame, same as liquidGroup above, so the ethanol inside
             // tips and pours along with the bottle.
             const bottle = this.objects.get("bottle")!;
-            this.bottleLiquidGroup.setOrigin(bottle.x, bottle.y, bottle.z, bottle.rotation);
+            this.bottleLiquidGroup.setOrigin(bottle.x, bottle.y, bottle.z - 1, bottle.rotation);
 
             for (const effect of effects) effect.tick(t, this);
 
@@ -733,11 +803,22 @@ export class SceneAnimator {
 
             this.updateDrops(t);
 
+            if (!instant && step.substeps) {
+                let current: string | null = null;
+                for (const ss of step.substeps) {
+                    if (t >= ss.start && t < ss.end) { current = ss.id; break; }
+                }
+                if (current !== this.activeSubstep) {
+                    this.activeSubstep = current;
+                    this.onSubstepChange?.(index, current);
+                }
+            }
+
             onFrame?.(t, this);
         };
 
         runFrames(
-            step.transitionDuration,
+            getDuration,
             frame,
             () => {
                 this._instant = false;
@@ -746,8 +827,11 @@ export class SceneAnimator {
                     if (isSeedFlight) this.startGrinding(true);
                 } else {
                     this.currentViewOffset = endViewOffset;
+                    this.activeSubstep = null;
+                    this.onSubstepChange?.(index, null);
+                    this.onStepComplete?.(index);
                     const loops = step.loops?.(effects) ?? [];
-                    if (loops.length > 0) this.startLoops(loops, step.transitionDuration);
+                    if (loops.length > 0) this.startLoops(loops, getDuration());
                     if (isSeedFlight) this.startGrinding(false);
                     if (step.countdown) this.startCountdown(step.countdown, index);
                     step.onSettle?.(this);
@@ -759,6 +843,7 @@ export class SceneAnimator {
                 setRafHandle: (handle) => {
                     this.rafHandle = handle;
                 },
+                getPlaybackSpeed: () => this.playbackSpeed,
             },
         );
     }
@@ -840,7 +925,7 @@ export class SceneAnimator {
         const { dims } = sim;
         const cx = Math.floor(dims.width / 2);
         const cz = Math.floor(dims.depth / 2);
-        sim.particles.push({ x: cx, y: 0, z: cz, vx: 0, vy: 3, vz: 0, kind: "ethanol" });
+        sim.particles.push({ x: cx, y: 0, z: cz, vx: 0, vy: 10, vz: 0, kind: "ethanol" });
     }
 
     private instantFilled = new Set<string>();

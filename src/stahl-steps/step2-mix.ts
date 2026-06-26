@@ -10,17 +10,20 @@
 // pour-fall and drop-particle effects fire at the same point in the timeline
 // where each sequence's grinder/bottle/stick keyframes place it.
 
-import { type PropGroupMember } from "../ascii-compositor";
-import { GroupArcTransfer } from "../ascii-sprites";
 import { rand } from "../rng";
 import {
     ACID_DROP,
+    BOTTLE_INTERIOR_POINTS,
     BOTTLE_REST_ROTATION,
+    GLASS_POINTS,
+    GLASS_PIVOT,
     GLASS_POWDER_POSITIONS,
+    GRINDER_INTERIOR_POINTS,
     INITIAL_LAYOUT,
     LIQUID_PARTICLE,
     PANE_WIDTH,
     POUR_PROP_Y,
+    POWDER_PARTICLE,
     PROP_PARK_Y,
     STICK_BOWL_BASE_CELL_INDICES,
     STIR_ROD_DESCEND_DURATION,
@@ -32,8 +35,9 @@ import {
     travelDuration,
     type ObjectLayout,
 } from "../stahl-props";
-import { concatSequences, type Sequence, type Step, type StepEffect } from "../stahl-timeline";
+import { concatSequences, DynamicTimeline, type Sequence, type Step, type StepEffect, type SubstepRange, type TimelineSegment, type WaitCondition } from "../stahl-timeline";
 import { type SceneAnimator } from "../stahl-animator";
+import { PourTransfer } from "../pour-transfer";
 
 // How long the ground seed dust takes to fall from the tipped grinder into
 // the glass during step 2's pour.
@@ -41,28 +45,21 @@ export const POUR_FLIGHT_DURATION = 1000;
 
 // How far (radians) the grinder rotates clockwise while pouring, and how
 // long the lift/rotate and rotate-back/descend phases each take.
-export const POUR_TIP_ROTATION = TAU * (110 / 360);
-export const POUR_TIP_DURATION = 500;
-export const POUR_RETURN_DURATION = 500;
+export const POUR_TIP_ROTATION = TAU * (135 / 360);
+export const POUR_TIP_DURATION = 750;
+export const POUR_RETURN_DURATION = 1000;
 
 // How long the grinder pauses, tipped over the glass, before the seed
 // fragments fall.
-export const POUR_PAUSE_DURATION = 1200;
+export const POUR_PAUSE_DURATION = 2400;
 
 // Phase durations for the bottle's (ethanol) and stick's (tartaric acid)
 // pour sequences: descend above the glass, pause while pouring drops, then
 // ascend (bottle) or right itself and ascend (stick) back off-screen. The
 // bottle's descend/ascend durations are computed from travel distance (see
 // bottlePourTravelDuration).
-// The bottle's pause/pour phase (BOTTLE_POUR_DURATION) is split into: a brief
-// pause at rest, rotating to the tip angle, a pause while tipped, then
-// rotating back to rest. Ethanol drops fall throughout this whole window
-// (see BottlePourEffect).
 export const BOTTLE_PRE_TIP_PAUSE_DURATION = 400;
-export const BOTTLE_ROTATE_DURATION = 350;
-export const BOTTLE_TIPPED_PAUSE_DURATION = 3000;
-export const BOTTLE_POUR_DURATION =
-    BOTTLE_PRE_TIP_PAUSE_DURATION + BOTTLE_ROTATE_DURATION + BOTTLE_TIPPED_PAUSE_DURATION + BOTTLE_ROTATE_DURATION;
+export const BOTTLE_ROTATE_DURATION = 800;
 // A final pause at rest, back over the glass, before ascending off-screen.
 export const BOTTLE_POST_POUR_PAUSE_DURATION = 500;
 
@@ -99,10 +96,8 @@ function buildGrinderPourSequence(parkX: number, glassX: number): Sequence {
         duration,
         keyframes: [
             { t: 0, objects: { grinderBody: { x: parkX, y: 6, rotation: 0 } } },
-            { t: POUR_TIP_DURATION, objects: { grinderBody: { x: glassX - 2, y: 0, rotation: POUR_TIP_ROTATION } } },
-            // Holds the tipped pose through the pause and pour-fall, so it doesn't
-            // start rotating back until the seed dust has landed.
-            { t: pauseEnd, objects: { grinderBody: { x: glassX - 2, y: 0, rotation: POUR_TIP_ROTATION } } },
+            { t: POUR_TIP_DURATION, objects: { grinderBody: { x: glassX, y: 0, rotation: POUR_TIP_ROTATION } } },
+            { t: pauseEnd, objects: { grinderBody: { x: glassX, y: 0, rotation: POUR_TIP_ROTATION } } },
             { t: duration, objects: { grinderBody: { x: parkX, y: 6, rotation: 0 } } },
         ],
     };
@@ -115,31 +110,42 @@ export function bottlePourTravelDuration(parkX: number, glassX: number): number 
     return travelDuration(parkX, PROP_PARK_Y, glassX, POUR_PROP_Y - 2);
 }
 
-// The bottle descends above the glass, pauses, rotates to pour while ethanol
-// drops fall, rotates back, pauses again, then ascends back off-screen.
-function buildBottlePourSequence(parkX: number, glassX: number): Sequence {
+// The bottle descends above the glass, pauses, rotates to pour, waits for
+// enough ethanol to exit, rotates back, pauses, then ascends off-screen.
+// Returns sub-sequences with a WaitCondition between tip and return.
+let bottlePourWait: WaitCondition | null = null;
+export function getBottlePourWait(): WaitCondition | null { return bottlePourWait; }
+
+function buildBottlePourSegments(parkX: number, glassX: number): TimelineSegment[] {
     const travelDur = bottlePourTravelDuration(parkX, glassX);
-    const duration = travelDur + BOTTLE_POUR_DURATION + BOTTLE_POST_POUR_PAUSE_DURATION + travelDur;
-    const arrive = travelDur;
-    const preTipPauseEnd = arrive + BOTTLE_PRE_TIP_PAUSE_DURATION;
-    const tippedStart = preTipPauseEnd + BOTTLE_ROTATE_DURATION;
-    const tippedPauseEnd = tippedStart + BOTTLE_TIPPED_PAUSE_DURATION;
-    const pourEnd = tippedPauseEnd + BOTTLE_ROTATE_DURATION;
-    const postPourPauseEnd = pourEnd + BOTTLE_POST_POUR_PAUSE_DURATION;
     const pourY = POUR_PROP_Y - 2;
-    return {
-        duration,
+
+    const approachDur = travelDur + BOTTLE_PRE_TIP_PAUSE_DURATION + BOTTLE_ROTATE_DURATION;
+    const approach: Sequence = {
+        duration: approachDur,
         keyframes: [
             { t: 0, objects: { bottle: { x: parkX, y: PROP_PARK_Y, rotation: BOTTLE_REST_ROTATION } } },
-            { t: arrive, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
-            { t: preTipPauseEnd, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
-            { t: tippedStart, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_TIP_ROTATION } } },
-            { t: tippedPauseEnd, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_TIP_ROTATION } } },
-            { t: pourEnd, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
-            { t: postPourPauseEnd, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
-            { t: duration, objects: { bottle: { x: parkX, y: PROP_PARK_Y, rotation: BOTTLE_REST_ROTATION } } },
+            { t: travelDur, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
+            { t: travelDur + BOTTLE_PRE_TIP_PAUSE_DURATION, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
+            { t: approachDur, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_TIP_ROTATION } } },
         ],
     };
+
+    const wait: WaitCondition = { kind: "wait", predicate: () => false };
+    bottlePourWait = wait;
+
+    const returnDur = BOTTLE_ROTATE_DURATION + BOTTLE_POST_POUR_PAUSE_DURATION + travelDur;
+    const returnSeq: Sequence = {
+        duration: returnDur,
+        keyframes: [
+            { t: 0, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_TIP_ROTATION } } },
+            { t: BOTTLE_ROTATE_DURATION, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
+            { t: BOTTLE_ROTATE_DURATION + BOTTLE_POST_POUR_PAUSE_DURATION, objects: { bottle: { x: glassX, y: pourY, rotation: BOTTLE_REST_ROTATION } } },
+            { t: returnDur, objects: { bottle: { x: parkX, y: PROP_PARK_Y, rotation: BOTTLE_REST_ROTATION } } },
+        ],
+    };
+
+    return [approach, wait, returnSeq];
 }
 
 // How long a prop takes to descend from its parked position to POUR_PROP_Y
@@ -235,127 +241,138 @@ const STEP2_GLASS_X = 7.5 + 2 * PANE_WIDTH;
 // origin, so its pour position is offset left to land the spout above the
 // glass.
 const BOTTLE_POUR_X_OFFSET = -7;
-const STEP2_POUR_SEQUENCES: Array<{ id: "grinder" | "bottle" | "stick"; sequence: Sequence }> = [
-    { id: "grinder", sequence: buildGrinderPourSequence(7.5 + PANE_WIDTH, STEP2_GLASS_X) },
-    { id: "bottle", sequence: buildBottlePourSequence(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET) },
-    { id: "stick", sequence: buildStickPourSequence("stick", INITIAL_LAYOUT.stick.x, STEP2_GLASS_X) },
+const STEP2_POUR_ENTRIES: Array<{ id: "grinder" | "bottle" | "stick"; segments: TimelineSegment[] }> = [
+    { id: "grinder", segments: [buildGrinderPourSequence(7.5 + PANE_WIDTH, STEP2_GLASS_X)] },
+    { id: "bottle", segments: buildBottlePourSegments(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET) },
+    { id: "stick", segments: [buildStickPourSequence("stick", INITIAL_LAYOUT.stick.x, STEP2_GLASS_X)] },
 ];
-for (let i = STEP2_POUR_SEQUENCES.length - 1; i > 0; i--) {
+for (let i = STEP2_POUR_ENTRIES.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
-    [STEP2_POUR_SEQUENCES[i], STEP2_POUR_SEQUENCES[j]] = [STEP2_POUR_SEQUENCES[j], STEP2_POUR_SEQUENCES[i]];
+    [STEP2_POUR_ENTRIES[i], STEP2_POUR_ENTRIES[j]] = [STEP2_POUR_ENTRIES[j], STEP2_POUR_ENTRIES[i]];
+}
+function segmentMinDuration(segs: TimelineSegment[]): number {
+    let dur = 0;
+    for (const s of segs) if (!("kind" in s)) dur += s.duration;
+    return dur;
 }
 const STEP2_POUR_OFFSETS = new Map<string, number>();
 {
     let offset = 0;
-    for (const { id, sequence } of STEP2_POUR_SEQUENCES) {
+    for (const { id, segments } of STEP2_POUR_ENTRIES) {
         STEP2_POUR_OFFSETS.set(id, offset);
-        offset += sequence.duration;
+        offset += segmentMinDuration(segments);
     }
 }
 const STEP2_GRINDER_OFFSET = STEP2_POUR_OFFSETS.get("grinder")!;
 const STEP2_BOTTLE_OFFSET = STEP2_POUR_OFFSETS.get("bottle")!;
 const STEP2_STICK_OFFSET = STEP2_POUR_OFFSETS.get("stick")!;
-const STEP2_TIMELINE = concatSequences([...STEP2_POUR_SEQUENCES.map((p) => p.sequence), buildStirRodSequence()]);
+const STEP2_POUR_DURATIONS = new Map<string, number>();
+for (const { id, segments } of STEP2_POUR_ENTRIES) {
+    STEP2_POUR_DURATIONS.set(id, segmentMinDuration(segments));
+}
+const STEP2_ALL_SEGMENTS: TimelineSegment[] = [
+    ...STEP2_POUR_ENTRIES.flatMap(p => p.segments),
+    buildStirRodSequence(),
+];
+const STEP2_TIMELINE = new DynamicTimeline(STEP2_ALL_SEGMENTS);
+
+const SUBSTEP_IDS: Record<string, string> = { grinder: "seed-powder", bottle: "ethanol", stick: "tartaric-acid" };
+const STEP2_SUBSTEPS: SubstepRange[] = STEP2_POUR_ENTRIES.map(({ id }) => ({
+    id: SUBSTEP_IDS[id],
+    start: STEP2_POUR_OFFSETS.get(id)!,
+    end: STEP2_POUR_OFFSETS.get(id)! + STEP2_POUR_DURATIONS.get(id)!,
+}));
 
 // ---------------------------------------------------------------------------
 // Per-frame effects
 // ---------------------------------------------------------------------------
 
-// The ground seed dust falling from the tipped grinder into the glass, once
-// it's done pausing above the glass. Wraps a `GroupArcTransfer` from
-// `anim.grinderPowderGroup` (the seeds, ground to powder and transferred there
-// at the end of step 1's grind) to `anim.glassGroup`, releasing/landing
-// relative to `STEP2_GRINDER_OFFSET`'s position in the shuffled timeline.
-class SeedPourEffect implements StepEffect {
-    private transfer: GroupArcTransfer | null = null;
-
-    tick(t: number, anim: SceneAnimator): void {
-        if (!this.transfer) {
-            const releaseT = STEP2_GRINDER_OFFSET + POUR_TIP_DURATION + POUR_PAUSE_DURATION;
-            const seedCount = anim.grinderPowderGroup.members.length;
-            this.transfer = new GroupArcTransfer(
-                anim.grinderPowderGroup,
-                anim.glassGroup,
-                releaseT,
-                POUR_FLIGHT_DURATION,
-                GLASS_POWDER_POSITIONS.slice(0, seedCount),
-            );
-        }
-        this.transfer.tick(t);
-    }
+function buildSeedPourTransfer(): PourTransfer {
+    let nextDestAdd = 0;
+    return new PourTransfer({
+        label: "seed→glass",
+        initT: STEP2_GRINDER_OFFSET,
+        simConfig: {
+            sourcePoints: GRINDER_INTERIOR_POINTS,
+            sourceClosed: false,
+            targetPoints: GLASS_POINTS,
+            targetClosed: false,
+            targetPivot: GLASS_PIVOT,
+        },
+        visualIdPrefix: "pour-seed",
+        visualZ: INITIAL_LAYOUT.grinderBody.z + 1,
+        getSourceMembers: (anim) => [...anim.grinderPowderGroup.members],
+        getSourceState: (anim) => { const g = anim.getObject("grinderBody"); return { x: g.x, y: g.y, rotation: g.rotation }; },
+        getTargetState: (anim) => { const g = anim.getObject("glass"); return { x: g.x, y: g.y, rotation: g.rotation }; },
+        destTotal: (n) => Math.min(n, GLASS_POWDER_POSITIONS.length),
+        onDrain: (count, members, nextIdx, anim) => {
+            for (let j = 0; j < count && nextIdx < members.length; j++) {
+                const member = members[nextIdx++];
+                anim.grinderPowderGroup.release(member);
+                member.obj.visible = false;
+            }
+            return nextIdx;
+        },
+        onFill: (count, anim) => {
+            for (let j = 0; j < count && nextDestAdd < GLASS_POWDER_POSITIONS.length; j++) {
+                const [relX, relY] = GLASS_POWDER_POSITIONS[nextDestAdd++];
+                anim.glassGroup.addMember({ sprite: POWDER_PARTICLE, relX, relY, relZ: 0 });
+            }
+        },
+    });
 }
 
-// Drains the bottle's ethanol particles one by one (top-to-bottom) once the
-// bottle has tipped, spawning a cosmetic "~" drop from the spout for each.
-// Initializes an empty fluid sim at pour start; injects particles at a steady
-// rate so the liquid fills and sloshes gradually.
-class BottlePourEffect implements StepEffect {
-    private sorted: PropGroupMember[] | null = null;
-    private nextDrain = 0;
-    private simInitialized: boolean;
-    private lastT: number | null = null;
-    private particlesAdded = 0;
-    private readonly pourStart =
-        STEP2_BOTTLE_OFFSET +
-        bottlePourTravelDuration(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET) +
-        BOTTLE_PRE_TIP_PAUSE_DURATION +
-        BOTTLE_ROTATE_DURATION;
-    private readonly dropFlight = BOTTLE_POUR_FLIGHT_DURATION;
-    private readonly pourDuration = BOTTLE_TIPPED_PAUSE_DURATION + BOTTLE_POUR_FLIGHT_DURATION;
+const BOTTLE_MIN_EXITED = 4;
 
-    constructor(anim: SceneAnimator) {
-        this.simInitialized = anim.liquidGroup.members.length > 0;
-    }
-
-    tick(t: number, anim: SceneAnimator): void {
-        if (t < this.pourStart) return;
-        if (!this.simInitialized) {
-            anim.initEmptyFluidSim("glass");
-            this.simInitialized = true;
-        }
-        const dt = this.lastT !== null ? Math.max(0, t - this.lastT) / 1000 : 0;
-        this.lastT = t;
-        if (dt > 0) anim.stepFluidSettling("glass", dt);
-        if (!this.sorted) {
-            this.sorted = [...anim.bottleLiquidGroup.members].sort((a, b) => a.relY - b.relY);
-        }
-        const count = this.sorted.length;
-        if (count > 0 && this.nextDrain < count) {
-            const elapsed = t - this.pourStart;
-            const drainUpTo = Math.min(count, Math.floor((elapsed / BOTTLE_TIPPED_PAUSE_DURATION) * count) + 1);
-            const bottle = anim.getObject("bottle");
-            const glass = anim.getObject("glass");
-            const spoutAngle = bottle.rotation;
-            const spoutDx = -3 * Math.sin(spoutAngle);
-            const spoutDy = -3 * Math.cos(spoutAngle);
-            while (this.nextDrain < drainUpTo) {
-                const member = this.sorted[this.nextDrain];
-                anim.removeBottleLiquidParticle(member);
-                const from: ObjectLayout = {
-                    x: bottle.x + spoutDx + 0,
-                    y: bottle.y + spoutDy - 1,
-                    z: bottle.z - 1,
-                    rotation: 0,
-                };
-                const to: ObjectLayout = {
-                    x: glass.x + 1 + (rand() - 0.5) * 2,
-                    y: glass.y + 0,
-                    z: glass.z - 1,
-                    rotation: 0,
-                };
-                anim.spawnDrop(LIQUID_PARTICLE, from, to, t, this.dropFlight);
-                this.nextDrain++;
+function buildBottlePourTransfer(anim: SceneAnimator): PourTransfer {
+    let simInitialized = anim.liquidGroup.members.length > 0;
+    const wait = getBottlePourWait();
+    return new PourTransfer({
+        label: "bottle→glass",
+        initT: STEP2_BOTTLE_OFFSET +
+            bottlePourTravelDuration(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET) +
+            BOTTLE_PRE_TIP_PAUSE_DURATION,
+        minExited: BOTTLE_MIN_EXITED,
+        onMinExited: () => {
+            if (wait) wait.predicate = () => true;
+        },
+        doneWhen: () => {
+            const b = anim.getObject("bottle");
+            return Math.abs(b.rotation - BOTTLE_REST_ROTATION) < 0.01;
+        },
+        simConfig: {
+            sourcePoints: BOTTLE_INTERIOR_POINTS,
+            sourceClosed: false,
+            targetPoints: GLASS_POINTS,
+            targetClosed: false,
+            targetPivot: GLASS_PIVOT,
+        },
+        simParticleCount: BOTTLE_MIN_EXITED,
+        visualIdPrefix: "pour-ethanol",
+        visualZ: INITIAL_LAYOUT.bottle.z - 1,
+        visualSprite: LIQUID_PARTICLE,
+        sourceTotal: BOTTLE_MIN_EXITED,
+        sortMembers: (a, b) => a.relY - b.relY,
+        getSourceMembers: (anim) => [...anim.bottleLiquidGroup.members],
+        getSourceState: (anim) => { const b = anim.getObject("bottle"); return { x: b.x, y: b.y, rotation: b.rotation }; },
+        getTargetState: (anim) => { const g = anim.getObject("glass"); return { x: g.x, y: g.y, rotation: g.rotation }; },
+        destTotal: (_n, anim) => Math.round(anim.getFluidTargetCount("glass") * 30 / BOTTLE_MIN_EXITED),
+        onPreInit: (anim) => {
+            if (!simInitialized) {
+                anim.initEmptyFluidSim("glass");
+                simInitialized = true;
             }
-        }
-        const targetParticles = anim.getFluidTargetCount("glass");
-        const elapsed = t - this.pourStart;
-        const fraction = Math.min(1, elapsed / this.pourDuration);
-        const target = Math.floor(fraction * targetParticles);
-        while (this.particlesAdded < target) {
-            anim.addFluidParticle("glass");
-            this.particlesAdded++;
-        }
-    }
+        },
+        onDrain: (count, members, nextIdx, anim) => {
+            for (let j = 0; j < count && nextIdx < members.length; j++) {
+                anim.removeBottleLiquidParticle(members[nextIdx++]);
+            }
+            return nextIdx;
+        },
+        onFill: (count, anim) => {
+            for (let j = 0; j < count; j++) anim.addFluidParticle("glass");
+        },
+    });
 }
 
 // Drops a single tartaric-acid particle from the stick's cup into `glassId`
@@ -377,20 +394,33 @@ export class StickPourEffect implements StepEffect {
     }
 }
 
+class GlassSettleEffect implements StepEffect {
+    private lastT: number | null = null;
+
+    tick(t: number, anim: SceneAnimator): void {
+        if (!anim.hasFluidSim("glass")) return;
+        const dt = this.lastT !== null ? Math.max(0, t - this.lastT) / 1000 : 0;
+        this.lastT = t;
+        if (dt > 0) anim.stepFluidSettling("glass", dt);
+    }
+}
+
 function buildStep2Effects(anim: SceneAnimator): StepEffect[] {
     const stickTravelDuration = tipPourTravelDuration(INITIAL_LAYOUT.stick.x, STEP2_GLASS_X);
     const stickDropStart = STEP2_STICK_OFFSET + stickTravelDuration + STICK_PRE_POUR_PAUSE_DURATION + STICK_DUMP_DURATION / 2;
     return [
-        new SeedPourEffect(),
-        new BottlePourEffect(anim),
+        buildSeedPourTransfer(),
+        buildBottlePourTransfer(anim),
         new StickPourEffect(stickDropStart),
         buildStickBowlTipEffect("stick", STEP2_STICK_OFFSET, INITIAL_LAYOUT.stick.x, STEP2_GLASS_X),
+        new GlassSettleEffect(),
     ];
 }
 
 export const STEP2: Step = {
-    transitionDuration: STEP2_TIMELINE.duration,
-    transitionKeyframes: STEP2_TIMELINE.keyframes,
+    transitionDuration: STEP2_TIMELINE.minDuration,
+    timeline: STEP2_TIMELINE,
+    substeps: STEP2_SUBSTEPS,
     loops: () => [{ kind: "pulse", id: "stirRod", maxRadius: STIR_ROD_RADIUS, period: STIR_ROD_PULSE_PERIOD }],
     effects: buildStep2Effects,
     // The recipe's "stir for ten minutes" countdown appears 5s after

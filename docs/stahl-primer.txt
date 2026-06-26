@@ -281,7 +281,3 @@ Known WIP / things to watch
   `<span class="recipe-step" data-step="N">`; `data-step` itself isn't read
   by stahl-recipe.ts (it uses DOM order / NodeList index instead)—keep
   step spans and STEPS array order in sync if either changes.
-
-
-TODO:
-Do rejection sampling to keep the butterfly target over text.

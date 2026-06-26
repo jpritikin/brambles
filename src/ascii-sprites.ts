@@ -368,27 +368,25 @@ export class GroupArcTransfer {
 // `render` after each frame. Shared by `playTransition` and `startGrinding`
 // so each only needs to define its own `frame`/`onDone`.
 export function runFrames(
-  duration: number,
+  duration: number | (() => number),
   frame: (elapsed: number, dt: number) => void,
   onDone: () => void,
   options: {
     instant: boolean;
     render?: () => void;
     setRafHandle?: (handle: number | null) => void;
-    // If false, the animated path's terminal tick skips `frame`/`render` and
-    // calls `onDone` directly (e.g. `startGrinding`, whose `onDone` applies
-    // its own final-state reset instead of running one more grind frame at
-    // elapsed === duration). The instant path always calls `frame` at
-    // elapsed === duration regardless. Defaults to true.
     callFrameAtEnd?: boolean;
+    getPlaybackSpeed?: () => number;
   },
 ): void {
+  const getDur = typeof duration === "function" ? duration : () => duration;
+
   if (options.instant) {
     const dtMs = 16;
     let elapsed = 0;
     let last = 0;
-    while (elapsed < duration) {
-      elapsed = Math.min(elapsed + dtMs, duration);
+    while (elapsed < getDur()) {
+      elapsed = Math.min(elapsed + dtMs, getDur());
       frame(elapsed, (elapsed - last) / 1000);
       last = elapsed;
     }
@@ -397,16 +395,19 @@ export function runFrames(
   }
 
   const callFrameAtEnd = options.callFrameAtEnd ?? true;
-  const start = performance.now();
-  let last = start;
+  let elapsed = 0;
+  let lastWall = performance.now();
   const tick = (now: number): void => {
-    const elapsed = Math.max(0, now - start);
-    const dt = Math.max(0, now - last) / 1000;
-    last = now;
+    const wallDt = Math.max(0, now - lastWall) / 1000;
+    lastWall = now;
+    const speed = options.getPlaybackSpeed?.() ?? 1;
+    const scaledDt = wallDt * speed;
+    const dur = getDur();
+    elapsed = Math.min(elapsed + scaledDt * 1000, dur);
 
-    if (elapsed >= duration) {
+    if (elapsed >= dur) {
       if (callFrameAtEnd) {
-        frame(duration, dt);
+        frame(dur, scaledDt);
         options.render?.();
       }
       options.setRafHandle?.(null);
@@ -414,7 +415,7 @@ export function runFrames(
       return;
     }
 
-    frame(elapsed, dt);
+    frame(elapsed, scaledDt);
     options.render?.();
     options.setRafHandle?.(requestAnimationFrame(tick));
   };

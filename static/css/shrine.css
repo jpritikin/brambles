@@ -71,6 +71,27 @@
   background-color: rgba(212, 175, 55, 0.16);
   border-radius: 0.2rem;
 }
+.recipe-step.recipe-step-done {
+  background-color: rgba(120, 180, 120, 0.14);
+  border-radius: 0.2rem;
+}
+.recipe-step.recipe-step-next {
+  animation: step-blink 2.5s ease-in-out infinite;
+  border-radius: 0.2rem;
+}
+@keyframes step-blink {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(212, 175, 55, 0.08); }
+}
+.recipe-substep {
+  transition: background-color 0.3s ease;
+  border-radius: 0.15rem;
+  padding: 0 0.1em;
+}
+.recipe-substep.recipe-substep-active {
+  background-color: rgba(100, 180, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(100, 180, 255, 0.5);
+}
 
 #stahl-slideshow {
   margin: 2rem auto;

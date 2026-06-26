@@ -38,6 +38,69 @@ export function concatSequences(sequences: Sequence[]): { keyframes: TransitionK
     return { keyframes, duration: offset };
 }
 
+export interface WaitCondition {
+    kind: "wait";
+    predicate: () => boolean;
+}
+
+export type TimelineSegment = Sequence | WaitCondition;
+
+// A timeline with condition-based pauses between fixed sequences. Keyframe
+// `t` values after a wait are shifted by however long the wait actually
+// took, so interpolation works seamlessly. Call `update(elapsed)` each
+// frame; when a wait's predicate fires, `version` increments and
+// `keyframes`/`duration` reflect the newly-unlocked segments.
+export class DynamicTimeline {
+    private segments: TimelineSegment[];
+    private resolvedKeyframes: TransitionKeyframe[] = [];
+    private resolvedDuration = 0;
+    private nextSegIndex = 0;
+    private offset = 0;
+    version = 0;
+    readonly minDuration: number;
+
+    constructor(segments: TimelineSegment[]) {
+        this.segments = segments;
+        let dur = 0;
+        for (const s of segments) if (!("kind" in s)) dur += s.duration;
+        this.minDuration = dur;
+        this.advance();
+    }
+
+    private advance(): void {
+        while (this.nextSegIndex < this.segments.length) {
+            const seg = this.segments[this.nextSegIndex];
+            if ("kind" in seg) break;
+            for (const kf of seg.keyframes) {
+                this.resolvedKeyframes.push({ t: kf.t + this.offset, objects: kf.objects });
+            }
+            this.offset += seg.duration;
+            this.resolvedDuration = this.offset;
+            this.nextSegIndex++;
+        }
+    }
+
+    get duration(): number {
+        return this.nextSegIndex < this.segments.length ? Infinity : this.resolvedDuration;
+    }
+
+    get keyframes(): TransitionKeyframe[] {
+        return this.resolvedKeyframes;
+    }
+
+    update(elapsed: number): void {
+        if (this.nextSegIndex >= this.segments.length) return;
+        const seg = this.segments[this.nextSegIndex];
+        if (!("kind" in seg)) return;
+        if (seg.predicate()) {
+            this.offset = elapsed;
+            this.nextSegIndex++;
+            this.version++;
+            this.advance();
+        }
+    }
+}
+
 export interface ContinuousSpin {
     kind: "spin";
     id: string;
@@ -121,20 +184,22 @@ export const COUNTDOWN_TIMER_ID = "countdownTimer";
 export const COUNTDOWN_TIMER_Y = 0;
 export const COUNTDOWN_TIMER_Z = 10;
 
+export interface SubstepRange {
+    id: string;
+    start: number;
+    end: number;
+}
+
 export interface Step {
-    // How long the pan/transition animation takes, in ms.
+    // How long the pan/transition animation takes, in ms. When a
+    // DynamicTimeline is used, this is the minimum duration (waits extend it).
     transitionDuration: number;
-    // Sparse waypoints during the transition, authored in world-space
-    // coordinates (see PANE_WIDTH comment in stahl-props.ts). t=0 is
-    // implicitly wherever each prop was left by the previous step (or, for
-    // step 1, by `INITIAL_LAYOUT`) — `playStep` always gets there first by
-    // resetting to `INITIAL_LAYOUT` and fast-forwarding steps 1..index-1, so
-    // a step's keyframes are deterministic regardless of which step was
-    // previously shown. A prop's final layout (at `transitionDuration`) is
-    // whatever its last keyframe leaves it at, or unchanged if it has no
-    // keyframes. Properties not specified at a waypoint carry forward from
-    // the previous waypoint that defined them.
+    // Sparse waypoints during the transition. When a DynamicTimeline is
+    // provided, its keyframes override these.
     transitionKeyframes?: TransitionKeyframe[];
+    // Optional dynamic timeline with wait conditions. When present,
+    // transitionDuration/transitionKeyframes are derived from it.
+    timeline?: DynamicTimeline;
     // Continuous animations that start once the transition finishes. Given
     // this transition's `effects` (see below) so an EffectLoop can continue
     // ticking the same effect instance used during the transition.
@@ -150,4 +215,5 @@ export interface Step {
     // or instant replays of earlier steps). Used for one-shot effects outside
     // the keyframe/loop/countdown system, e.g. step 6's fireworks finale.
     onSettle?: (anim: SceneAnimator) => void;
+    substeps?: SubstepRange[];
 }
