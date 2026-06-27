@@ -110,8 +110,8 @@ export const STEP4_TRANSITION_DURATION = STEP4_GLASS_RETURN_END;
 // How long, after a liquid particle lands in the dish, before it starts
 // evaporating, and how long each phase of evaporation takes: first rising 1-2
 // rows, then drifting diagonally up and to the left until it fades away.
-export const EVAPORATE_DELAY_MIN = 1000;
-export const EVAPORATE_DELAY_MAX = 4000;
+export const EVAPORATE_DELAY_MIN = 4000;
+export const EVAPORATE_DELAY_MAX = 16000;
 export const EVAPORATE_RISE_DURATION = 600;
 export const EVAPORATE_RISE_MIN = 1;
 export const EVAPORATE_RISE_MAX = 2;
