@@ -199,3 +199,23 @@
   font-size: 1.8rem;
   filter: drop-shadow(0 0 0.4rem #ffd966);
 }
+
+.must-be-fresh {
+  display: inline-block;
+  cursor: pointer;
+  transform-origin: center;
+  animation: fresh-shrink 0.4s ease forwards;
+}
+.must-be-fresh:hover {
+  animation: fresh-bounce 0.4s ease forwards;
+}
+@keyframes fresh-bounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(2.1); }
+  100% { transform: scale(2); }
+}
+@keyframes fresh-shrink {
+  0% { transform: scale(2); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
