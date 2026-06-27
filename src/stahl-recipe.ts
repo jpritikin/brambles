@@ -157,11 +157,13 @@ function init(): void {
     }
   };
 
-  if (debug) {
+  {
     const { element: controls, tickEls: tEls } = buildViewportControls(animator);
     container.appendChild(controls);
     tickEls = tEls;
+  }
 
+  if (debug) {
     const speedPanel = document.createElement("div");
     speedPanel.className = "recipe-ss-speed";
     const SPEEDS = [0, 0.25, 0.5, 1];
