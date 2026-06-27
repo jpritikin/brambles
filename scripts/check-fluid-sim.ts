@@ -1,7 +1,7 @@
 // Sanity checks for src/fluid-sim.ts. Run with `npx tsx scripts/check-fluid-sim.ts`;
 // exits non-zero on failure. Silent on success.
 
-import { makeFluidSim, fillFluidSim, stepFluid, projectFluidSim, type FluidSim } from "../src/fluid-sim";
+import { makeFluidSim, fillFluidSim, stepFluid, projectFluidSim, type FluidSim, type ParticleKind } from "../src/fluid-sim";
 
 interface Failure { test: string; label: string; detail: string }
 const failures: Failure[] = [];
@@ -11,11 +11,11 @@ function assert(condition: boolean, label: string, detail = ""): void {
   if (!condition) failures.push({ test: currentTest, label, detail });
 }
 
-function particleCount(sim: FluidSim, kind?: "ethanol" | "powder"): number {
+function particleCount(sim: FluidSim, kind?: ParticleKind): number {
   return kind ? sim.particles.filter(p => p.kind === kind).length : sim.particles.length;
 }
 
-function centerOfMassY(sim: FluidSim, kind?: "ethanol" | "powder"): number {
+function centerOfMassY(sim: FluidSim, kind?: ParticleKind): number {
   let sum = 0, count = 0;
   for (const p of sim.particles) {
     if (kind && p.kind !== kind) continue;

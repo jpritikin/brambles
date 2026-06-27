@@ -111,7 +111,10 @@ function init(): void {
     const stepEls = document.querySelectorAll<HTMLElement>(".recipe-step");
     function getTextRects(): DOMRect[] {
         const rects: DOMRect[] = [];
-        stepEls.forEach(el => rects.push(el.getBoundingClientRect()));
+        stepEls.forEach(el => {
+            const clientRects = el.getClientRects();
+            for (let i = 0; i < clientRects.length; i++) rects.push(clientRects[i]);
+        });
         return rects;
     }
     let [destX, destY] = newDest(originX, originY, radius, getTextRects());

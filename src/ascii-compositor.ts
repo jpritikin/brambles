@@ -301,9 +301,6 @@ export class Compositor {
             const [pivotX, pivotY] = obj.sprite.pivot ?? [0, 0];
             for (const cell of obj.sprite.cells) {
                 if (cell.alpha <= 0) continue;
-                // Rotate the cell's offset (relative to the pivot) in continuous
-                // space, then translate by the pivot and the object's position
-                // (which is the pivot's world position), then snap to the grid.
                 const { rx, ry } = rotateOffset(cell.dx - pivotX, cell.dy - pivotY, cos, sin);
                 const col = Math.round(obj.x - this.viewOffsetX + pivotX + rx);
                 const row = Math.round(obj.y + pivotY + ry);

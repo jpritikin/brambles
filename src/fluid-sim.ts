@@ -1,5 +1,8 @@
 import { type GridDims, type ProjectedCell, type VoxelMaterial } from "./iso";
 
+export type ParticleKind = "ethanol" | "powder" | "barley";
+function isSolidKind(kind: ParticleKind): boolean { return kind !== "ethanol"; }
+
 export interface Particle {
   x: number;
   y: number;
@@ -7,7 +10,7 @@ export interface Particle {
   vx: number;
   vy: number;
   vz: number;
-  kind: "ethanol" | "powder";
+  kind: ParticleKind;
 }
 
 export interface CylinderBounds {
@@ -113,7 +116,7 @@ function createSimObject(dims: GridDims, particles: Particle[], solid: Uint8Arra
     viscosity: VISCOSITY,
     flipRatio: FLIP_RATIO,
     get powder(): Particle[] {
-      return this.particles.filter(p => p.kind === "powder");
+      return this.particles.filter(p => isSolidKind(p.kind));
     },
   };
 }
@@ -143,7 +146,7 @@ export function makeFluidSim(specOrDims: CylinderSpec | GridDims, profile?: Arra
 export function fillFluidSim(sim: FluidSim, levelFraction: number): void {
   const { dims, solid } = sim;
   const cutoff = Math.floor(dims.height * levelFraction);
-  const ethanol: Particle[] = sim.particles.filter(p => p.kind === "powder");
+  const ethanol: Particle[] = sim.particles.filter(p => isSolidKind(p.kind));
   for (let x = 0; x < dims.width; x++) {
     for (let y = 0; y < dims.height; y++) {
       for (let z = 0; z < dims.depth; z++) {
@@ -162,7 +165,7 @@ export function seedFluidFromPositions(
   positions: Array<[number, number]>,
   origin: { minX: number; minY: number; w: number; h: number },
 ): void {
-  sim.particles = sim.particles.filter(p => p.kind !== "ethanol");
+  sim.particles = sim.particles.filter(p => isSolidKind(p.kind));
   const { dims } = sim;
   for (const [relX, relY] of positions) {
     const gx = Math.round(((relX - origin.minX) / origin.w) * (dims.width - 1));
@@ -599,7 +602,7 @@ export function stepFluid(sim: FluidSim, dt: number, stir: StirImpulse | null): 
       p.vx = fr * flipVx + (1 - fr) * newVx;
       p.vy = fr * flipVy + (1 - fr) * newVy;
       p.vz = fr * flipVz + (1 - fr) * newVz;
-      if (p.kind === "powder") p.vy += POWDER_GRAVITY_EXTRA * subDt;
+      if (isSolidKind(p.kind)) p.vy += POWDER_GRAVITY_EXTRA * subDt;
     }
 
     // 9. Advect particles
@@ -612,12 +615,12 @@ export function stepFluid(sim: FluidSim, dt: number, stir: StirImpulse | null): 
   }
 
   // 8. Powder/ethanol displacement (grid-accelerated, once per outer step)
-  const hasPowder = particles.some(p => p.kind === "powder");
+  const hasPowder = particles.some(p => isSolidKind(p.kind));
   if (hasPowder) {
     const hash1 = buildSpatialHash(particles, dims);
     for (let pi = 0; pi < particles.length; pi++) {
       const pa = particles[pi];
-      if (pa.kind !== "powder") continue;
+      if (!isSolidKind(pa.kind)) continue;
       const gx = Math.max(0, Math.min(dims.width - 1, Math.round(pa.x)));
       const gy = Math.max(0, Math.min(dims.height - 1, Math.round(pa.y)));
       const gz = Math.max(0, Math.min(dims.depth - 1, Math.round(pa.z)));
@@ -630,7 +633,7 @@ export function stepFluid(sim: FluidSim, dt: number, stir: StirImpulse | null): 
             if (!list) continue;
             for (const qi of list) {
               const pb = particles[qi];
-              if (pb.kind !== "ethanol") continue;
+              if (isSolidKind(pb.kind)) continue;
               const ddx = pa.x - pb.x, ddy = pa.y - pb.y, ddz = pa.z - pb.z;
               const distSq = ddx * ddx + ddy * ddy + ddz * ddz;
               if (distSq > 2.25) continue;
@@ -689,11 +692,24 @@ export function stepFluid(sim: FluidSim, dt: number, stir: StirImpulse | null): 
 
 // --- Projection & utilities (unchanged) ---
 
-type FluidMaterial = "ethanol" | "powder";
+type FluidMaterial = ParticleKind;
 const FLUID_MATERIALS: Record<FluidMaterial, VoxelMaterial> = {
   ethanol: { opacity: 1 },
   powder: { opacity: 1 },
+  barley: { opacity: 1 },
 };
+
+export function fluidCapacity(sim: FluidSim): number {
+  const { dims, solid } = sim;
+  let count = 0;
+  for (let i = 0; i < solid.length; i++) if (!solid[i]) count++;
+  return count;
+}
+
+export function fluidFillRatio(sim: FluidSim): number {
+  const cap = fluidCapacity(sim);
+  return cap > 0 ? sim.particles.length / cap : 0;
+}
 
 export function projectFluidSim(sim: FluidSim): Array<Array<ProjectedCell<FluidMaterial> | null>> {
   const { dims } = sim;
@@ -713,7 +729,7 @@ export function projectFluidSim(sim: FluidSim): Array<Array<ProjectedCell<FluidM
 }
 
 
-export function seedPowderAtBottom(sim: FluidSim, count: number): void {
+export function seedPowderAtBottom(sim: FluidSim, count: number, kind: ParticleKind = "powder"): void {
   const { dims, solid } = sim;
   const candidates: Array<{ x: number; y: number; z: number }> = [];
   for (let gx = 0; gx < dims.width; gx++) {
@@ -726,11 +742,12 @@ export function seedPowderAtBottom(sim: FluidSim, count: number): void {
       if (found) break;
     }
   }
-  const step = Math.max(1, Math.floor(candidates.length / count));
+  const total = count * dims.depth;
+  const step = Math.max(1, Math.floor(candidates.length / total));
   let added = 0;
-  for (let i = 0; i < candidates.length && added < count; i += step) {
+  for (let i = 0; i < candidates.length && added < total; i += step) {
     const c = candidates[i];
-    sim.particles.push({ x: c.x, y: c.y, z: c.z, vx: 0, vy: 0, vz: 0, kind: "powder" });
+    sim.particles.push({ x: c.x, y: c.y, z: c.z, vx: 0, vy: 0, vz: 0, kind });
     added++;
   }
 }

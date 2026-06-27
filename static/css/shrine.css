@@ -164,6 +164,25 @@
   font-weight: bold;
   border-color: #2e7d32;
 }
+.recipe-ss-speed {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin: 0.5rem auto;
+  max-width: calc(30ch + 4.5rem);
+}
+.recipe-ss-speed-btn {
+  cursor: pointer;
+  font: 0.75rem monospace;
+  border: 1px solid #ccc;
+  border-radius: 0.2rem;
+  background: #f5f0e8;
+  padding: 0.15em 0.4em;
+  color: #555;
+}
+.recipe-ss-speed-btn:hover {
+  background: #e8e0d0;
+}
 
 .stahl-butterfly {
   position: fixed;

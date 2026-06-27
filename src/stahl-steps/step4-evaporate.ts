@@ -57,36 +57,36 @@ export const STEP4_GLASS_RAISED_Z = 4;
 // STEP4_ARC_PEAK) — the glass ends up partway between the fridge and the
 // dish, elevated, and the tip rotation (pivoting around its bottom-right
 // corner) swings it the rest of the way over the dish to pour.
-export const STEP4_GLASS_ARC_DURATION = 800;
+export const STEP4_GLASS_ARC_DURATION = 1600;
 export const STEP4_GLASS_ARC_HEIGHT = 2.5;
 
 // World x/y the glass's arc out of the fridge is aimed at (its pour position,
 // upright); the angle it then tips to (pivoting around its bottom-right
 // corner) and how long that tip takes; and how long the pour itself takes
 // once tipped (during which liquid transfers from the glass into the dish).
-export const STEP4_POUR_X = 7.5 + 4 * PANE_WIDTH - DISH_WIDTH / 2 + 1.5 - 8;
+export const STEP4_POUR_X = 7.5 + 4 * PANE_WIDTH - DISH_WIDTH / 2 + 1.5 - 7;
 export const STEP4_POUR_Y = 5 - 3;
 export const STEP4_POUR_ROTATION = TAU * (110 / 360);
-export const STEP4_GLASS_TIP_DURATION = 2400;
+export const STEP4_GLASS_TIP_DURATION = 4800;
 // The pour starts partway through the tip (once tilted enough) and finishes
 // at STEP4_POUR_DURATION after STEP4_POUR_START. Particles release in small
 // batches spread across this window for a gradual stream.
 export const STEP4_POUR_START_FRACTION = 0.15;
-export const STEP4_POUR_DURATION = 2400;
-const POUR_RELEASE_FRACTION = 0.2;
-const POUR_FLIGHT_DURATION = 1000;
+export const STEP4_POUR_DURATION = 4000;
+const POUR_RELEASE_FRACTION = 0.8;
+const POUR_FLIGHT_DURATION = 1500;
 
 // How long the glass pauses tipped over the dish (after the last drop lands)
 // before rotating back upright, and how long that rotation back takes (also
 // pivoting around the bottom-right corner).
-export const STEP4_POUR_TO_RETURN_PAUSE = 600;
+export const STEP4_POUR_TO_RETURN_PAUSE = 500;
 export const STEP4_GLASS_RIGHT_DURATION = 500;
 
 // How long the glass pauses upright over the dish before starting its return
 // trip, and how long it takes to arc back up to its step 2 resting spot, and
 // how high that arc rises.
 export const STEP4_RIGHT_TO_RETURN_PAUSE = 500;
-export const STEP4_GLASS_RETURN_DURATION = 900;
+export const STEP4_GLASS_RETURN_DURATION = 1800;
 export const STEP4_GLASS_RETURN_ARC_HEIGHT = 2.5;
 
 // How long after the glass arrives back at its step 2 resting spot before the
@@ -161,12 +161,16 @@ class GlassLiftArcEffect implements StepEffect {
     }
 }
 
+const LIQUID_ROLE = LIQUID_PARTICLE.cells[0].role;
+const POWDER_ROLE = POWDER_PARTICLE.cells[0].role;
+function isLiquid(m: PropGroupMember): boolean { return m.obj.sprite.cells[0]?.role === LIQUID_ROLE; }
+function isPowder(m: PropGroupMember): boolean { return m.obj.sprite.cells[0]?.role === POWDER_ROLE; }
+
 function buildLiquidPourTransfer(): PourTransfer {
     let nextDestAdd = 0;
-    let powderAdded = false;
     return new PourTransfer({
         label: "glass→dish",
-        initT: STEP4_GLASS_ARC_END,
+        initT: STEP4_COVER_LIFT_END,
         simConfig: {
             sourcePoints: GLASS_POINTS,
             sourceClosed: false,
@@ -175,12 +179,19 @@ function buildLiquidPourTransfer(): PourTransfer {
             targetClosed: false,
         },
         visualIdPrefix: "pour-liquid",
-        visualZ: STEP4_GLASS_RAISED_Z + 1,
+        visualZ: STEP4_GLASS_RAISED_Z - 1,
         visualSprite: LIQUID_PARTICLE,
-        simParticleCount: 12,
-        getSourceMembers: (anim) => anim.liquidGroup.members.filter(
-            (m) => m.obj.sprite === LIQUID_PARTICLE,
-        ),
+        onPreInit: (anim) => {
+            anim.disableFluidSim("glass");
+            const existing = anim.liquidGroup.members.filter(isPowder);
+            for (const m of existing) anim.removeLiquidParticle(m);
+            for (const [relX, relY] of GLASS_POWDER_POSITIONS) {
+                anim.liquidGroup.addMember({ sprite: POWDER_PARTICLE, relX, relY, relZ: 1 });
+            }
+        },
+        getSourceMembers: (anim) => anim.liquidGroup.members.filter(isLiquid),
+        getBackgroundMembers: (anim) => anim.liquidGroup.members.filter(isPowder),
+        backgroundKind: "powder",
         getSourceState: (anim) => { const g = anim.getObject("glass"); return { x: g.x, y: g.y, rotation: g.rotation }; },
         getTargetState: (anim) => { const d = anim.getObject("dish"); return { x: d.x, y: d.y, rotation: d.rotation }; },
         destTotal: (n) => Math.min(n, DISH_LIQUID_POSITIONS.length),
@@ -198,17 +209,16 @@ function buildLiquidPourTransfer(): PourTransfer {
                 anim.dishLiquidGroup.addMember({ sprite: LIQUID_PARTICLE, relX, relY, relZ: -1 });
             }
         },
+        deadline: STEP4_RIGHT_TO_RETURN_PAUSE_END,
+        onSnapshotRemaining: (x, y, anim) => {
+            const glass = anim.getObject("glass");
+            anim.liquidGroup.addMember({ sprite: LIQUID_PARTICLE, relX: x - glass.x, relY: y - glass.y, relZ: 2 });
+        },
         onAllLanded: (anim) => {
             anim.dishLiquidGroup.setOrigin(
                 anim.dishLiquidGroup.x, anim.dishLiquidGroup.y,
                 anim.dishLiquidGroup.z, anim.dishLiquidGroup.rotation,
             );
-            if (!powderAdded) {
-                for (const [relX, relY] of GLASS_POWDER_POSITIONS) {
-                    anim.liquidGroup.addMember({ sprite: POWDER_PARTICLE, relX, relY, relZ: 0 });
-                }
-                powderAdded = true;
-            }
         },
     });
 }
@@ -270,6 +280,7 @@ class EvaporationEffect implements StepEffect {
         if (particle.phase === "pending") {
             if (t < particle.evaporateAt) return;
             anim.dishLiquidGroup.release(particle.member);
+            anim.dishResidueGroup.addMember({ sprite: DISH_RESIDUE_PARTICLE, relX: particle.restX, relY: particle.restY, relZ: 0 });
             const obj = particle.member.obj;
             const rise = EVAPORATE_RISE_MIN + rand() * (EVAPORATE_RISE_MAX - EVAPORATE_RISE_MIN);
             particle.from = { x: obj.x, y: obj.y, z: obj.z, rotation: obj.rotation };
@@ -295,7 +306,6 @@ class EvaporationEffect implements StepEffect {
             Object.assign(particle.member.obj, arcLerp(particle.from, particle.to, span, 0));
             if (span >= 1) {
                 anim.removeDishLiquidParticle(particle.member);
-                anim.dishResidueGroup.addMember({ sprite: DISH_RESIDUE_PARTICLE, relX: particle.restX, relY: particle.restY, relZ: 0 });
                 particle.phase = "done";
             }
         }
@@ -386,11 +396,11 @@ export const STEP4: Step = {
     transitionKeyframes: [
         // The fridge cover lifts back off the walls to its parked spot
         // above.
-        { t: STEP4_COVER_LIFT_END, objects: { fridgeCover: { y: PROP_PARK_Y } } },
-        // The glass stays put at its fridge resting position until the
-        // pre-pour pause ends, at which point GlassLiftArcEffect takes
-        // over x/y/z/rotation for its arc out of the fridge.
-        { t: STEP4_PRE_POUR_PAUSE_END, objects: { glass: { ...GLASS_FRIDGE_REST } } },
+        { t: STEP4_COVER_LIFT_END, objects: {
+            fridgeCover: { y: PROP_PARK_Y },
+            glass: { ...GLASS_FRIDGE_REST, z: STEP4_GLASS_RAISED_Z },
+        } },
+        { t: STEP4_PRE_POUR_PAUSE_END, objects: { glass: { ...GLASS_FRIDGE_REST, z: STEP4_GLASS_RAISED_Z } } },
         // Holds at the arc's peak (STEP4_ARC_PEAK, set by
         // GlassLiftArcEffect) before tipping to pour, rotating around its
         // bottom-right corner (GLASS_PIVOT) so that corner stays put on

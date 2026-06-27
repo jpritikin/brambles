@@ -176,7 +176,7 @@ export const POWDER_PARTICLE: Sprite = { cells: [cell(0, 0, staticRole("."))] };
 // radius = grid cells from center to wall; height = total vertical cells.
 // The grid is (2*radius+1) × height × (2*radius+1), revolved from the profile.
 export const GLASS_FLUID_DIMS = { radius: 5, height: 10 };
-export const GLASS_FLUID_FILL = 0.95;
+export const GLASS_FLUID_FILL = 0.9;
 
 // Interior polygon for the glass's fluid sim boundary (GLASS_POINTS inset by
 // the same 1-unit margin LIQUID_POSITIONS uses).
@@ -297,11 +297,8 @@ export const { sprite: BARLEY_SCOOP, baseCellIndices: BARLEY_BOWL_BASE_CELL_INDI
 // A single barley grass powder particle dumped from the scoop's cup.
 export const BARLEY_POWDER_DROP: Sprite = { cells: [cell(0, 0, staticRole(","))] };
 
-// Rest offsets (relative to glass2's center) where the dumped barley grass
-// powder settles, in the top interior row (above the residue/water layers at
-// dy >= 0.5) so it doesn't overlap GLASS2_POWDER_POSITIONS.
 export const BARLEY_POWDER_POSITIONS: Array<[number, number]> = [
-    [-1.5, 0], [-0.5, 0], [0.5, 0], [1.5, 0],
+    [-1.5, 0.5], [-0.5, 0.5], [0.5, 0.5], [1.5, 0.5],
 ];
 
 // ---------------------------------------------------------------------------

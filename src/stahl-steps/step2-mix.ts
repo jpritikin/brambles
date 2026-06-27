@@ -73,6 +73,11 @@ export const BOTTLE_POUR_FLIGHT_DURATION = 1000;
 export const STICK_PRE_POUR_PAUSE_DURATION = 1400;
 export const STICK_DUMP_DURATION = 1400;
 export const STICK_POUR_DURATION = STICK_PRE_POUR_PAUSE_DURATION + STICK_DUMP_DURATION;
+
+// Step 2 uses a longer pause before dumping and a shorter dump.
+const STEP2_STICK_PRE_POUR_PAUSE = 2200;
+const STEP2_STICK_DUMP = 800;
+const STEP2_STICK_POUR = STEP2_STICK_PRE_POUR_PAUSE + STEP2_STICK_DUMP;
 export const STICK_DROP_FALL_DURATION = 500;
 
 // How far the bottle tips while pouring, beyond its resting tilt
@@ -244,7 +249,7 @@ const BOTTLE_POUR_X_OFFSET = -7;
 const STEP2_POUR_ENTRIES: Array<{ id: "grinder" | "bottle" | "stick"; segments: TimelineSegment[] }> = [
     { id: "grinder", segments: [buildGrinderPourSequence(7.5 + PANE_WIDTH, STEP2_GLASS_X)] },
     { id: "bottle", segments: buildBottlePourSegments(INITIAL_LAYOUT.bottle.x, STEP2_GLASS_X + BOTTLE_POUR_X_OFFSET) },
-    { id: "stick", segments: [buildStickPourSequence("stick", INITIAL_LAYOUT.stick.x, STEP2_GLASS_X)] },
+    { id: "stick", segments: [buildTipPourSequence("stick", INITIAL_LAYOUT.stick.x, STEP2_GLASS_X, STEP2_STICK_POUR)] },
 ];
 for (let i = STEP2_POUR_ENTRIES.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
@@ -356,7 +361,7 @@ function buildBottlePourTransfer(anim: SceneAnimator): PourTransfer {
         getSourceMembers: (anim) => [...anim.bottleLiquidGroup.members],
         getSourceState: (anim) => { const b = anim.getObject("bottle"); return { x: b.x, y: b.y, rotation: b.rotation }; },
         getTargetState: (anim) => { const g = anim.getObject("glass"); return { x: g.x, y: g.y, rotation: g.rotation }; },
-        destTotal: (_n, anim) => Math.round(anim.getFluidTargetCount("glass") * 30 / BOTTLE_MIN_EXITED),
+        destTotal: (_n, anim) => anim.getFluidTargetCount("glass"),
         onPreInit: (anim) => {
             if (!simInitialized) {
                 anim.initEmptyFluidSim("glass");
@@ -407,12 +412,13 @@ class GlassSettleEffect implements StepEffect {
 
 function buildStep2Effects(anim: SceneAnimator): StepEffect[] {
     const stickTravelDuration = tipPourTravelDuration(INITIAL_LAYOUT.stick.x, STEP2_GLASS_X);
-    const stickDropStart = STEP2_STICK_OFFSET + stickTravelDuration + STICK_PRE_POUR_PAUSE_DURATION + STICK_DUMP_DURATION / 2;
+    const stickDumpStart = STEP2_STICK_OFFSET + stickTravelDuration + STEP2_STICK_PRE_POUR_PAUSE;
+    const stickDropStart = stickDumpStart + STEP2_STICK_DUMP / 2;
     return [
         buildSeedPourTransfer(),
         buildBottlePourTransfer(anim),
         new StickPourEffect(stickDropStart),
-        buildStickBowlTipEffect("stick", STEP2_STICK_OFFSET, INITIAL_LAYOUT.stick.x, STEP2_GLASS_X),
+        new BowlTipEffect("stick", STICK_BOWL_BASE_CELL_INDICES, stickDumpStart, stickDumpStart + STEP2_STICK_DUMP),
         new GlassSettleEffect(),
     ];
 }

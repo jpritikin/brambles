@@ -1,5 +1,5 @@
 import { type PropGroupMember, type SceneObject, type Sprite } from "./ascii-compositor";
-import { type ContainerState, PourSim, type PourSimConfig } from "./pour-sim";
+import { type ContainerState, type PourParticle, type PourParticleKind, PourSim, type PourSimConfig } from "./pour-sim";
 import { type StepEffect } from "./stahl-timeline";
 import { type SceneAnimator } from "./stahl-animator";
 
@@ -38,13 +38,30 @@ export interface PourTransferConfig {
     // the source container has returned to rest). Only checked after
     // minExited has fired.
     doneWhen?: () => boolean;
+    // Hard deadline (elapsed ms): force completion at this time regardless
+    // of particle state.
+    deadline?: number;
+    // Called for each remaining visible liquid visual when the pour ends
+    // with particles still in the source (e.g. at deadline). Receives the
+    // visual's world position so the caller can snapshot it back into a
+    // PropGroup.
+    onSnapshotRemaining?: (x: number, y: number, anim: SceneAnimator) => void;
     // Called when all particles have landed or settled.
     onAllLanded?: (anim: SceneAnimator) => void;
+    // Extra particles added to the sim that participate in physics but
+    // aren't tracked for drain/fill/landing (e.g. powder sitting in the
+    // glass while liquid pours out).
+    getBackgroundMembers?: (anim: SceneAnimator) => PropGroupMember[];
+    backgroundKind?: PourParticleKind;
 }
 
 export class PourTransfer implements StepEffect {
     private sim: PourSim | null = null;
+    private pourParticles: PourParticle[] = [];
     private visuals: SceneObject[] = [];
+    private bgParticles: PourParticle[] = [];
+    private bgVisuals: SceneObject[] = [];
+    private bgMembers: PropGroupMember[] = [];
     private lastT: number | null = null;
     private sourceMembers: PropGroupMember[] = [];
     private nextSourceDrain = 0;
@@ -89,7 +106,8 @@ export class PourTransfer implements StepEffect {
             for (let i = 0; i < clampedSimCount; i++) {
                 const srcIdx = i;
                 const member = this.sourceMembers[srcIdx];
-                const p = this.sim.addParticleLocal(member.relX, member.relY);
+                const p = this.sim.addParticleLocal(member.relX, member.relY, "liquid");
+                this.pourParticles.push(p);
                 const [gx, gy] = this.sim.gridPos(p, sourceState, targetState);
                 member.obj.visible = false;
                 const sprite = this.config.visualSprite ?? member.obj.sprite;
@@ -101,6 +119,26 @@ export class PourTransfer implements StepEffect {
                 anim.addTransient(obj);
                 this.visuals.push(obj);
             }
+            if (this.config.getBackgroundMembers) {
+                this.bgMembers = this.config.getBackgroundMembers(anim);
+                const bgKind = this.config.backgroundKind ?? "powder";
+                for (let i = 0; i < this.bgMembers.length; i++) {
+                    const member = this.bgMembers[i];
+                    const p = this.sim.addParticleLocal(member.relX, member.relY, bgKind);
+                    this.bgParticles.push(p);
+                    const [gx, gy] = this.sim.gridPos(p, sourceState, targetState);
+                    member.obj.visible = false;
+                    const obj: SceneObject = {
+                        id: `${this.config.visualIdPrefix}-bg-${i}`,
+                        sprite: member.obj.sprite, x: gx, y: gy,
+                        z: this.config.visualZ - 1,
+                        rotation: 0, visible: true,
+                    };
+                    anim.addTransient(obj);
+                    this.bgVisuals.push(obj);
+                }
+            }
+
             anim.registerPourSim(
                 this.config.label, this.sim,
                 () => this.config.getSourceState(anim),
@@ -120,8 +158,8 @@ export class PourTransfer implements StepEffect {
         const targetState = this.config.getTargetState(anim);
         this.sim.step(dt, sourceState, targetState);
 
-        for (let i = 0; i < this.sim.particles.length; i++) {
-            const p = this.sim.particles[i];
+        for (let i = 0; i < this.pourParticles.length; i++) {
+            const p = this.pourParticles[i];
             const obj = this.visuals[i];
             if (p.landed) {
                 if (obj.visible) {
@@ -134,21 +172,41 @@ export class PourTransfer implements StepEffect {
                 obj.y = gy;
             }
         }
+        for (let i = 0; i < this.bgParticles.length; i++) {
+            const p = this.bgParticles[i];
+            const obj = this.bgVisuals[i];
+            const [gx, gy] = this.sim.gridPos(p, sourceState, targetState);
+            obj.x = gx;
+            obj.y = gy;
+        }
 
         if (!this.minExitedFired && this.config.minExited != null && this.sim.exitedCount >= this.config.minExited) {
             this.minExitedFired = true;
             this.config.onMinExited?.(anim);
         }
 
-        const done = this.config.doneWhen
-            ? (this.minExitedFired && this.config.doneWhen())
-            : this.sim.allLanded();
+        const done = this.config.deadline != null
+            ? t >= this.config.deadline
+            : (this.config.doneWhen
+                ? (this.minExitedFired && this.config.doneWhen())
+                : this.sim.allLanded());
         if (done) {
-            for (let i = 0; i < this.visuals.length; i++) {
-                if (this.visuals[i].visible) {
-                    this.visuals[i].visible = false;
-                    anim.removeTransient(this.visuals[i].id);
+            const sourceState = this.config.getSourceState(anim);
+            for (let i = 0; i < this.pourParticles.length; i++) {
+                const p = this.pourParticles[i];
+                const v = this.visuals[i];
+                if (!p.airborne && !p.landed) {
+                    const [gx, gy] = this.sim.gridPos(p, sourceState, targetState);
+                    this.config.onSnapshotRemaining?.(gx, gy, anim);
                 }
+                if (v.visible) { v.visible = false; anim.removeTransient(v.id); }
+            }
+            for (let i = 0; i < this.bgVisuals.length; i++) {
+                const vis = this.bgVisuals[i];
+                anim.removeTransient(vis.id);
+                this.bgMembers[i].relX = vis.x - sourceState.x;
+                this.bgMembers[i].relY = vis.y - sourceState.y;
+                this.bgMembers[i].obj.visible = true;
             }
             this.config.onAllLanded?.(anim);
             anim.unregisterPourSim(this.config.label);

@@ -103,7 +103,7 @@ function renderSim(ctx: CanvasRenderingContext2D, sim: FluidSim, cam: Camera, sh
 
   // Powder particles
   for (const p of sim.particles) {
-    if (p.kind !== "powder") continue;
+    if (p.kind === "ethanol") continue;
     const [sx, sy, d] = project(p.x, p.y, p.z, cx, cy, cz, cam);
     voxels.push({
       sx, sy, depth: d, size: cellSize,
@@ -167,7 +167,7 @@ function renderSim(ctx: CanvasRenderingContext2D, sim: FluidSim, cam: Camera, sh
 
   // Stats overlay
   const ethCount = sim.particles.filter(p => p.kind === "ethanol").length;
-  const powCount = sim.particles.filter(p => p.kind === "powder").length;
+  const powCount = sim.particles.filter(p => p.kind !== "ethanol").length;
   ctx.fillStyle = "#fff";
   ctx.font = "11px monospace";
   const lines = [
@@ -275,7 +275,7 @@ export function initFluidDebug3D(animator: SceneAnimator): void {
   viscSlider.addEventListener("input", () => {
     const val = Number(viscSlider.value) / 100;
     viscLabel.textContent = `Viscosity: ${val.toFixed(2)}`;
-    const sim = animator.getGlassFluidSim();
+    const sim = animator.getGlassFluidSim() ?? animator.getGlass2FluidSim();
     if (sim) sim.viscosity = val;
   });
   viscRow.appendChild(viscLabel);
@@ -295,7 +295,7 @@ export function initFluidDebug3D(animator: SceneAnimator): void {
   flipSlider.addEventListener("input", () => {
     const val = Number(flipSlider.value) / 100;
     flipLabel.textContent = `FLIP ratio: ${val.toFixed(2)}`;
-    const sim = animator.getGlassFluidSim();
+    const sim = animator.getGlassFluidSim() ?? animator.getGlass2FluidSim();
     if (sim) sim.flipRatio = val;
   });
   flipRow.appendChild(flipLabel);
@@ -306,11 +306,11 @@ export function initFluidDebug3D(animator: SceneAnimator): void {
   copyBtn.textContent = "Copy surface data";
   copyBtn.style.cssText = "margin-top:0.5em;cursor:pointer;";
   copyBtn.addEventListener("click", () => {
-    const sim = animator.getGlassFluidSim();
+    const sim = animator.getGlassFluidSim() ?? animator.getGlass2FluidSim();
     if (!sim) { navigator.clipboard.writeText("No fluid sim active"); return; }
     const { width, height, depth } = sim.dims;
     const ethCount = sim.particles.filter(p => p.kind === "ethanol").length;
-    const powCount = sim.particles.filter(p => p.kind === "powder").length;
+    const powCount = sim.particles.filter(p => p.kind !== "ethanol").length;
     const surface = buildSurfaceMap(sim);
     let maxSpeed = 0, avgSpeed = 0;
     for (const p of sim.particles) {
@@ -359,26 +359,6 @@ export function initFluidDebug3D(animator: SceneAnimator): void {
   pourCanvas.style.cssText = "display:block;margin:1em auto;border:1px solid #644;background:#111;";
   controls.insertAdjacentElement("afterend", pourCanvas);
 
-  const pourControls = document.createElement("div");
-  pourControls.style.cssText = "text-align:center;color:#888;font-size:12px;font-family:monospace;margin-bottom:1em;";
-  pourCanvas.insertAdjacentElement("afterend", pourControls);
-
-  const SPEEDS = [0, 0.25, 0.5, 1];
-  const speedBtns: HTMLButtonElement[] = [];
-  for (const speed of SPEEDS) {
-    const btn = document.createElement("button");
-    btn.textContent = speed === 0 ? "Pause" : `${speed}x`;
-    btn.style.cssText = "cursor:pointer;font-family:monospace;font-size:12px;margin-right:4px;";
-    btn.addEventListener("click", () => { animator.playbackSpeed = speed; });
-    pourControls.appendChild(btn);
-    speedBtns.push(btn);
-  }
-
-  const pourLabel = document.createElement("span");
-  pourLabel.textContent = " Playback";
-  pourLabel.style.cssText = "margin-left:8px;";
-  pourControls.appendChild(pourLabel);
-
   // Toggle between 3D fluid and 2D pour views—pour sim is default
   const toggleRow = document.createElement("div");
   toggleRow.style.cssText = "text-align:center;margin-top:0.5em;margin-bottom:0.5em;";
@@ -395,7 +375,6 @@ export function initFluidDebug3D(animator: SceneAnimator): void {
     canvas.style.display = showPourView ? "none" : "block";
     controls.style.display = showPourView ? "none" : "";
     pourCanvas.style.display = showPourView ? "block" : "none";
-    pourControls.style.display = showPourView ? "" : "none";
   });
   toggleRow.appendChild(toggleBtn);
 
@@ -443,15 +422,9 @@ export function initFluidDebug3D(animator: SceneAnimator): void {
   }, { passive: false });
 
   function tick(): void {
-    for (let i = 0; i < SPEEDS.length; i++) {
-      const active = SPEEDS[i] === animator.playbackSpeed;
-      speedBtns[i].style.fontWeight = active ? "bold" : "normal";
-      speedBtns[i].style.textDecoration = active ? "underline" : "none";
-    }
-
     if (!showPourView) {
       ctx.clearRect(0, 0, WIDTH, HEIGHT);
-      const sim = animator.getGlassFluidSim();
+      const sim = animator.getGlassFluidSim() ?? animator.getGlass2FluidSim();
       if (!sim) {
         ctx.fillStyle = "#666";
         ctx.font = "14px monospace";
@@ -510,9 +483,8 @@ function drawWallsWorld(
 const POUR_COLORS = {
   source: "rgba(100, 180, 100, 0.6)",
   target: "rgba(100, 100, 220, 0.6)",
-  inSource: "rgba(60, 200, 60, 1)",
-  airborne: "rgba(255, 200, 50, 1)",
-  landed: "rgba(100, 100, 100, 0.5)",
+  liquid: { inSource: "rgba(60, 200, 60, 1)", airborne: "rgba(255, 200, 50, 1)", landed: "rgba(100, 100, 100, 0.5)" },
+  powder: { inSource: "rgba(180, 120, 60, 1)", airborne: "rgba(220, 160, 80, 1)", landed: "rgba(120, 80, 40, 0.5)" },
 };
 
 function renderPourSims(
@@ -577,19 +549,23 @@ function renderPourSims(
       const sx = ox + wx * scale;
       const sy = oy + wy * scale;
 
+      const kindColors = POUR_COLORS[p.kind];
       if (p.landed) {
-        ctx.fillStyle = POUR_COLORS.landed;
+        ctx.fillStyle = kindColors.landed;
         landedCount++;
       } else if (p.airborne) {
-        ctx.fillStyle = POUR_COLORS.airborne;
+        ctx.fillStyle = kindColors.airborne;
         airborneCount++;
       } else {
-        ctx.fillStyle = POUR_COLORS.inSource;
+        ctx.fillStyle = kindColors.inSource;
         inSourceCount++;
       }
       ctx.beginPath();
       ctx.arc(sx, sy, 3, 0, Math.PI * 2);
       ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "7px monospace";
+      ctx.fillText(p.kind[0], sx - 2, sy + 2);
 
       // Velocity arrow
       const speed = Math.hypot(p.vx, p.vy);
@@ -622,9 +598,10 @@ function renderPourSims(
   for (const [color, text, lx] of [
     [POUR_COLORS.source, "source walls", 8],
     [POUR_COLORS.target, "target walls", 110],
-    [POUR_COLORS.inSource, "in source", 210],
-    [POUR_COLORS.airborne, "airborne", 290],
-    [POUR_COLORS.landed, "landed", 360],
+    [POUR_COLORS.liquid.inSource, "liquid", 210],
+    [POUR_COLORS.powder.inSource, "powder", 270],
+    [POUR_COLORS.liquid.airborne, "airborne", 340],
+    [POUR_COLORS.liquid.landed, "landed", 410],
   ] as const) {
     ctx.fillStyle = color;
     ctx.fillRect(lx, legY, 8, 8);

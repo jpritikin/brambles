@@ -98,6 +98,7 @@ function init(): void {
   if (!container || steps.length !== STEPS.length) return;
 
   const animator = buildScene(container);
+  (window as any).__animator = animator; // DEBUG
   const debug = new URLSearchParams(window.location.search).has("debug");
 
   if (debug) initFluidDebug3D(animator);
@@ -160,6 +161,18 @@ function init(): void {
     const { element: controls, tickEls: tEls } = buildViewportControls(animator);
     container.appendChild(controls);
     tickEls = tEls;
+
+    const speedPanel = document.createElement("div");
+    speedPanel.className = "recipe-ss-speed";
+    const SPEEDS = [0, 0.25, 0.5, 1];
+    for (const speed of SPEEDS) {
+      const btn = document.createElement("button");
+      btn.textContent = speed === 0 ? "||" : `${speed}x`;
+      btn.className = "recipe-ss-speed-btn";
+      btn.addEventListener("click", () => { animator.playbackSpeed = speed; });
+      speedPanel.appendChild(btn);
+    }
+    container.insertAdjacentElement("afterend", speedPanel);
   }
 
   steps.forEach((el, i) => {

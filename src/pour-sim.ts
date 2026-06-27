@@ -8,6 +8,8 @@ import { CELL_ASPECT } from "./ascii-compositor";
 // When a particle exits the source, it's transformed into the target's
 // local frame and collides with those walls instead.
 
+export type PourParticleKind = "liquid" | "powder";
+
 export interface PourParticle {
     x: number;    // local physical space of current container
     y: number;
@@ -15,6 +17,7 @@ export interface PourParticle {
     vy: number;
     airborne: boolean;
     landed: boolean;
+    kind: PourParticleKind;
 }
 
 export interface Segment {
@@ -38,7 +41,7 @@ interface BuildResult { walls: Segment[]; gapSeg: Segment | null; }
 // by CELL_ASPECT). Inward normals point toward the centroid. For open
 // polygons, also returns a "gap segment" spanning the opening with its
 // normal pointing outward—used to detect when a particle exits.
-function buildSegmentsWithGap(points: Array<[number, number]>, pivot: [number, number], closed: boolean): BuildResult {
+function buildSegmentsWithGap(points: Array<[number, number]>, pivot: [number, number], closed: boolean, margin = 0): BuildResult {
     const physical = points.map(([dx, dy]) => [dx - pivot[0], (dy - pivot[1]) * CELL_ASPECT] as [number, number]);
     let cx = 0, cy = 0;
     for (const [x, y] of physical) { cx += x; cy += y; }
@@ -56,7 +59,8 @@ function buildSegmentsWithGap(points: Array<[number, number]>, pivot: [number, n
         const midX = (x1 + x2) / 2, midY = (y1 + y2) / 2;
         let nx = -edy / len, ny = edx / len;
         if ((cx - midX) * nx + (cy - midY) * ny < 0) { nx = -nx; ny = -ny; }
-        segs.push({ x1, y1, x2, y2, nx, ny });
+        const m = margin * (Math.abs(nx) + Math.abs(ny) * CELL_ASPECT);
+        segs.push({ x1: x1 + nx * m, y1: y1 + ny * m, x2: x2 + nx * m, y2: y2 + ny * m, nx, ny });
     }
 
     let gapSeg: Segment | null = null;
@@ -92,7 +96,10 @@ function projectOnSegment(px: number, py: number, seg: Segment): { cx: number; c
     return { cx: seg.x1 + t * edx, cy: seg.y1 + t * edy, t };
 }
 
+const FRICTION_BY_KIND: Record<PourParticleKind, number> = { liquid: FRICTION, powder: 0.8 };
+
 function resolveCollisions(p: PourParticle, walls: Segment[], canLand: boolean): void {
+    const friction = FRICTION_BY_KIND[p.kind];
     for (let iter = 0; iter < 4; iter++) {
         let worstPen = 0;
         let worstSeg: Segment | null = null;
@@ -120,8 +127,8 @@ function resolveCollisions(p: PourParticle, walls: Segment[], canLand: boolean):
             const len = Math.hypot(edx, edy);
             const tx = edx / len, ty = edy / len;
             const vt = p.vx * tx + p.vy * ty;
-            p.vx = worstSeg.nx * (-vn * RESTITUTION) + tx * (vt * (1 - FRICTION));
-            p.vy = worstSeg.ny * (-vn * RESTITUTION) + ty * (vt * (1 - FRICTION));
+            p.vx = worstSeg.nx * (-vn * RESTITUTION) + tx * (vt * (1 - friction));
+            p.vy = worstSeg.ny * (-vn * RESTITUTION) + ty * (vt * (1 - friction));
             if (canLand && Math.hypot(p.vx, p.vy) < LAND_SPEED) {
                 p.vx = 0; p.vy = 0; p.landed = true; return;
             }
@@ -176,6 +183,9 @@ export interface PourSimConfig {
     targetPoints: Array<[number, number]>;
     targetClosed: boolean;
     targetPivot?: [number, number];
+    // Inward margin (in grid cells) applied to wall segments, scaled by
+    // wall orientation so 1 = one character cell from every wall.
+    wallMargin?: number;
 }
 
 export interface ContainerState {
@@ -198,6 +208,7 @@ export class PourSim {
     private destAdded = 0;
     private sourceTotal: number;
     private destTotal: number;
+    private pourKind: PourParticleKind;
     private onLand: OnLandCallback | null;
     private prevSource: ContainerState | null = null;
     private prevTarget: ContainerState | null = null;
@@ -210,26 +221,30 @@ export class PourSim {
         sourceTotal = 0,
         destTotal = 0,
         onLand: OnLandCallback | null = null,
+        pourKind: PourParticleKind = "liquid",
     ) {
         this.sourcePivot = config.sourcePivot ?? [0, 0];
         this.targetPivot = config.targetPivot ?? [0, 0];
-        const src = buildSegmentsWithGap(config.sourcePoints, this.sourcePivot, config.sourceClosed);
+        const margin = config.wallMargin ?? 0.5;
+        const src = buildSegmentsWithGap(config.sourcePoints, this.sourcePivot, config.sourceClosed, margin);
         this.sourceWalls = src.walls;
         this.sourceGapSeg = src.gapSeg;
         this.targetWalls = buildSegments(config.targetPoints, this.targetPivot, config.targetClosed);
         this.sourceTotal = sourceTotal;
         this.destTotal = destTotal;
         this.onLand = onLand;
+        this.pourKind = pourKind;
     }
 
     // Add particle at a position in the source container's local grid coords
     // (relative to origin, before pivot adjustment — i.e. the same frame as
     // the polygon points and PropGroup member relX/relY).
-    addParticleLocal(relX: number, relY: number): PourParticle {
+    addParticleLocal(relX: number, relY: number, kind: PourParticleKind = "liquid"): PourParticle {
         const px = relX - this.sourcePivot[0];
         const py = (relY - this.sourcePivot[1]) * CELL_ASPECT;
-        const p: PourParticle = { x: px, y: py, vx: 0, vy: 0, airborne: false, landed: false };
+        const p: PourParticle = { x: px, y: py, vx: 0, vy: 0, airborne: false, landed: false, kind };
         this.particles.push(p);
+        if (kind === this.pourKind) this.pourParticleCount++;
         return p;
     }
 
@@ -291,7 +306,7 @@ export class PourSim {
                 if (pa.landed) continue;
                 for (let b = a + 1; b < this.particles.length; b++) {
                     const pb = this.particles[b];
-                    if (pb.landed || pa.airborne !== pb.airborne) continue;
+                    if (pb.landed || pa.airborne !== pb.airborne || pa.kind !== pb.kind) continue;
                     const dx = pb.x - pa.x, dy = pb.y - pa.y;
                     const dist = Math.hypot(dx, dy);
                     if (dist < sep && dist > 0.001) {
@@ -321,8 +336,7 @@ export class PourSim {
                     p.x += p.vx * subDt;
                     p.y += p.vy * subDt;
                     resolveCollisions(p, this.sourceWalls, false);
-                    // Particle exits through the gap (open edge of the polygon)
-                    const exited = this.sourceGapSeg
+                    const exited = p.kind === this.pourKind && this.sourceGapSeg
                         ? signedDistToLine(p.x, p.y, this.sourceGapSeg) > 0
                         : false;
                     if (exited) {
@@ -348,10 +362,13 @@ export class PourSim {
         }
     }
 
+    private pourParticleCount = 0;
+
     private handleLanding(): void {
         this.landedCount++;
         if (!this.onLand) return;
-        const K = this.particles.length;
+        const K = this.pourParticleCount;
+        if (K === 0) return;
         const newSourceDrained = Math.floor(this.landedCount * this.sourceTotal / K);
         const newDestAdded = Math.floor(this.landedCount * this.destTotal / K);
         this.onLand(this.landedCount - 1, newSourceDrained - this.sourceDrained, newDestAdded - this.destAdded);
@@ -368,12 +385,14 @@ export class PourSim {
     }
 
     allLanded(): boolean {
-        return this.particles.length > 0 && this.particles.every(p => p.landed);
+        const pour = this.particles.filter(p => p.kind === this.pourKind);
+        return pour.length > 0 && pour.every(p => p.landed);
     }
 
     allSettled(): boolean {
-        if (this.particles.length === 0 || this.exitedCount === 0) return false;
-        return this.particles.every(p =>
+        if (this.exitedCount === 0) return false;
+        const pour = this.particles.filter(p => p.kind === this.pourKind);
+        return pour.length > 0 && pour.every(p =>
             p.landed || (!p.airborne && Math.hypot(p.vx, p.vy) < LAND_SPEED),
         );
     }

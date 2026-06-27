@@ -428,7 +428,7 @@ class BarleyScoopEffect implements StepEffect {
         this.dropStart + ((BARLEY_POWDER_POSITIONS.length - 1) * BARLEY_POWDER_DROP_SPACING) + BARLEY_POWDER_FALL_DURATION;
 
     constructor(anim: SceneAnimator) {
-        this.landed = anim.glass2Group.members.some((m) => m.obj.sprite === BARLEY_POWDER_DROP);
+        this.landed = anim.glass2Group.members.some((m) => m.obj.sprite.cells[0]?.role === BARLEY_POWDER_DROP.cells[0].role);
     }
 
     tick(t: number, anim: SceneAnimator): void {
@@ -444,8 +444,12 @@ class BarleyScoopEffect implements StepEffect {
             this.spawned = true;
         }
         if (!this.landed && t >= this.landT) {
-            for (const [relX, relY] of BARLEY_POWDER_POSITIONS) {
-                anim.glass2Group.addMember({ sprite: BARLEY_POWDER_DROP, relX, relY, relZ: 0 });
+            if (anim.hasFluidSim("glass2")) {
+                anim.addBarleyToFluidSim("glass2");
+            } else {
+                for (const [relX, relY] of BARLEY_POWDER_POSITIONS) {
+                    anim.glass2Group.addMember({ sprite: BARLEY_POWDER_DROP, relX, relY, relZ: 0 });
+                }
             }
             this.landed = true;
         }

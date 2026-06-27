@@ -6,7 +6,7 @@
 import { type PropGroupMember, type SceneObject, type Sprite, Compositor, PropGroup } from "./ascii-compositor";
 import { rand } from "./rng";
 import { applyBladeRadius, arcLerp, bladePulseRadius, boundingAspectRatio, MemberFlight, ouStep, runFrames, seedGrindRole, textSprite } from "./ascii-sprites";
-import { type FluidSim, type StirImpulse, makeFluidSim, fillFluidSim, seedFluidFromPositions, seedPowderAtBottom, stepFluid, projectFluidSim, gridToRel, interiorBounds } from "./fluid-sim";
+import { type FluidSim, type StirImpulse, makeFluidSim, fillFluidSim, seedFluidFromPositions, seedPowderAtBottom, stepFluid, projectFluidSim, gridToRel, interiorBounds, fluidFillRatio } from "./fluid-sim";
 import type { PourSim, ContainerState } from "./pour-sim";
 import {
     BOTTLE_LIQUID_POSITIONS,
@@ -17,6 +17,7 @@ import {
     GLASS_POINTS,
     GLASS2_POWDER_POSITIONS,
     GLASS_POWDER_POSITIONS,
+    BARLEY_POWDER_DROP,
     BARLEY_POWDER_POSITIONS,
     GRIND_DURATION_MAX,
     GRIND_DURATION_MIN,
@@ -156,6 +157,9 @@ export class SceneAnimator {
     }
     getGlassFluidSim(): FluidSim | undefined {
         return this.fluidContainers.get("glass")?.sim;
+    }
+    getGlass2FluidSim(): FluidSim | undefined {
+        return this.fluidContainers.get("glass2")?.sim;
     }
     hasFluidSim(id: string): boolean {
         return !!(this.fluidContainers.get(id as any)?.sim);
@@ -398,13 +402,15 @@ export class SceneAnimator {
     // lands.
     fillLiquidContainer(id: "glass" | "glass2"): void {
         const container = this.fluidContainers.get(id)!;
-        const powderCount = id === "glass"
-            ? GLASS_POWDER_POSITIONS.length
-            : GLASS2_POWDER_POSITIONS.length + BARLEY_POWDER_POSITIONS.length;
         const group = id === "glass" ? this.glassGroup : this.glass2Group;
         container.sim = makeFluidSim(GLASS_FLUID_DIMS, GLASS_POINTS);
         fillFluidSim(container.sim, this.fillLevelOverride ?? GLASS_FLUID_FILL);
-        seedPowderAtBottom(container.sim, powderCount);
+        if (id === "glass") {
+            seedPowderAtBottom(container.sim, GLASS_POWDER_POSITIONS.length);
+        } else {
+            seedPowderAtBottom(container.sim, GLASS2_POWDER_POSITIONS.length);
+            seedPowderAtBottom(container.sim, BARLEY_POWDER_POSITIONS.length, "barley");
+        }
         group.clear();
         this.syncLiquidParticles(container);
     }
@@ -416,13 +422,15 @@ export class SceneAnimator {
     // stir rod starts.
     initLiquidVortex(id: "glass" | "glass2"): void {
         const container = this.fluidContainers.get(id)!;
-        const powderCount = id === "glass"
-            ? GLASS_POWDER_POSITIONS.length
-            : GLASS2_POWDER_POSITIONS.length + BARLEY_POWDER_POSITIONS.length;
         const group = id === "glass" ? this.glassGroup : this.glass2Group;
         container.sim = makeFluidSim(GLASS_FLUID_DIMS, GLASS_POINTS);
         fillFluidSim(container.sim, this.fillLevelOverride ?? GLASS_FLUID_FILL);
-        seedPowderAtBottom(container.sim, powderCount);
+        if (id === "glass") {
+            seedPowderAtBottom(container.sim, GLASS_POWDER_POSITIONS.length);
+        } else {
+            seedPowderAtBottom(container.sim, GLASS2_POWDER_POSITIONS.length);
+            seedPowderAtBottom(container.sim, BARLEY_POWDER_POSITIONS.length, "barley");
+        }
         group.clear();
     }
 
@@ -458,9 +466,20 @@ export class SceneAnimator {
         this.dishLiquidGroup.members.length = 0;
     }
 
-    // Removes a fully-evaporated particle from `dishLiquidGroup` and the
-    // compositor. Not private: called by step 4's EvaporationEffect once a
-    // particle finishes drifting away.
+    disableFluidSim(id: "glass" | "glass2"): void {
+        const container = this.fluidContainers.get(id)!;
+        if (container.sim) {
+            this.syncLiquidParticles(container);
+            container.sim = undefined;
+        }
+    }
+
+    removeLiquidParticle(member: PropGroupMember): void {
+        this.compositor.removeObject(member.obj.id);
+        const idx = this.liquidGroup.members.indexOf(member);
+        if (idx !== -1) this.liquidGroup.members.splice(idx, 1);
+    }
+
     removeDishLiquidParticle(member: PropGroupMember): void {
         this.compositor.removeObject(member.obj.id);
         const idx = this.dishLiquidGroup.members.indexOf(member);
@@ -755,51 +774,15 @@ export class SceneAnimator {
                 applyAt(obj, points, t);
             }
 
+            this.syncGroupOrigins();
+
             if (isSeedFlight) {
                 this.seedFlight.update(span, dt, flightStart, flightEnd);
-            } else {
-                const seedPile = this.objects.get("seedPile")!;
-                this.seedGroup.setOrigin(seedPile.x, seedPile.y, seedPile.z, seedPile.rotation);
             }
-
-            const grinderBody = this.objects.get("grinderBody")!;
-            this.grinderGroup.setOrigin(grinderBody.x, grinderBody.y, grinderBody.z, grinderBody.rotation);
-            this.grinderPowderGroup.setOrigin(grinderBody.x, grinderBody.y, grinderBody.z, grinderBody.rotation);
-
-            // Keep the powder/liquid groups tracking the glass's current
-            // position every frame, regardless of step: empty groups (steps
-            // before their contents exist) are unaffected, and groups
-            // populated by an earlier step's effects (e.g. step 2's pours)
-            // continue riding along with the glass in later steps.
-            const glass = this.objects.get("glass")!;
-            this.glassGroup.setOrigin(glass.x, glass.y, glass.z, glass.rotation);
-            this.liquidGroup.setOrigin(glass.x, glass.y, glass.z, glass.rotation);
-
-            // Keep the dish liquid/residue groups tracking the dish's
-            // position every frame, same as glassGroup/liquidGroup above.
-            const dish = this.objects.get("dish")!;
-            this.dishLiquidGroup.setOrigin(dish.x, dish.y, dish.z, dish.rotation);
-            this.dishResidueGroup.setOrigin(dish.x, dish.y, dish.z, dish.rotation);
-
-            // Keep glass2's powder/liquid groups tracking its position every
-            // frame, same as glassGroup/liquidGroup above.
-            const glass2 = this.objects.get("glass2")!;
-            this.glass2Group.setOrigin(glass2.x, glass2.y, glass2.z, glass2.rotation);
-            this.liquid2Group.setOrigin(glass2.x, glass2.y, glass2.z, glass2.rotation);
-
-            // Keep the bottle's liquid group tracking its position/rotation
-            // every frame, same as liquidGroup above, so the ethanol inside
-            // tips and pours along with the bottle.
-            const bottle = this.objects.get("bottle")!;
-            this.bottleLiquidGroup.setOrigin(bottle.x, bottle.y, bottle.z - 1, bottle.rotation);
 
             for (const effect of effects) effect.tick(t, this);
 
-            // Keep the gathered "@" clump riding on the scraper's tip. Synced
-            // after `effects` since ScraperArcEffect mutates the scraper's
-            // x/y directly during its arc, in this same effects pass.
-            const scraper = this.objects.get("scraper")!;
-            this.scraperGroup.setOrigin(scraper.x, scraper.y, scraper.z, scraper.rotation);
+            this.syncGroupOrigins(isSeedFlight);
 
             this.updateDrops(t);
 
@@ -894,15 +877,19 @@ export class SceneAnimator {
     // than parking it out of view.
     initEmptyFluidSim(id: "glass" | "glass2"): void {
         const container = this.fluidContainers.get(id)!;
-        const powderCount = id === "glass"
-            ? GLASS_POWDER_POSITIONS.length
-            : GLASS2_POWDER_POSITIONS.length + BARLEY_POWDER_POSITIONS.length;
         const group = id === "glass" ? this.glassGroup : this.glass2Group;
         container.sim = makeFluidSim(GLASS_FLUID_DIMS, GLASS_POINTS);
-        seedPowderAtBottom(container.sim, powderCount);
+        if (id === "glass") {
+            seedPowderAtBottom(container.sim, group.members.length);
+        } else {
+            const barleyRole = BARLEY_POWDER_DROP.cells[0].role;
+            const hasBarley = group.members.some(m => m.obj.sprite.cells[0]?.role === barleyRole);
+            if (hasBarley) seedPowderAtBottom(container.sim, BARLEY_POWDER_POSITIONS.length, "barley");
+        }
         group.clear();
         this.syncLiquidParticles(container);
     }
+
 
     getFluidTargetCount(id: "glass" | "glass2"): number {
         const container = this.fluidContainers.get(id)!;
@@ -918,6 +905,8 @@ export class SceneAnimator {
         return count;
     }
 
+    private overfullWarned = new Set<string>();
+
     addFluidParticle(id: "glass" | "glass2"): void {
         const container = this.fluidContainers.get(id)!;
         if (!container.sim) return;
@@ -926,6 +915,16 @@ export class SceneAnimator {
         const cx = Math.floor(dims.width / 2);
         const cz = Math.floor(dims.depth / 2);
         sim.particles.push({ x: cx, y: 0, z: cz, vx: 0, vy: 10, vz: 0, kind: "ethanol" });
+        if (!this.overfullWarned.has(id) && fluidFillRatio(sim) >= 1) {
+            console.warn(`FluidSim "${id}" is overfull (${sim.particles.length} particles)`);
+            this.overfullWarned.add(id);
+        }
+    }
+
+    addBarleyToFluidSim(id: "glass" | "glass2"): void {
+        const container = this.fluidContainers.get(id)!;
+        if (!container.sim) return;
+        seedPowderAtBottom(container.sim, BARLEY_POWDER_POSITIONS.length, "barley");
     }
 
     private instantFilled = new Set<string>();
@@ -1036,12 +1035,14 @@ export class SceneAnimator {
         });
         seeds.push(...this.grinderGroup.members.slice(2));
         const seedJitter = seeds.map(() => ({ vx: 0, vy: 0 }));
+        const splitDone = new Set<number>();
+        // Pre-roll which seeds will split so the result is deterministic.
+        const splitChance = seeds.map(() => rand());
+        const SPLIT_PROB = 0.4;
 
         const duration = GRIND_DURATION_MIN + rand() * (GRIND_DURATION_MAX - GRIND_DURATION_MIN);
         const baseRotation = this.grinderGroup.rotation;
 
-        // Applies one frame of the grind at elapsed time `elapsed` (ms) with
-        // frame delta `dt` (s).
         const frame = (elapsed: number, dt: number): void => {
             const shake = Math.sin((elapsed / GRIND_SHAKE_PERIOD) * TAU) * GRIND_SHAKE_AMPLITUDE;
             this.grinderGroup.setOrigin(
@@ -1062,9 +1063,18 @@ export class SceneAnimator {
                 seed.relX = Math.max(-GRIND_SCATTER_X, Math.min(GRIND_SCATTER_X, seed.relX + jitter.vx * dt));
                 seed.relY = Math.max(GRIND_SCATTER_Y_MIN, Math.min(GRIND_SCATTER_Y_MAX, seed.relY + jitter.vy * dt));
 
-                // Stagger each seed's crumble slightly so they don't all change in lockstep.
                 const seedProgress = Math.min(1, grindProgress * 1.2 + i * 0.015);
                 seed.obj.sprite.cells[0].role = seedGrindRole(seedProgress);
+
+                if (!splitDone.has(i) && seedProgress >= 1 / 3 && splitChance[i] < SPLIT_PROB) {
+                    splitDone.add(i);
+                    const fragX = seed.relX + (rand() - 0.5) * 2;
+                    const fragY = Math.max(GRIND_SCATTER_Y_MIN, Math.min(GRIND_SCATTER_Y_MAX, seed.relY + (rand() - 0.5) * 1.5));
+                    const frag = this.grinderGroup.addMember({ sprite: SEED_SPRITE, relX: fragX, relY: fragY, relZ: seed.relZ });
+                    frag.obj.sprite.cells[0].role = seedGrindRole(seedProgress);
+                    seeds.push(frag);
+                    seedJitter.push({ vx: (rand() - 0.5) * 4, vy: (rand() - 0.5) * 4 });
+                }
             }
 
             this.grinderGroup.applyOrigin();
@@ -1088,6 +1098,29 @@ export class SceneAnimator {
             },
             callFrameAtEnd: false,
         });
+    }
+
+    private syncGroupOrigins(skipSeed = false): void {
+        if (!skipSeed) {
+            const seedPile = this.objects.get("seedPile")!;
+            this.seedGroup.setOrigin(seedPile.x, seedPile.y, seedPile.z, seedPile.rotation);
+        }
+        const grinderBody = this.objects.get("grinderBody")!;
+        this.grinderGroup.setOrigin(grinderBody.x, grinderBody.y, grinderBody.z, grinderBody.rotation);
+        this.grinderPowderGroup.setOrigin(grinderBody.x, grinderBody.y, grinderBody.z, grinderBody.rotation);
+        const glass = this.objects.get("glass")!;
+        this.glassGroup.setOrigin(glass.x, glass.y, glass.z, glass.rotation);
+        this.liquidGroup.setOrigin(glass.x, glass.y, glass.z, glass.rotation);
+        const dish = this.objects.get("dish")!;
+        this.dishLiquidGroup.setOrigin(dish.x, dish.y, dish.z, dish.rotation);
+        this.dishResidueGroup.setOrigin(dish.x, dish.y, dish.z, dish.rotation);
+        const glass2 = this.objects.get("glass2")!;
+        this.glass2Group.setOrigin(glass2.x, glass2.y, glass2.z, glass2.rotation);
+        this.liquid2Group.setOrigin(glass2.x, glass2.y, glass2.z, glass2.rotation);
+        const bottle = this.objects.get("bottle")!;
+        this.bottleLiquidGroup.setOrigin(bottle.x, bottle.y, bottle.z - 1, bottle.rotation);
+        const scraper = this.objects.get("scraper")!;
+        this.scraperGroup.setOrigin(scraper.x, scraper.y, scraper.z, scraper.rotation);
     }
 
     // `transitionDuration` seeds the elapsed-time counter passed to
@@ -1116,6 +1149,7 @@ export class SceneAnimator {
                     applyBladeRadius(obj.sprite, radius);
                 }
             }
+            this.syncGroupOrigins();
             if (stirring) this.updateFluid(this.fluidContainers.get("glass")!, dt, !this.stoppedStirring.has("stirRod"));
             if (stirring2) this.updateFluid(this.fluidContainers.get("glass2")!, dt, !this.stoppedStirring.has("stirRod2"));
             this.compositor.render();
@@ -1123,8 +1157,6 @@ export class SceneAnimator {
         };
         this.rafHandle = requestAnimationFrame(tick);
     }
-
-    private fluidDebugCounter = 0;
 
     private updateFluid(container: FluidContainer, dt: number, stirring: boolean): void {
         // Cap dt to avoid explosive forces when the tab resumes after being hidden.
@@ -1136,16 +1168,6 @@ export class SceneAnimator {
             : null;
         stepFluid(sim, dt, stir);
         this.syncLiquidParticles(container);
-        if (++this.fluidDebugCounter % 60 === 0) {
-            const ethanol = sim.particles.filter(p => p.kind === "ethanol").length;
-            const powder = sim.particles.filter(p => p.kind === "powder").length;
-            let maxV = 0;
-            for (const p of sim.particles) {
-                const s = Math.sqrt(p.vx ** 2 + p.vy ** 2 + p.vz ** 2);
-                if (s > maxV) maxV = s;
-            }
-            console.log(`[fluid] members=${container.group.members.length} ethanol=${ethanol} powder=${powder} maxV=${maxV.toFixed(2)} stir=${!!stir} dt=${dt.toFixed(3)}`);
-        }
     }
 
     private syncLiquidParticles(container: FluidContainer): void {
@@ -1156,8 +1178,9 @@ export class SceneAnimator {
             for (let y = 0; y < dims.height; y++) {
                 const cell = projected[x][y];
                 if (!cell) continue;
-                const sprite = cell.material === "powder" ? POWDER_PARTICLE : LIQUID_PARTICLE;
-                const [relX, relY] = gridToRel(x, y, dims, GLASS_INTERIOR);
+                const sprite = cell.material === "powder" ? POWDER_PARTICLE : cell.material === "barley" ? BARLEY_POWDER_DROP : LIQUID_PARTICLE;
+                const [relX, rawRelY] = gridToRel(x, y, dims, GLASS_INTERIOR);
+                const relY = rawRelY - 0.5;
                 if (memberIdx < container.group.members.length) {
                     const m = container.group.members[memberIdx];
                     m.relX = relX;
