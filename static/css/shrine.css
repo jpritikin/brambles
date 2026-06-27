@@ -55,3 +55,147 @@
   left: 0;
   will-change: transform;
 }
+
+.recipe-step {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.3s ease, background-color 0.3s ease;
+}
+.recipe-step:hover {
+  text-decoration-color: #d4af37;
+}
+.recipe-step.recipe-step-active {
+  background-color: rgba(212, 175, 55, 0.16);
+  border-radius: 0.2rem;
+}
+.recipe-step.recipe-step-done {
+  background-color: rgba(120, 180, 120, 0.14);
+  border-radius: 0.2rem;
+}
+.recipe-step.recipe-step-next {
+  animation: step-blink 2.5s ease-in-out infinite;
+  border-radius: 0.2rem;
+}
+@keyframes step-blink {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(212, 175, 55, 0.08); }
+}
+.recipe-substep {
+  transition: background-color 0.3s ease;
+  border-radius: 0.15rem;
+  padding: 0 0.1em;
+}
+.recipe-substep.recipe-substep-active {
+  background-color: rgba(100, 180, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(100, 180, 255, 0.5);
+}
+
+#stahl-slideshow {
+  margin: 2rem auto;
+  max-width: calc(30ch + 4.5rem);
+  border: 1px solid #d4af37;
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  background: #fdfaf3;
+}
+#stahl-slideshow[hidden] {
+  display: none;
+}
+.recipe-ss-viewport {
+  overflow: hidden;
+  width: min(calc(30ch + 1.5rem), 100%);
+  margin: 0 auto;
+  border-radius: 0.25rem;
+  background: #f5f0e8;
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+.recipe-ss-grid {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  width: max-content;
+  grid-template-columns: repeat(30, 1ch);
+  grid-template-rows: repeat(9, 1.4em);
+  line-height: 1.4;
+  color: #333;
+  padding: 0.6rem 0.75rem;
+  user-select: none;
+}
+.ascii-cell {
+  white-space: pre;
+}
+.recipe-ss-controls {
+  width: min(calc(30ch + 1.5rem), 100%);
+  margin: 0.5rem auto 0;
+}
+.recipe-ss-slider {
+  width: 100%;
+}
+.recipe-ss-ticks {
+  position: relative;
+  height: 1.4em;
+  font-size: 0.75rem;
+}
+.recipe-ss-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  border: 1px solid transparent;
+  border-radius: 0.2rem;
+  background: none;
+  padding: 0 0.2em;
+  cursor: pointer;
+  color: #8a7a55;
+  font: inherit;
+  text-decoration: none;
+}
+.recipe-ss-tick:hover {
+  color: #d4af37;
+}
+.recipe-ss-tick:focus {
+  outline: none;
+}
+.recipe-ss-tick-active {
+  color: #fff;
+  background: #2e7d32;
+  font-weight: bold;
+  border-color: #2e7d32;
+}
+.recipe-ss-speed {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin: 0.5rem auto;
+  max-width: calc(30ch + 4.5rem);
+}
+.recipe-ss-speed-btn {
+  cursor: pointer;
+  font: 0.75rem monospace;
+  border: 1px solid #ccc;
+  border-radius: 0.2rem;
+  background: #f5f0e8;
+  padding: 0.15em 0.4em;
+  color: #555;
+}
+.recipe-ss-speed-btn:hover {
+  background: #e8e0d0;
+}
+
+.stahl-butterfly {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  font-size: 1.5rem;
+  line-height: 1;
+  pointer-events: none;
+  will-change: transform;
+  transition: filter 0.15s ease, font-size 0.15s ease;
+}
+.stahl-butterfly-hover {
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 0.4rem #ffd966);
+}

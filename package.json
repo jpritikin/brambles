@@ -2,9 +2,11 @@
   "name": "brambles",
   "private": true,
   "scripts": {
-    "build": "esbuild src/*.ts --bundle --minify --format=esm --outdir=static/js",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && esbuild src/*.ts --bundle --minify --format=esm --outdir=static/js",
     "watch": "esbuild src/*.ts --bundle --format=esm --outdir=static/js --watch",
-    "dev": "npm-run-all --parallel watch dev:hugo",
+    "watch:typecheck": "tsc --noEmit --watch",
+    "dev": "npm-run-all --parallel watch watch:typecheck dev:hugo",
     "dev:hugo": "hugo server -D"
   },
   "devDependencies": {
