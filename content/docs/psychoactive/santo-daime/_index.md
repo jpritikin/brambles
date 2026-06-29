@@ -84,6 +84,12 @@ It would be nice if the hymns included more diversity in religious heritage.
 - [Divine Rose Store](https://divinerosestore.com)
 - [CHLQ Publications](https://www.chlq.org/shop-hinarios)
 
+Some hymns are genuine, awe-inspiring works of art—"Eu Vivo Na Floresta," "Eu Invoco Meu Mestre," "Oferecimento," and many more. When lyrics and melody rise to that level, they earn the reverence they seek. Not all of them do.
+
+#### Wedding Song (Testimonial #17)
+
+Imagine standing in ceremony, everyone in deep reverence...and then you have to belt out ["Open your heart, my love / Take me inside"](https://nossairmandade.com/hymn/2117/WeddingSong) with a straight face. 🤢 Over and over. The lyrics read like a Valentine's card that took a wrong turn into a Barry White album. 🫣 Every verse is another round of trying not to make eye contact with anyone while singing what sounds like the world's most earnest bedroom ballad. 🤮👎🏿
+
 ### Harmony 🎜
 
 Sung harmonies weaves two or more vocal lines together to create a richer, fuller sound than could be achieved with a single voice.
@@ -216,7 +222,7 @@ Is the idea for some congregants struggle with meditation?
 What's the point of that?
 Congregants can meditate as much as they want at home without daime.
 
-When I attend a work, I expect to transcend the turmoil and reach the serene heights, at least for one serving. So, I urge leaders: don't be stingy. 
+When I attend a work, I expect to transcend the turmoil and reach the serene heights, at least for one serving. So, I urge leaders: don't be stingy.
 
 ### After Ceremony Lentil Salad
 
