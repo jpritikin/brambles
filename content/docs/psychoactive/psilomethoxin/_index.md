@@ -10,9 +10,7 @@ weight: 10
 
 [![psilomethoxin](4-HO-5-MeO-DMT.svg.png)](https://en.wikipedia.org/wiki/4-Hydroxy-5-methoxydimethyltryptamine)
 
-Psilomethoxin (Pm) offers a subjective experience similar to MDMA, but without MDMA’s stimulant-like effects. Pm is the ideal complement to psychotherapy.[^beres2019]
-
-For more information, read [my case report]({{< relref "psilomethoxin-case-report" >}}).
+For more information, read [my case report]({{< relref "psilomethoxin-case-report" >}}) and see this <a type="application/pdf" target="_blank" href="instrument_and_case_v7.pdf">mass spectrometry analysis</a> confirming the compound’s identity.
 
 ## Safety
 
@@ -185,8 +183,6 @@ It's a **great** combo. Explore.
 
 [^mushroom]: If you sourced psilomethoxin from the [Church of Sacred Synthesis](https://thesacredsynthesis.com/) then you received sacrament in the form of dried Psilocybe mushroom powder.
 Although many mushrooms of the Psilocybe genus produce psilocybin and psilocin, the manufacturing process devised by the church ensures that psilomethoxin is produced with only trace amounts of psilocybin or psilocin.
-
-[^beres2019]: [Decades ago, ecstasy — yes, MDMA — was used in marriage counseling](https://bigthink.com/neuropsych/decades-ago-mdma-was-used-in-marriage-counseling/)
 
 [^nausea]: [Dr. Greger’s Natural Nausea Remedy Recipe](https://nutritionfacts.org/blog/dr-gregers-natural-nausea-remedy-recipe/)
 
