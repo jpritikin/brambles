@@ -28,7 +28,3 @@ Can you do something about this?
 In light of these developments, it's crucial to reevaluate Oregon's policy on synthetically derived cannabinoids. We must strike a balance between public safety concerns and fair treatment of consumers. By focusing on regulating production and distribution more stringently, we can maintain the spirit of drug policy reform while ensuring safety.
 
 CC: Rep.EmilyMcIntire@oregonlegislature.gov, Sen.DennisLinthicum@oregonlegislature.gov (my representatives)
-
-## Resources
-
-[A Framework for Federal and State Hemp-Derived Cannabinoid Regulation](https://a8d50b36.rocketcdn.me/wp-content/uploads/framework-federal-state-hemp-derived-cannabinoid-regulation.pdf)
