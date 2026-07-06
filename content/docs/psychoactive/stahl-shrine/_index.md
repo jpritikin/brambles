@@ -50,6 +50,72 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 - Fan (and gentle heat source)
 - Magnetic stir machine (optional)
 
+### Aldehydes TLC
+
+Tender young barley grass aldehydes ([isovaleraldehyde](https://en.wikipedia.org/wiki/Isovaleraldehyde), [valeraldehyde](https://en.wikipedia.org/wiki/Pentanal), and [crotonaldehyde](https://en.wikipedia.org/wiki/Crotonaldehyde)) form relatively weak chemical bonds with [ergine](https://en.wikipedia.org/wiki/Ergine). They are also vulnerable to big bad [aldehyde dehydrogenase](https://en.wikipedia.org/wiki/Aldehyde_dehydrogenase) (ALDH), which can prematurely degrade these little beauties. Some foods inhibit ALDH (helping preserve the aldehydes) while others invigorate it (accelerating their breakdown). So, food choices in the days around the rite are key.
+
+Eat:
+- **Fruits**
+  - Gooseberry (Phyllanthus emblica)[^srinivasan2019]
+  - Pineapple[^srinivasan2019]
+  - Pomegranate[^srinivasan2019]
+  - Papaya[^srinivasan2019]
+  - Dates[^srinivasan2019]
+  - Cocoa[^srinivasan2019]
+- **Vegetables**
+  - Spinach[^srinivasan2019]
+- **Grains and legumes**
+  - Oats[^srinivasan2019]
+  - Peanuts[^srinivasan2019]
+  - Millet[^srinivasan2019]
+  - Sorghum[^srinivasan2019]
+- **Spices**
+  - Pepper[^srinivasan2019]
+  - Cinnamon[^srinivasan2019]
+  - Turmeric[^srinivasan2019]
+  - Ginger (Zingiber officinale)[^srinivasan2019]
+  - Peppermint (Mentha piperita) essential oil[^elder1960]
+- **Other**
+  - Vitamin C (ascorbic acid)[^srinivasan2019]
+
+Consider:
+- **Spices**
+  - Mace[^srinivasan2019][^myristicin-caveat]
+  - Nutmeg[^srinivasan2019][^myristicin-caveat]
+
+Avoid:
+- **Fruits**
+  - Pear[^srinivasan2019]
+  - Orange[^srinivasan2019]
+  - Coconut water[^srinivasan2019]
+  - Mango (Mangifera indica)[^wang2016]
+  - Persimmon (Diospyros kaki)[^wang2016]
+- **Vegetables**
+  - Cucumber[^srinivasan2019]
+  - Tomato[^srinivasan2019]
+  - Onion (Allium cepa)[^srinivasan2019]
+  - Asparagus (Asparagus officinalis)[^wang2016]
+  - Cruciferous vegetables (broccoli, cabbage, kale, etc.)[^ushida2013]
+- **Seeds**
+  - Fenugreek seeds (Trigonella foenum-graecum)[^wang2016][^srinivasan2019][^fenugreek-conflict]
+- **Herbs and spices**
+  - Thyme (Thymus vulgaris)[^wang2016]
+  - Tea[^srinivasan2019]
+
 ### Lest We Forget
 
-We lost this knowledge for a couple thousand years. Let's not make it a habit. Write it down, pass it on, and keep the kykeon flowing.
+We lost this knowledge for a couple thousand years. Let's not make it a habit. Write it down and pass it on. Keep the kykeon flowing.
+
+### Notes
+
+[^elder1960]: Elder, T. D., Segal, S., Maxwell, E. S., & Topper, Y. J. (1960). Some steroid hormone-like effects of menthol. *Science, 132*(3421), 225–226.
+
+[^srinivasan2019]: Srinivasan, S., Dubey, K. K., & Singhal, R. S. (2019). Influence of food commodities on hangover based on alcohol dehydrogenase and aldehyde dehydrogenase activities. *Current research in food science, 1*, 8–16.
+
+[^ushida2013]: Ushida, Y., & Talalay, P. (2013). Sulforaphane accelerates acetaldehyde metabolism by inducing aldehyde dehydrogenases: relevance to ethanol intolerance. *Alcohol and Alcoholism, 48*(5), 526–534.
+
+[^myristicin-caveat]: Myristicin, present in both mace and nutmeg, is psychoactive in its own right. So treat these as an unknown wildcard rather than a straightforward ALDH-preserving spice.
+
+[^fenugreek-conflict]: Srinivasan et al. (2019) measured a 62.40% decrease in ALDH activity for fenugreek seeds, which would suggest "Eat." But Wang et al. (2016) reported that fenugreek seed polyphenolic extract upregulated ALDH expression in alcohol-treated liver cells. In view of the disagreement, keep under "Avoid."
+
+[^wang2016]: Wang, F., Li, Y., Zhang, Y. J., Zhou, Y., Li, S., & Li, H. B. (2016). Natural products for the prevention and treatment of hangover and alcohol use disorder. *Molecules, 21*(1), 64.
