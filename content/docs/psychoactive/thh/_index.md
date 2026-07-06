@@ -31,7 +31,9 @@ Since it's hard to tell 5mg from 300mg at baseline, judging THH's intensity seem
 
 ## Tolerability
 
-No tolerability study of pure THH exists. However, harmine—a closely related beta-carboline—has been tested: Ables et al. (2024) found that healthy volunteers tolerated doses up to 300mg of harmine.[^ables2024] Above that, nausea and other unpleasant effects can occur, but nothing life-threatening. THH and harmine are not identical molecules, so these results are suggestive rather than definitive for THH.
+A serving of Daime might contain 300mg of THH, with harmine often present in roughly a 1:1 ratio.[^callaway2005] Across five servings during an all-day work, that could add up to 1.5g of THH on a single day.
+
+No tolerability study of pure THH exists. However, harmine—a closely related beta-carboline—has been tested: healthy volunteers tolerated doses up to 300mg.[^ables2024] Above that, nausea and other unpleasant effects can occur, but nothing life-threatening. THH and harmine are not identical molecules, so these results are suggestive rather than definitive for THH.
 
 ## Notes
 
@@ -40,3 +42,5 @@ No tolerability study of pure THH exists. However, harmine—a closely related b
 [^novisuals]: I do not experience anything like the visuals that [Stahl (2026)]({{< relref "docs/psychoactive/stahl-shrine" >}}) described on pages 161 and 170. This also makes me think of 5-MAPB—it doesn't do much for me because the MDMA headspace is similar to my typical state of mind already.
 
 [^ables2024]: Ables, J. L., Israel, L., Wood, O., Govindarajulu, U., Fremont, R. T., Banerjee, R., ... & Stewart, A. F. (2024). A Phase 1 single ascending dose study of pure oral harmine in healthy volunteers. *Journal of Psychopharmacology, 38*(10), 911-923.
+
+[^callaway2005]: Callaway, J. C. (2005). Various alkaloid profiles in decoctions of Banisteriopsis caapi. *Journal of Psychoactive Drugs*, *37*(2), 151–155.
