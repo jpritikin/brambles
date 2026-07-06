@@ -16,7 +16,7 @@ For millennia, what the ancients were brewing for their kykeon and soma rites ha
 
 **Note:** I suspect that to really appreciate kykeon, it would help to have some prior familiarity with THH (tetrahydroharmine). Stahl's book offers coverage of THH.
 
-What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof:
+What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof. Kykeon is similar in effect to mescaline. <span class="psych-scale" data-pattern="🛶🌊😐">
 
 <div id="butterfly-anchor-top"></div>
 

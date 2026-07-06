@@ -38,7 +38,7 @@ I know nothing about terpenes.
 
 [Cannabinoids with Turkey](https://www.cannabinoidswithturkey.com/) 🦃 -- This guy has a head start of 10 years on me. Page numbers given below reference:
 - Turkey. (2024). *The Classical Cannabinoid Consumers Guide (2024 Edition): Everything you need to know about cannabinoids in terms you can understand.* Independently published.
-    
+
 ### Social Sommelier Terpene Tastemaker
 
 My approach to cannabis differs starkly from businesses like Philip Wolf's Cultivating Spirits. They focus on traditional cannabis cultivation and whole plant properties. These businesses highlight the sensory experience of different strains. Their model centers on shared experiences and cannabis culture. They often pair strains with foods and wine. They prefer smoking or vaping for quick effects and aroma. These approaches celebrate the plant's natural traits instead of isolating compounds. They create experiences based on traditional growing methods and the natural mix of cannabinoids and terpenes.
@@ -47,7 +47,7 @@ My approach to cannabis differs starkly from businesses like Philip Wolf's Culti
 
 Inhalation is probably the most widely known route of administration because it is so conspicuous.
 
-- Inhalation (Smoking or Vaporizing): 
+- Inhalation (Smoking or Vaporizing):
   - Pros: Rapid onset of effects (usually within minutes)
   - **Cons**: Respiratory irritation (especially with smoking), short duration of effects, imprecise dosing, must avoid acetate forms[^acetates]
 - **Oral Ingestion** (Edibles, Oils, Capsules):
@@ -133,7 +133,7 @@ There is likely cross-tolerance because both substances are [CB1](https://en.wik
 
 - CBD is the classic potentiator. CBD opens the emotional spigot around the heart.
 - [H4CBD](https://en.wikipedia.org/wiki/H4-CBD) (hydrogenated CBD) resembles CBD, particularly in the latter part of the trip. More cognitive and longer duration than CBD. H4CBD is not only stronger than CBD; it has a different character. H4CBD is serious, not blissful. H4CBD is a powerful antiemetic.
-- **CBN (cannabinol) offers a head high without narrowing focus. This is the most underrated cannabinoid.** 🤙🏼  
+- **CBN (cannabinol) offers a head high without narrowing focus. This is the most underrated cannabinoid.** 🤙🏼
 <span style="color: brown;">Consider a cup of coffee in the morning. The first few sips often bring the most pleasure--the warmth, the aroma, the initial burst of flavor. By tuning into these sensations, we might find that a single well-brewed cup brings more satisfaction than drinking several cups mindlessly. The same principle applies to many pleasures in life.<br/>This approach isn't about deprivation--it's about discovering that *enough* often contains more joy than excess. When we eat until we're comfortably satisfied rather than stuffed, we feel energized rather than lethargic. The Japanese concept of *hari hachi bu*--eating until you're 80% full--captures this wisdom. It's not about rigid restriction, but rather finding that sweet spot where satisfaction lives.<br/>This principle extends beyond food to many areas of life--entertainment, shopping, work, even social media consumption. In the cannabis world of euphoria and bliss, arguable the most important dimension is finding contentment in sufficiency. That is one of the virtues of cannabinol. Cannabinol bolsters our innate wisdom to be satisfied.</span>
 - CBN-P (cannabiphorol) relaxation and reduced thinking without much cognitive impairment.
 - CBC (cannabichromene) holds the heart steady in a courageous propeller shape. The propeller blades are about two inches in diameter and centered near the sternum. The stationary propeller blades extend left and right. The blades start spinning above some threshold of THC activation. Beautiful, but not better than CBDV or CBT.[^turkey-cbc]
@@ -188,14 +188,14 @@ Also, tolerance can be different for different components of a blend. So energy 
 
 | Cannabinoids, ratio | Description, comments |
 | ----------------- | ------------------------ |
-| ΔX-THC:CBN:CBD Y:1:1 | Mildly psychoactive, mostly just ordinary relaxation. **Underwelming in a good way.** [See details.]({{< relref "relax" >}}) 🤙🏼 |
-| Δ8-THC:CBN:CBx 6:2:1 | **Super Fucking High** ♥️ CBx is one of CBC, CBDV, CBT. 🚀 Reference dose is 25mg Δ8-THC. |
-| Δ8-THC:CBN:H4CBD:CBC 10:3:1:1 | **Brahman** ♥️ Perfect complement to Daime. Reference dose is 50mg Δ8-THC, but I'd only use about half that when pairing with Daime. 🤙🏼 |
+| ΔX-THC:CBN:CBD Y:1:1 | Mildly psychoactive, mostly just ordinary relaxation. **Underwelming in a good way.** <span class="psych-scale" data-pattern="🚂😌🍃"> [See details.]({{< relref "relax" >}}) 🤙🏼 |
+| Δ8-THC:CBN:CBx 6:2:1 | **Super Fucking High** <span class="psych-scale" data-pattern="🚂🌊😐"> CBx is one of CBC, CBDV, CBT. 🚀 Reference dose is 25mg Δ8-THC. |
+| Δ8-THC:CBN:H4CBD:CBC 10:3:1:1 | **Meditative** <span class="psych-scale" data-pattern="🚂🌊😐"> Reference dose is 50mg Δ8-THC, but I'd only use about half that when pairing with Daime. 🤙🏼 |
 | (Δ8-THC:CBN:H4CBD:CBC 10:3:1:1):Δ9-THC-B 3:1 | **Extreme empathy** ♥️ 🤙🏼 |
-| CBN-P 4mg + kanna | Can be used **daily** for sleep. 😴 🌛 [See details.]({{< relref "sleep" >}}) 🤙🏼 |
-| Δ10-THC:CBN:CBx 7:1:1 | **Superhuman focus** work blend. CBx is CBC or CBT. CBC is confidently blissful (yang). CBT is smooth and receptive (yin). Reference dose is 67mg Δ10-THC. 🤙🏼 |
+| CBN-P 4mg + kanna | Can be used **daily** for sleep. 😴<span class="psych-scale" data-pattern="🚂🌊🍃">🌛 [See details.]({{< relref "sleep" >}}) 🤙🏼 |
+| Δ10-THC:CBN:CBx 7:1:1 | **Superhuman focus** work blend. <span class="psych-scale" data-pattern="🚂🌊😐"> CBx is CBC or CBT. CBC is confidently blissful (yang). CBT is smooth and receptive (yin). Reference dose is 67mg Δ10-THC. 🤙🏼 |
 
-My reference dose is strong. To judge these blends, I gotta feel 'em vividly. You might start with 1/2 or 1/4 of my reference dose.
+To judge these blends, I gotta feel 'em vividly. You might start with 1/2 or 1/4 of my reference dose.
 
 ### Recipe Logic
 
@@ -282,7 +282,7 @@ Here's how I think about designing recipes. You look at each pie chart separatel
   </style>
 
   <rect width="400" height="360" fill="white" />
-  
+
   <!-- Controls -->
   <g class="controls-group" transform="translate(250, 60)">
     <text x="0" y="15">Δ9:</text>
@@ -297,12 +297,12 @@ Here's how I think about designing recipes. You look at each pie chart separatel
     <rect class="back-button" x="0" y="0" width="80" height="30" rx="5" ry="5" />
     <text class="back-text" x="40" y="19">← Back</text>
   </g>
-  
+
   <!-- Main Pie Chart -->
   <g id="main-pie" transform="translate(150, 180)">
     <!-- Pie slices will be generated by JavaScript -->
   </g>
-  
+
   <!-- Legend -->
   <g id="legend" transform="translate(240, 280)">
     <!-- Legend items will be generated by JavaScript -->
@@ -343,17 +343,17 @@ Here's how I think about designing recipes. You look at each pie chart separatel
     const mainPieGroup = document.getElementById('main-pie');
     const legendGroup = document.getElementById('legend');
     const backButton = document.querySelector('.back-button-group');
-    
+
     // Current state
     let currentData = data;
     let history = [];
-    
+
     // Function to calculate pie slice path
     function describeArc(x, y, radius, startAngle, endAngle) {
       const start = polarToCartesian(x, y, radius, endAngle);
       const end = polarToCartesian(x, y, radius, startAngle);
       const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-      
+
       return [
         "M", x, y,
         "L", start.x, start.y,
@@ -361,7 +361,7 @@ Here's how I think about designing recipes. You look at each pie chart separatel
         "Z"
       ].join(" ");
     }
-    
+
     function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
       const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
       return {
@@ -369,18 +369,18 @@ Here's how I think about designing recipes. You look at each pie chart separatel
         y: centerY + (radius * Math.sin(angleInRadians))
       };
     }
-    
+
     // Function to calculate label position
     function calculateLabelPosition(startAngle, endAngle, radius) {
       const angle = (startAngle + endAngle) / 2;
       const labelRadius = radius * 0.65;
       return polarToCartesian(0, 0, labelRadius, angle);
     }
-    
+
     // Function to render pie chart
     function renderPieChart(data) {
       mainPieGroup.innerHTML = '';
-      
+
       // Add title
       const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
       title.setAttribute("class", "pie-title");
@@ -388,23 +388,23 @@ Here's how I think about designing recipes. You look at each pie chart separatel
       title.setAttribute("y", -radius - 20);
       title.textContent = data.name;
       mainPieGroup.appendChild(title);
-      
+
       // Calculate total value
       const total = data.children.reduce((sum, item) => sum + item.value, 0);
-      
+
       // Draw pie slices
       let startAngle = 0;
       data.children.forEach((item, index) => {
         const sliceAngle = (item.value / total) * 360;
         const endAngle = startAngle + sliceAngle;
-        
+
         // Create pie slice
         const slice = document.createElementNS("http://www.w3.org/2000/svg", "path");
         slice.setAttribute("class", "pie-slice");
         slice.setAttribute("d", describeArc(0, 0, radius, startAngle, endAngle));
         slice.setAttribute("fill", item.color);
         slice.setAttribute("data-index", index);
-        
+
         // Add hover event
         slice.addEventListener("mouseover", function() {
           this.classList.add("highlight");
@@ -412,14 +412,14 @@ Here's how I think about designing recipes. You look at each pie chart separatel
           const label = document.getElementById(labelId);
           if (label) label.classList.add("pie-label-hover");
         });
-        
+
         slice.addEventListener("mouseout", function() {
           this.classList.remove("highlight");
           const labelId = `label-${index}`;
           const label = document.getElementById(labelId);
           if (label) label.classList.remove("pie-label-hover");
         });
-        
+
         // Add click event to drill down
         if (item.children && item.children.length > 0) {
           slice.addEventListener("click", function() {
@@ -430,12 +430,12 @@ Here's how I think about designing recipes. You look at each pie chart separatel
             backButton.style.display = "block";
           });
         }
-        
+
         mainPieGroup.appendChild(slice);
-        
+
         // Create labels
         const labelPos = calculateLabelPosition(startAngle, endAngle, radius);
-        
+
         const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
         label.setAttribute("class", "pie-label");
         label.setAttribute("id", `label-${index}`);
@@ -443,35 +443,35 @@ Here's how I think about designing recipes. You look at each pie chart separatel
         label.setAttribute("y", labelPos.y);
         label.textContent = item.name;
         mainPieGroup.appendChild(label);
-        
+
         // Update start angle for next slice
         startAngle = endAngle;
       });
     }
-    
+
     // Function to render legend
     function renderLegend(data) {
       legendGroup.innerHTML = '';
-      
+
       data.children.forEach((item, index) => {
         const legendItem = document.createElementNS("http://www.w3.org/2000/svg", "g");
         legendItem.setAttribute("transform", `translate(0, ${index * 25})`);
-        
+
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         circle.setAttribute("class", "legend-circle");
         circle.setAttribute("cx", 0);
         circle.setAttribute("cy", 0);
         circle.setAttribute("fill", item.color);
-        
+
         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
         text.setAttribute("class", "legend-item");
         text.setAttribute("x", 15);
         text.setAttribute("y", 5);
         text.textContent = `${item.name} (${item.value})`;
-        
+
         legendItem.appendChild(circle);
         legendItem.appendChild(text);
-        
+
         // Add hover effect for legend items
         legendItem.addEventListener("mouseover", function() {
           const sliceElement = mainPieGroup.querySelector(`path[data-index="${index}"]`);
@@ -480,7 +480,7 @@ Here's how I think about designing recipes. You look at each pie chart separatel
           const label = document.getElementById(labelId);
           if (label) label.classList.add("pie-label-hover");
         });
-        
+
         legendItem.addEventListener("mouseout", function() {
           const sliceElement = mainPieGroup.querySelector(`path[data-index="${index}"]`);
           if (sliceElement) sliceElement.classList.remove("highlight");
@@ -488,7 +488,7 @@ Here's how I think about designing recipes. You look at each pie chart separatel
           const label = document.getElementById(labelId);
           if (label) label.classList.remove("pie-label-hover");
         });
-        
+
         // Add click event to legend items to drill down
         if (item.children && item.children.length > 0) {
           legendItem.style.cursor = "pointer";
@@ -500,30 +500,30 @@ Here's how I think about designing recipes. You look at each pie chart separatel
             backButton.style.display = "block";
           });
         }
-        
+
         legendGroup.appendChild(legendItem);
       });
     }
-    
+
     // Add event listener to back button
     backButton.addEventListener("click", function() {
       if (history.length > 0) {
         currentData = history.pop();
         renderPieChart(currentData);
         renderLegend(currentData);
-        
+
         if (history.length === 0) {
           backButton.style.display = "none";
         }
       }
     });
-    
+
     // Set up the switch
     const switchElement = document.querySelector('.switch');
     const switchTrack = document.querySelector('.switch-track');
     const switchThumb = document.querySelector('.switch-thumb');
     let isToggled = false;
-    
+
     function updateSwitch() {
       if (isToggled) {
         switchTrack.classList.add('active');
@@ -533,13 +533,13 @@ Here's how I think about designing recipes. You look at each pie chart separatel
         switchThumb.setAttribute('cx', '10');
       }
     }
-    
+
     function toggleCategoryA() {
       // Only allow toggling at the top level
       if (history.length === 0) {
         isToggled = !isToggled;
         updateSwitch();
-        
+
         // Replace Category A with the alternative or original version
         if (isToggled) {
           data.children[1].name = "Δ9-THC"
@@ -548,15 +548,15 @@ Here's how I think about designing recipes. You look at each pie chart separatel
           data.children[1].name = "Δ8-THC"
           data.children[1].value = 4
         }
-        
+
         // Re-render the chart
         renderPieChart(data);
         renderLegend(data);
       }
     }
-    
+
     switchElement.addEventListener('click', toggleCategoryA);
-    
+
     // Initial render
     renderPieChart(data);
     renderLegend(data);

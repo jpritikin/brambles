@@ -4,7 +4,7 @@ bookToc: true
 weight: 10
 ---
 
-# Psilomethoxin
+# Psilomethoxin <span class="psych-scale" data-pattern="🛶🌊🍃">
 
 ## Introduction
 

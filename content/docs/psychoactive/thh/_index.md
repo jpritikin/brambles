@@ -4,7 +4,7 @@ bookToc: false
 weight: 1
 ---
 
-# Tetrahydroharmine 🏆🥇
+# Tetrahydroharmine 🏆<span class="psych-scale" data-pattern="🚂🧊🍃"></span>🥇
 
 ![THH](thh.webp)
 {.center}

@@ -1,0 +1,4 @@
+{{- $data := site.Data.psychScale -}}
+{{ range $data.criteria }}
+- **{{ .name }}** {{ range .levels }}{{ .emoji }}{{ end }} — {{ range $i, $l := .levels }}{{ if $i }} {{ end }}{{ .emoji }} = {{ .label }}, {{ .description }}.{{ end }}
+{{ end -}}

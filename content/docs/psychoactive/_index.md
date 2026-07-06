@@ -44,13 +44,13 @@ approaches that you think may be more effective?
 Dr. Nora Volkow: Yeah. And I'll answer it, but I guess actually the story that you just told  of your friend that how he'd be taking fentanyl
 unbeknowing what it was, it just killed him. And  this is what we are observing a lot. And I think
 it's important to educate people that this is  a seriously dangerous drugs. And unfortunately,
-I think that we have cried wolf so many,  many times that we've lost credibility. 
+I think that we have cried wolf so many,  many times that we've lost credibility.
 But if there was a way that we could convey  that in very objective, we don't need to
 exaggerate in any way. I mean fentanyl, two  milligrams will kill you. And the counterfeit
-pills contain five milligrams, some of them two  doses to kill you. So it is very, very tragic. 
+pills contain five milligrams, some of them two  doses to kill you. So it is very, very tragic.
 But coming back to your question in  terms of the War on Drugs, I think that
 basically what it did was it created a mechanism  that could perpetuate structural racism. It is
-very tragic to see how its enforcement led to  the incarceration of young black Americans. 
+very tragic to see how its enforcement led to  the incarceration of young black Americans.
 And again, that punitive system where someone  could be stopped, and this will happen if you are
 black and on the notion that you had drugs with  you and thrown in jail or prison because you had
 drugs on you is such an unfair system. And it  didn't work in any way because it did not reduce
@@ -61,17 +61,17 @@ I don't recall exactly, but it was at least 10  times greater than if you were j
 cocaine. Snorting cocaine or injecting cocaine  hydrochloride was much more favored by white
 people. Whereas crack was favored by black people. So cocaine hydrochloride, white, crack cocaine,
 black. Why do you see such a difference? It's  the same cocaine, basically. Cocaine is cocaine,
-and yet one could note a much higher penalty than  the other. That's an example of the consequences. 
+and yet one could note a much higher penalty than  the other. That's an example of the consequences.
 But what science has shown is that when you do  throw people into jail or prisons that have a
 problem with substance use disorders, then when  they leave, they are at much greater risk of,
 first of all, relapsing immediately into the  drug taking and escalating their drug taking.
 So you are exacerbating the nature of the  problem by putting them in jail and prison.  So it doesn't work no matter what you do. And  that's why the whole notion of criminalizing
 the person that takes drugs is basically very  negative vis-a-vis the outcomes of the person
 and also in no way it benefits society,  it is actually very costly by itself.
-When an issue becomes politicized, then it  becomes much harder to change and shift. 
+When an issue becomes politicized, then it  becomes much harder to change and shift.
 And we've seen, I think, that we've  seen over the past, I would say,
 certainly, five or eight years, an openness to  recognizing that the War on Drugs did not work
-and that criminalizing drug users is basically  negative and it's promoting structural racism. 
+and that criminalizing drug users is basically  negative and it's promoting structural racism.
 {{% /details %}}
 
 {{% details "Drug harms in the UK by substance" %}}
@@ -96,9 +96,9 @@ I am a sincere religious practitioner[^chacruna2021] who is a member of
 - [Church of Sacred Synthesis](https://thesacredsynthesis.com/)
 - [Sacred Garden Church](https://sacredgarden.life/); I love the notion of "least dogma!"[^carse2009]
 
-{{% details "I received my star 24 June 2023." %}}  
-![Star](star.webp)  
-Me with [Padrinho Jonathan Goldman](https://www.courtlistener.com/opinion/2482682/church-of-the-holy-light-of-the-queen-v-mukasey/)  
+{{% details "I received my star 24 June 2023." %}}
+![Star](star.webp)
+Me with [Padrinho Jonathan Goldman](https://www.courtlistener.com/opinion/2482682/church-of-the-holy-light-of-the-queen-v-mukasey/)
 {{% /details %}}
 
 I have first-hand experience with
@@ -106,15 +106,15 @@ I have first-hand experience with
 *   Cannabis
 *   Kanna (Sceletium tortuosum extract)
 *   Daime (a.k.a. ayahuasca) 🍵
-*   Piper methysticum a.k.a. [kava](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-1) ([kavain, dihydrokavain](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-2), [methysticin, dihydromethysticin](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-3), [yangonin, and desmethoxyyangonin](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-4)).
+*   Piper methysticum a.k.a. [kava](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-1) ([kavain, dihydrokavain](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-2), [methysticin, dihydromethysticin](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-3), [yangonin, and desmethoxyyangonin](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-4)). <span class="psych-scale" data-pattern="🚂🧊🍃">
 *   [Muscimol](https://en.wikipedia.org/wiki/Muscimol) (Amanita muscaria extract) 🍄
 *   Psilomethoxin ([orally active 5-methoxy-N,N-dimethyltryptamine](https://www.youtube.com/watch?v=SeROOGFnwek)) 🐸
-*   Psilocybin
-*   [Salvia divinorum]({{< relref "salvia" >}}) 🍃
-*   Mescaline 🌵
-*   5-MAPB (5-(2-methylaminopropyl)benzofuran), 80mg single occasion
+*   Psilocybin <span class="psych-scale" data-pattern="🏄🌊🍃">
+*   [Salvia divinorum]({{< relref "salvia" >}})
+*   Mescaline 🌵 (also see [Stahl Shrine]({{< relref "stahl shrine" >}}))
+*   5-MAPB (5-(2-methylaminopropyl)benzofuran), 80mg single occasion <span class="psych-scale" data-pattern="🚂🧊🌧️">
 *   [Metocin]({{< relref "metocin" >}}) (4-HO-MET)
-*   5-MeO-DMT 🐸
+*   5-MeO-DMT <span class="psych-scale" data-pattern="🛶🌊🍃️">
 *   [Tetrahydroharmine]({{< relref "thh" >}})[^stahl2026]
 
 In general, I use psychoactive substances as [entheogens](https://en.wikipedia.org/wiki/Entheogen).
@@ -212,17 +212,8 @@ Yes, this is one of their most valuable potential benefits.[^carse2009]
 - **Increased Openness**: Psychedelics can loosen rigid thinking patterns, making individuals more receptive to considering viewpoints outside their current framework.
 - **Enhance self-reflection:** Increased self-awareness can expose contradictions or limitations within a person's current belief system.
 - **A tacit feeling of interconnectedness:** The feeling of being part of something larger can prompt a questioning of self-imposed boundaries, leading to a potential reevaluation of beliefs about oneself and the world.
-
-{{% hint danger %}}
-Psychedelics are not salubrious for everybody.
-{{% /hint %}}
-
 - Psychedelics don't guarantee a change in beliefs. They can also reinforce existing belief systems, especially if used with that intention.
 - There is a potential risk for individuals with already fluid belief systems to lose touch with reality and develop psychosis.
-
-{{% hint info %}}
-Will psychedelics be salubrious for you?
-{{% /hint %}}
 
 ### Predicting your reaction 🏹
 
@@ -233,10 +224,11 @@ and how to help them relax. There are at least three possible outcomes:
 - Parts are active but willing to get quiet. In this situation, the client gains more access to Self energy and may do Parts work spontaneously. There is the opportunity to make rapid strides toward therapeutic goals.[^ifs-mdma]
 - Parts are fairly quiet. The Self shines with unusual brilliance 🌞 because the psychedelic does the bouncer Part’s job, facilitating an experience of Self that is profoundly effortless. Similar to effortless meditation, there is ample capacity for blending with a target. This is readily seen in reports of music perception under the influence of psychedelics. For example, “Volunteers reported far greater absorption in music, as well as greater perceived beauty and significance of music.”[^barrett2018]
 
-Suppose you are curious to try a psychedelic but are not sure whether your Parts will get quiet.
-{{% hint info %}}
-Which psychedelic poses the least risk to the naive user?
-{{% /hint %}}
+### Psychological Characterization
+
+Three criteria are worth tracking for each substance:
+
+{{% psych-scale-legend %}}
 
 ### Cannabinoids
 

@@ -1,0 +1,28 @@
+{
+  "criteria": [
+    {
+      "name": "Mental steering",
+      "levels": [
+        { "emoji": "🚂", "label": "train on tracks", "description": "no skill needed, the effect unfolds regardless of where you put your attention" },
+        { "emoji": "🛶", "label": "canoe", "description": "moderate skill rewarded, forgiving of a wobble" },
+        { "emoji": "🏄", "label": "surfboard", "description": "high skill required, poor steering and you wipe out" }
+      ]
+    },
+    {
+      "name": "Emotional pull",
+      "levels": [
+        { "emoji": "🧊", "label": "distancing", "description": "you observe feelings from further away" },
+        { "emoji": "😌", "label": "neutral", "description": "relaxed" },
+        { "emoji": "🌊", "label": "engulfing", "description": "feelings intensify and surround you" }
+      ]
+    },
+    {
+      "name": "Come-down",
+      "levels": [
+        { "emoji": "🍃", "label": "smooth", "description": "barely noticeable" },
+        { "emoji": "😐", "label": "moderate", "description": "some discomfort, can be mitigated with sufficient care" },
+        { "emoji": "🌧️", "label": "rough", "description": "a noticeable trough, largely unavoidable" }
+      ]
+    }
+  ]
+}

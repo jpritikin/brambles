@@ -4,7 +4,7 @@ bookToc: false
 weight: 10
 ---
 
-# Kanna
+# Kanna <span class="psych-scale" data-pattern="🛶😌🍃">
 
 Kanna contains many alkaloids including mesembrine, mesembrenone, mesembrenol, mesembranol, epimesembranol, and tortuosamine. Of these, mesembrine and mesembrenone are thought to be the main contributors to the psychoactive effects:
 
