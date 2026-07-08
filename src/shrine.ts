@@ -82,6 +82,19 @@ function runPetals(layer: HTMLElement): void {
   let lastTime = performance.now();
 
   function frame(now: number): void {
+    // Backgrounded tabs throttle rAF to roughly once a second (or less), so a
+    // frame can arrive after a huge wall-clock gap. dt is clamped for physics
+    // stability, but lastSpawn isn't — left unchecked, that mismatch spawns
+    // many petals for every one that's actually stepped enough to leave the
+    // layer, so they'd pile up while the tab is hidden. Skip the frame's work
+    // entirely when there's a large gap and just resynchronize the clocks.
+    if (now - lastTime > 250) {
+      lastTime = now;
+      lastSpawn = now;
+      requestAnimationFrame(frame);
+      return;
+    }
+
     const dt = Math.max(0, Math.min((now - lastTime) / 1000, 0.05));
     lastTime = now;
 
