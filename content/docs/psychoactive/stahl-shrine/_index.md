@@ -102,6 +102,8 @@ Avoid:
   - Thyme (Thymus vulgaris)[^wang2016]
   - Tea[^srinivasan2019]
 
+We can guess why Stahl's book has no chapter on ALDH-preserving foods: His default diet did not invigorate ALDH.[^stahl-keto]
+
 ### Lest We Forget
 
 We lost this knowledge for a couple thousand years. Let's not make it a habit. Write it down and pass it on. Keep the kykeon flowing.
@@ -119,3 +121,5 @@ We lost this knowledge for a couple thousand years. Let's not make it a habit. W
 [^fenugreek-conflict]: Srinivasan et al. (2019) measured a 62.40% decrease in ALDH activity for fenugreek seeds, which would suggest "Eat." But Wang et al. (2016) reported that fenugreek seed polyphenolic extract upregulated ALDH expression in alcohol-treated liver cells. In view of the disagreement, keep under "Avoid."
 
 [^wang2016]: Wang, F., Li, Y., Zhang, Y. J., Zhou, Y., Li, S., & Li, H. B. (2016). Natural products for the prevention and treatment of hangover and alcohol use disorder. *Molecules, 21*(1), 64.
+
+[^stahl-keto]: Stahl (pp. 216-217): "For as long as I can remember I have followed a ketogenic diet consisting of proteins like eggs, chicken, flank steak, brisket, turkey, pork, hamburger meat, fish. Fats consisting of olive oil, avocados, the fats in meats, salad dressing such as blue cheese, sour cream. Low carbs consist of non starchy vegetables like broccoli, spinach, cauliflower, squash, zucchini and cabbage." But he must be eating minuscule amounts of broccoli and cabbage (ALDH-inducers). We should **not** follow Stahl here: [Keto diets carry serious risks and few benefits](https://nutritionfacts.org/blog/the-safety-of-keto-diets/).
