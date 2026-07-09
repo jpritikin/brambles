@@ -35,7 +35,7 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 
 **Sacraments**
 
-- <span style="position:relative;cursor:pointer;text-decoration:underline dotted" onmouseenter="this.querySelector('.tip').style.display='block'" onmouseleave="this.querySelector('.tip').style.display='none'" onclick="event.stopPropagation();let t=this.querySelector('.tip');let show=t.style.display!=='block';t.style.display=show?'block':'none';if(show){document.addEventListener('click',function h(){t.style.display='none';document.removeEventListener('click',h)})}">25 HBWR<span class="tip" style="display:none;position:absolute;left:0;top:1.5em;background:#333;color:#fff;padding:4px 8px;border-radius:4px;font-size:0.85em;width:max-content;z-index:10">Increase seeds to increase the strength of the subjective effects.<br>Start low and increase with caution.</span></span> (*Argyreia nervosa*, Hawaiian baby woodrose) seeds
+- {{< tooltip label="25 HBWR" >}}Increase seeds to increase the strength of the subjective effects.<br>Start low and increase with caution.{{< /tooltip >}} (*Argyreia nervosa*, Hawaiian baby woodrose) seeds
 - 40mg tartaric acid (30mg + 10mg)
 - 30ml of 95% ethanol (or purer)
 - 3g young barley grass powder (<span class="must-be-fresh">**must** be fresh</span>; each serving should be in an individually sealed packet)
@@ -103,6 +103,56 @@ Avoid:
   - Tea[^srinivasan2019]
 
 We can guess why Stahl's book has no chapter on ALDH-preserving foods: His default diet did not invigorate ALDH.[^stahl-keto]
+
+### Sample Rite
+
+Theory is nothing without a day to hang it on. Here's how one rite might play out.
+
+Prepare a one-pot dish:
+
+1. Combine 2½ cups water, ¼ cup peanuts, ½ cup dried beans (black, pinto, red, or a mix), ½ cup millet, 1 tsp black pepper, and ¼ tsp turmeric in the pressure cooker.
+2. Pressure cook for 50 minutes.
+3. Stir in ½ pound frozen spinach and 1 cup pineapple chunks.
+
+Split into two servings: one for T-1 dinner, one for T-0 lunch.
+
+<div class="rite-timeline">
+  <div class="rite-stop" data-rite-stop="dinner">
+    <span class="rite-icon">🌇</span>
+    <span class="rite-time">T-1, evening</span>
+    <span class="rite-title">Dinner</span>
+  </div>
+  <div class="rite-stop" data-rite-stop="kykeon">
+    <span class="rite-icon">🌅</span>
+    <span class="rite-time">T-0, morning</span>
+    <span class="rite-title">Kykeon</span>
+  </div>
+  <div class="rite-stop" data-rite-stop="lunch">
+    <span class="rite-icon">☀️</span>
+    <span class="rite-time">T-0, midday</span>
+    <span class="rite-title">Lunch</span>
+  </div>
+</div>
+
+<div class="rite-detail" data-rite-detail="dinner" hidden>
+
+Round out dinner with rolled oats, cinnamon, and gooseberries in soy milk. Nibble peanut date clusters for dessert.
+
+</div>
+
+<div class="rite-detail" data-rite-detail="kykeon" hidden>
+
+Mix the [recipe](#recipe) above with 3-4 drops of peppermint essential oil. Chase it with a fruit salad of pineapple, papaya, and pomegranate.
+
+</div>
+
+<div class="rite-detail" data-rite-detail="lunch" hidden>
+
+Finish the portion from the one-pot dish that you set aside.
+
+</div>
+
+{{< tooltip label="<span class=\"diet-tag\">VEGAN</span>" >}}No animal products.{{< /tooltip >}}{{< tooltip label="<span class=\"diet-tag\">SOS</span>" >}}Sugar-oil-salt free.{{< /tooltip >}}{{< tooltip label="<span class=\"diet-tag\">WFPB</span>" >}}Whole food plant based.{{< /tooltip >}}
 
 ### Lest We Forget
 
