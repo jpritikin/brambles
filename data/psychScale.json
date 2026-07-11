@@ -9,11 +9,11 @@
       ]
     },
     {
-      "name": "Emotional pull",
+      "name": "Inward perspective",
       "levels": [
-        { "emoji": "🧊", "label": "distancing", "description": "you observe feelings from further away" },
-        { "emoji": "😌", "label": "neutral", "description": "relaxed" },
-        { "emoji": "🌊", "label": "engulfing", "description": "feelings intensify and surround you" }
+        { "emoji": "1️⃣", "label": "Self (1st)", "description": "calm at the center" },
+        { "emoji": "2️⃣", "label": "blended (2nd)", "description": "a part takes over and its feelings become your reality" },
+        { "emoji": "3️⃣", "label": "unblended (3rd)", "description": "you relate to feelings with curiosity and distance, as a part you're with rather than a part you are" }
       ]
     },
     {

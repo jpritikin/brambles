@@ -27,8 +27,10 @@ const LEVELS_BY_EMOJI: Record<string, Level> = Object.fromEntries(
 
 function segmentEmoji(pattern: string): string[] {
   // Matches one emoji, including any trailing variation selector (e.g. the
-  // U+FE0F on 🌧️) or ZWJ sequence continuation.
-  const EMOJI_RE = /\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic})*/gu;
+  // U+FE0F on 🌧️) or ZWJ sequence continuation, or a keycap sequence (e.g.
+  // 1️⃣ = "1" + U+FE0F + U+20E3), whose base character (a digit, "#", or "*")
+  // isn't itself \p{Extended_Pictographic}.
+  const EMOJI_RE = /[0-9#*]️?⃣|\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic})*/gu;
   return pattern.match(EMOJI_RE) ?? [];
 }
 
@@ -44,7 +46,7 @@ function buildPopup(emojis: string[]): HTMLElement {
     const level = LEVELS_BY_EMOJI[emoji];
     const label = document.createElement("span");
     label.className = "psych-scale-label";
-    label.textContent = level ? `${level.label} — ${level.description}` : "(unknown)";
+    label.textContent = `${level.label} — ${level.description}`;
     row.append(glyph, label);
     popup.appendChild(row);
   }
@@ -75,6 +77,13 @@ function positionPopup(popup: HTMLElement, anchor: HTMLElement): void {
 function initWidget(el: HTMLElement): void {
   const pattern = el.dataset.pattern ?? el.textContent ?? "";
   const emojis = segmentEmoji(pattern.trim());
+
+  for (const emoji of emojis) {
+    if (!(emoji in LEVELS_BY_EMOJI)) {
+      throw new Error(`psych-scale: unknown emoji "${emoji}" in data-pattern "${pattern}"`);
+    }
+  }
+
   el.textContent = "";
   el.classList.add("psych-scale-widget");
   el.setAttribute("role", "button");

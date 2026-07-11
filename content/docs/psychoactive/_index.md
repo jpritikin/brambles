@@ -106,15 +106,15 @@ I have first-hand experience with
 *   Cannabis
 *   Kanna (Sceletium tortuosum extract)
 *   Daime (a.k.a. ayahuasca) 🍵
-*   Piper methysticum a.k.a. [kava](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-1) ([kavain, dihydrokavain](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-2), [methysticin, dihydromethysticin](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-3), [yangonin, and desmethoxyyangonin](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-4)). <span class="psych-scale" data-pattern="🚂🧊🍃">
+*   Piper methysticum a.k.a. [kava](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-1) ([kavain, dihydrokavain](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-2), [methysticin, dihydromethysticin](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-3), [yangonin, and desmethoxyyangonin](https://www.kavacoalition.org/blog/introduction-to-kavalactones-part-4)). <span class="psych-scale" data-pattern="🚂3️⃣🍃">
 *   [Muscimol](https://en.wikipedia.org/wiki/Muscimol) (Amanita muscaria extract) 🍄
 *   Psilomethoxin ([orally active 5-methoxy-N,N-dimethyltryptamine](https://www.youtube.com/watch?v=SeROOGFnwek)) 🐸
-*   Psilocybin <span class="psych-scale" data-pattern="🏄🌊🍃">
+*   Psilocybin <span class="psych-scale" data-pattern="🏄2️⃣🍃">
 *   [Salvia divinorum]({{< relref "salvia" >}})
 *   Mescaline 🌵 (also see [Stahl Shrine]({{< relref "stahl shrine" >}}))
-*   5-MAPB (5-(2-methylaminopropyl)benzofuran), 80mg single occasion <span class="psych-scale" data-pattern="🚂🧊🌧️">
+*   5-MAPB (5-(2-methylaminopropyl)benzofuran), 80mg single occasion <span class="psych-scale" data-pattern="🚂3️⃣🌧️">
 *   [Metocin]({{< relref "metocin" >}}) (4-HO-MET)
-*   5-MeO-DMT <span class="psych-scale" data-pattern="🛶🌊🍃️">
+*   5-MeO-DMT <span class="psych-scale" data-pattern="🛶1️⃣🍃">
 *   [Tetrahydroharmine]({{< relref "thh" >}})[^stahl2026]
 
 In general, I use psychoactive substances as [entheogens](https://en.wikipedia.org/wiki/Entheogen).

@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "npm run typecheck && esbuild src/*.ts --bundle --minify --format=esm --outdir=static/js",
+    "validate:psych-scale": "node scripts/validate-psych-scale.mjs",
+    "build": "npm run typecheck && npm run validate:psych-scale && esbuild src/*.ts --bundle --minify --format=esm --outdir=static/js",
     "watch": "esbuild src/*.ts --bundle --format=esm --outdir=static/js --watch",
     "watch:typecheck": "tsc --noEmit --watch",
     "dev": "npm-run-all --parallel watch watch:typecheck dev:hugo",
