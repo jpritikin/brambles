@@ -17,6 +17,14 @@
       ]
     },
     {
+      "name": "Empathy",
+      "levels": [
+        { "emoji": "🧊", "label": "decreased", "description": "less inclined toward outward 2nd-person connection" },
+        { "emoji": "🤍", "label": "neutral", "description": "no notable shift in outward 2nd-person connection" },
+        { "emoji": "❤️", "label": "increased", "description": "more inclined toward outward 2nd-person connection" }
+      ]
+    },
+    {
       "name": "Come-down",
       "levels": [
         { "emoji": "🍃", "label": "smooth", "description": "barely noticeable" },

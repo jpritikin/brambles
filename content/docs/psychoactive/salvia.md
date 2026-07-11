@@ -10,7 +10,7 @@ bookHidden: true
 ![Salvinorin A](salvinorin-a.webp)
 {.center}
 
-## Salvia Divinorum <span class="psych-scale" data-pattern="🏄3️⃣🍃">
+## Salvia Divinorum <span class="psych-scale" data-pattern="🏄3️⃣🧊🍃">
 
 Related to the common spices mint and sage, salvia divinorum is a member of the Lamiaceae family and endemic to the Sierra Mazateca in the state of Oaxaca in Mexico.[^maqueda2018] Unlike mint or sage, salvia is psychoactive. The psychoactive constituent is a structurally unique diterpenoid called salvinorin A, a potent [κ-opioid](https://en.wikipedia.org/wiki/%CE%9A-opioid_receptor) agonist.
 
