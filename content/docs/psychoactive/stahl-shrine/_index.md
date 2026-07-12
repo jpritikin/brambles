@@ -169,8 +169,8 @@ Finish the portion from the one-pot dish that you set aside.
 Prepare a Thai peanut sauce flavored entrée:
 
 1. Blend ½ cup water, 1 tbsp vinegar, 2 tsp soy sauce, 25g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, 160g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
-2. Pressure cook ⅔ cup <span class="rite-ingredient" data-ingredient="millet">millet</span> and ⅓ cup shelled edamame for 10 minutes.
-3. Mix in ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
+2. Pressure cook ⅔ cup <span class="rite-ingredient" data-ingredient="millet">millet</span> for 10 minutes.
+3. Mix in ⅓ cup shelled edamame and ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
 
 Split into two servings: one for T-1 dinner, one for T-0 lunch.
 
