@@ -4,7 +4,7 @@ bookToc: true
 weight: 10
 ---
 
-# Psilomethoxin <span class="psych-scale" data-pattern="🛶1️⃣🧊🍃"></span>
+# Psilomethoxin
 
 ## Introduction
 
@@ -104,6 +104,9 @@ If a **pm savvy** guide is not available then a group of two or more **naïve** 
 
 Amounts are in mg of dried Psilocybe mushroom powder.
 Observe [caution](#caution) with doses above 250mg.
+
+- 250mg to 1g <span class="psych-scale" data-pattern="🛶3️⃣❤️🍃"></span>
+- 1g and more <span class="psych-scale" data-pattern="🛶1️⃣🧊🍃"></span>
 
 ### Timing
 
