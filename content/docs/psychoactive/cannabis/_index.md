@@ -188,12 +188,12 @@ Also, tolerance can be different for different components of a blend. So energy 
 
 | Cannabinoids, ratio | Description, comments |
 | ----------------- | ------------------------ |
-| ΔX-THC:CBN:CBD Y:1:1 | Mildly psychoactive, mostly just ordinary relaxation. **Underwelming in a good way.** <span class="psych-scale" data-pattern="🚂1️⃣🤍🍃"> [See details.]({{< relref "relax" >}}) 🤙🏼 |
-| Δ8-THC:CBN:CBx 6:2:1 | **Super Fucking High** <span class="psych-scale" data-pattern="🚂1️⃣🧊😐"> CBx is one of CBC, CBDV, CBT. 🚀 Reference dose is 25mg Δ8-THC. |
-| Δ8-THC:CBN:H4CBD:CBC 10:3:1:1 | **Meditative** <span class="psych-scale" data-pattern="🚂3️⃣🧊😐"> Reference dose is 50mg Δ8-THC, but I'd only use about half that when pairing with Daime. 🤙🏼 |
-| (Δ8-THC:CBN:H4CBD:CBC 10:3:1:1):Δ9-THC-B 3:1 | **Extreme empathy** <span class="psych-scale" data-pattern="🚂3️⃣❤️😐">♥️</span> 🤙🏼 |
-| CBN-P 4mg + kanna | Can be used **daily** for sleep. 😴<span class="psych-scale" data-pattern="🚂1️⃣🤍🍃">🌛 [See details.]({{< relref "sleep" >}}) 🤙🏼 |
-| Δ10-THC:CBN:CBx 7:1:1 | **Superhuman focus** work blend. <span class="psych-scale" data-pattern="🚂3️⃣🧊😐"> CBx is CBC or CBT. CBC is confidently blissful (yang). CBT is smooth and receptive (yin). Reference dose is 67mg Δ10-THC. 🤙🏼 |
+| ΔX-THC:CBN:CBD Y:1:1 | Mildly psychoactive, mostly just ordinary relaxation. **Underwelming in a good way.** <span class="psych-scale" data-pattern="🚂1️⃣🤍🍃"></span> [See details.]({{< relref "relax" >}}) 🤙🏼 |
+| Δ8-THC:CBN:CBx 6:2:1 | **Super Fucking High** <span class="psych-scale" data-pattern="🚂1️⃣🧊😐"></span> CBx is one of CBC, CBDV, CBT. 🚀 Reference dose is 25mg Δ8-THC. |
+| Δ8-THC:CBN:H4CBD:CBC 10:3:1:1 | **Meditative** <span class="psych-scale" data-pattern="🚂3️⃣🧊😐"></span> Reference dose is 50mg Δ8-THC, but I'd only use about half that when pairing with Daime. 🤙🏼 |
+| (Δ8-THC:CBN:H4CBD:CBC 10:3:1:1):Δ9-THC-B 3:1 | **Extreme empathy** <span class="psych-scale" data-pattern="🚂3️⃣❤️😐"></span> 🤙🏼 |
+| CBN-P 4mg + kanna | Can be used **daily** for sleep. 😴<span class="psych-scale" data-pattern="🚂1️⃣🤍🍃"></span>🌛 [See details.]({{< relref "sleep" >}}) 🤙🏼 |
+| Δ10-THC:CBN:CBx 7:1:1 | **Superhuman focus** work blend. <span class="psych-scale" data-pattern="🚂3️⃣🧊😐"></span> CBx is CBC or CBT. CBC is confidently blissful (yang). CBT is smooth and receptive (yin). Reference dose is 67mg Δ10-THC. 🤙🏼 |
 
 To judge these blends, I gotta feel 'em vividly. You might start with 1/2 or 1/4 of my reference dose.
 
