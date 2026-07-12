@@ -214,6 +214,43 @@
   vertical-align: middle;
 }
 
+.rite-variant-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.5rem auto 0;
+}
+.rite-variant-btn {
+  cursor: pointer;
+  font: inherit;
+  font-weight: bold;
+  color: #8a7a55;
+  background: #fdfaf3;
+  border: 1px solid #d4af37;
+  border-radius: 999px;
+  padding: 0.35rem 1rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.rite-variant-btn:hover {
+  background-color: rgba(212, 175, 55, 0.14);
+}
+.rite-variant-btn.rite-variant-btn-active {
+  color: #fff;
+  background: #2e7d32;
+  border-color: #2e7d32;
+}
+
+.eat-ingredient {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 0.15rem;
+  padding: 0 0.15em;
+}
+.eat-ingredient.eat-ingredient-active {
+  background-color: rgba(46, 125, 50, 0.16);
+  box-shadow: 0 0 0 1px rgba(46, 125, 50, 0.35);
+  font-weight: bold;
+}
+
 .rite-timeline {
   display: flex;
   align-items: flex-start;
