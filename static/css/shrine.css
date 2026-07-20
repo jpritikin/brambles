@@ -200,6 +200,15 @@
   filter: drop-shadow(0 0 0.4rem #ffd966);
 }
 
+details summary {
+  cursor: pointer;
+  color: #8a7a55;
+  font-weight: bold;
+}
+details summary:hover {
+  color: #2e7d32;
+}
+
 .diet-tag {
   display: inline-block;
   font-size: 0.7rem;

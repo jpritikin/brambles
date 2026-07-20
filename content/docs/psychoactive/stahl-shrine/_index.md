@@ -83,7 +83,11 @@ Consider:
   - Mace[^srinivasan2019][^myristicin-caveat]
   - Nutmeg[^srinivasan2019][^myristicin-caveat]
 
-Avoid:
+Everything not listed under Eat or Consider above is effectively Avoid.
+
+<details>
+<summary>Avoid list (foods confirmed to invigorate ALDH)</summary>
+
 - **Fruits**
   - Pear[^srinivasan2019]
   - Orange[^srinivasan2019]
@@ -101,6 +105,10 @@ Avoid:
 - **Herbs and spices**
   - Thyme (Thymus vulgaris)[^wang2016]
   - Tea[^srinivasan2019]
+
+This avoid list makes the point that there's no obvious pattern separating Eat from Avoid. Pear and orange invigorate ALDH while gooseberry, pineapple, and pomegranate preserve it. Cucumber and tomato invigorate it while spinach preserves it. So don't guess the classification (not "citrus," not "nightshades," not "raw vs. cooked"). If a food isn't on the Eat or Consider list above, treat it as Avoid.
+
+</details>
 
 We can guess why Stahl's book has no chapter on ALDH-preserving foods: His default diet did not invigorate ALDH.[^stahl-keto]
 
