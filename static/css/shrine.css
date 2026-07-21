@@ -250,7 +250,7 @@ details summary:hover {
 }
 
 .eat-ingredient {
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 3s ease, box-shadow 3s ease;
   border-radius: 0.15rem;
   padding: 0 0.15em;
 }

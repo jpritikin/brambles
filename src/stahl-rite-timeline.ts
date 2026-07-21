@@ -11,6 +11,18 @@ function selectStop(name: string, stops: NodeListOf<HTMLElement>, details: NodeL
   details.forEach((el) => { el.hidden = el.dataset.riteDetail !== name; });
 }
 
+// Shared rite-detail content (e.g. "shared-dinner") lives once in the DOM but
+// must render inline within whichever panel's timeline is active, right after
+// that timeline's slot placeholder. Move the shared node there instead of
+// duplicating its markup per panel.
+function relocateSharedDetails(panel: HTMLElement): void {
+  panel.querySelectorAll<HTMLElement>(".rite-detail-slot").forEach((slot) => {
+    const name = slot.dataset.riteDetailSlot;
+    const detail = name && document.querySelector<HTMLElement>(`.rite-detail[data-rite-detail="${name}"]`);
+    if (detail && detail.parentElement !== slot) slot.appendChild(detail);
+  });
+}
+
 function initTimeline(): void {
   const stops = document.querySelectorAll<HTMLElement>(".rite-stop");
   const details = document.querySelectorAll<HTMLElement>(".rite-detail");
@@ -44,6 +56,7 @@ function selectVariant(
   panels.forEach((el) => { el.hidden = el.dataset.riteVariantPanel !== name; });
 
   const panel = Array.from(panels).find((el) => el.dataset.riteVariantPanel === name) ?? null;
+  if (panel) relocateSharedDetails(panel);
   highlightIngredients(panel);
   if (!panel) return;
 

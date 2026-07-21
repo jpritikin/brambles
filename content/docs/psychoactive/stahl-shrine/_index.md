@@ -80,8 +80,8 @@ Eat:
 
 Consider:
 - **Spices**
-  - Mace[^srinivasan2019][^myristicin-caveat]
-  - Nutmeg[^srinivasan2019][^myristicin-caveat]
+  - <span class="eat-ingredient" data-ingredient="mace">Mace</span>[^srinivasan2019][^myristicin-caveat]
+  - <span class="eat-ingredient" data-ingredient="nutmeg">Nutmeg</span>[^srinivasan2019][^myristicin-caveat]
 
 Everything not listed under Eat or Consider above is effectively Avoid.
 
@@ -106,7 +106,7 @@ Everything not listed under Eat or Consider above is effectively Avoid.
   - Thyme (Thymus vulgaris)[^wang2016]
   - Tea[^srinivasan2019]
 
-This avoid list makes the point that there's no obvious pattern separating Eat from Avoid. Pear and orange invigorate ALDH while gooseberry, pineapple, and pomegranate preserve it. Cucumber and tomato invigorate it while spinach preserves it. So don't guess the classification (not "citrus," not "nightshades," not "raw vs. cooked"). If a food isn't on the Eat or Consider list above, treat it as Avoid.
+This avoid list makes the point that there's no obvious pattern separating Eat from Avoid. Pear and orange invigorate ALDH while gooseberry, pineapple, and pomegranate preserve it. Cucumber and tomato invigorate it while spinach preserves it. So don't guess the classification (not "citrus," not "nightshades,"). If a food isn't on the Eat or Consider list above, treat it as Avoid.
 
 </details>
 
@@ -122,6 +122,18 @@ Theory is nothing without a day to hang it on. Here's how one rite might play ou
   <button type="button" class="rite-variant-btn" data-rite-variant="thai">Thai Inspired</button>
 </div>
 
+<div class="rite-detail" data-rite-detail="shared-dinner" hidden>
+
+Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats">oats</span>, <span class="rite-ingredient" data-ingredient="cinnamon">cinnamon</span>, and <span class="rite-ingredient" data-ingredient="gooseberry">gooseberries</span> in soy milk. Nibble <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> <span class="rite-ingredient" data-ingredient="dates">date</span> clusters for dessert.
+
+</div>
+
+<div class="rite-detail" data-rite-detail="shared-kykeon" hidden>
+
+Mix the [recipe](#recipe) above with 2-4 drops of <span class="rite-ingredient" data-ingredient="peppermint">peppermint</span> essential oil and ¼ tsp of <span class="rite-ingredient" data-ingredient="nutmeg">nutmeg</span>. Chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="pineapple">pineapple</span>, <span class="rite-ingredient" data-ingredient="papaya">papaya</span>, and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
+
+</div>
+
 <div class="rite-variant" data-rite-variant-panel="uninspired" hidden>
 
 Prepare a one-pot dish:
@@ -133,12 +145,12 @@ Prepare a one-pot dish:
 Split into two servings: one for T-1 dinner, one for T-0 lunch.
 
 <div class="rite-timeline">
-  <div class="rite-stop" data-rite-stop="uninspired-dinner">
+  <div class="rite-stop" data-rite-stop="shared-dinner">
     <span class="rite-icon">🌇</span>
     <span class="rite-time">T-1, evening</span>
     <span class="rite-title">Dinner</span>
   </div>
-  <div class="rite-stop" data-rite-stop="uninspired-kykeon">
+  <div class="rite-stop" data-rite-stop="shared-kykeon">
     <span class="rite-icon">🌅</span>
     <span class="rite-time">T-0, morning</span>
     <span class="rite-title">Kykeon</span>
@@ -150,17 +162,8 @@ Split into two servings: one for T-1 dinner, one for T-0 lunch.
   </div>
 </div>
 
-<div class="rite-detail" data-rite-detail="uninspired-dinner" hidden>
-
-Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats">oats</span>, <span class="rite-ingredient" data-ingredient="cinnamon">cinnamon</span>, and <span class="rite-ingredient" data-ingredient="gooseberry">gooseberries</span> in soy milk. Nibble <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> <span class="rite-ingredient" data-ingredient="dates">date</span> clusters for dessert.
-
-</div>
-
-<div class="rite-detail" data-rite-detail="uninspired-kykeon" hidden>
-
-Mix the [recipe](#recipe) above with 3-4 drops of <span class="rite-ingredient" data-ingredient="peppermint">peppermint</span> essential oil. Chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="pineapple">pineapple</span>, <span class="rite-ingredient" data-ingredient="papaya">papaya</span>, and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
-
-</div>
+<div class="rite-detail-slot" data-rite-detail-slot="shared-dinner"></div>
+<div class="rite-detail-slot" data-rite-detail-slot="shared-kykeon"></div>
 
 <div class="rite-detail" data-rite-detail="uninspired-lunch" hidden>
 
@@ -176,19 +179,21 @@ Finish the portion from the one-pot dish that you set aside.
 
 Prepare a Thai peanut sauce flavored entrée:
 
-1. Blend ½ cup water, 1 tbsp vinegar, 2 tsp soy sauce, 25g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, 160g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
+1. Blend ½ cup water, ½ tbsp vinegar, 2 tsp soy sauce, 1 table date sugar (or 3 dates), 25g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, 160g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
 2. Pressure cook ⅔ cup <span class="rite-ingredient" data-ingredient="millet">millet</span> for 10 minutes.
-3. Mix in ⅓ cup shelled edamame and ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
+3. Mix in ⅓ cup shelled edamame[^legume=option] and ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
+
+[^legume=option]: Alternately, mix 1/3 cup dry lentils with the millet and pressure cook 'em together.
 
 Split into two servings: one for T-1 dinner, one for T-0 lunch.
 
 <div class="rite-timeline">
-  <div class="rite-stop" data-rite-stop="thai-dinner">
+  <div class="rite-stop" data-rite-stop="shared-dinner">
     <span class="rite-icon">🌇</span>
     <span class="rite-time">T-1, evening</span>
     <span class="rite-title">Dinner</span>
   </div>
-  <div class="rite-stop" data-rite-stop="thai-kykeon">
+  <div class="rite-stop" data-rite-stop="shared-kykeon">
     <span class="rite-icon">🌅</span>
     <span class="rite-time">T-0, morning</span>
     <span class="rite-title">Kykeon</span>
@@ -200,17 +205,8 @@ Split into two servings: one for T-1 dinner, one for T-0 lunch.
   </div>
 </div>
 
-<div class="rite-detail" data-rite-detail="thai-dinner" hidden>
-
-Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats">oats</span>, <span class="rite-ingredient" data-ingredient="cinnamon">cinnamon</span>, and <span class="rite-ingredient" data-ingredient="gooseberry">gooseberries</span> in soy milk. Nibble <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> <span class="rite-ingredient" data-ingredient="dates">date</span> clusters for dessert.
-
-</div>
-
-<div class="rite-detail" data-rite-detail="thai-kykeon" hidden>
-
-Mix the [recipe](#recipe) above with 3-4 drops of <span class="rite-ingredient" data-ingredient="peppermint">peppermint</span> essential oil. Chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="pineapple">pineapple</span>, <span class="rite-ingredient" data-ingredient="papaya">papaya</span>, and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
-
-</div>
+<div class="rite-detail-slot" data-rite-detail-slot="shared-dinner"></div>
+<div class="rite-detail-slot" data-rite-detail-slot="shared-kykeon"></div>
 
 <div class="rite-detail" data-rite-detail="thai-lunch" hidden>
 
