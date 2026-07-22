@@ -193,6 +193,11 @@
   line-height: 1;
   pointer-events: none;
   will-change: transform;
+  /* Firefox/WebRender doesn't apply CSS transform (rotate) to color emoji
+     glyphs unless the element is forced onto an intermediate compositing
+     surface. A permanent near-invisible filter forces that surface.
+     https://bugzilla.mozilla.org/show_bug.cgi?id=2055177 */
+  filter: saturate(1.01);
   transition: filter 0.15s ease, font-size 0.15s ease;
 }
 .stahl-butterfly-hover {
