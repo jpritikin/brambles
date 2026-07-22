@@ -325,17 +325,20 @@ details summary:hover {
   background: #fdfaf3;
 }
 @media (max-width: 30rem) {
-  .rite-timeline {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1.25rem;
+  .rite-stop {
+    padding: 0.4rem 0.2rem;
+  }
+  .rite-icon {
+    font-size: 1.4rem;
+  }
+  .rite-time {
+    font-size: 0.65rem;
+  }
+  .rite-title {
+    font-size: 0.85rem;
   }
   .rite-stop:not(:last-child)::after {
-    top: 0;
-    left: 1.4rem;
-    width: 2px;
-    height: 100%;
-    transform: translateY(2.8rem);
+    top: 1.1rem;
   }
 }
 
