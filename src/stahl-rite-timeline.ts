@@ -3,7 +3,9 @@
 // is in play, defaulting to "Don't Need Help" so the Sample Rite stays
 // tucked away until asked for. Within a chosen panel, clicking a stop shows
 // only that stop's detail. The Eat list highlights whichever ingredients the
-// active variant's recipe actually calls for
+// active variant's recipe actually calls for. Panels that call for millet
+// gate their recipe behind a millet-vs-sorghum choice (the "grain oracle"),
+// remembered for the rest of the session once made
 // (content/docs/psychoactive/stahl-shrine/_index.md).
 
 function selectStop(name: string, stops: NodeListOf<HTMLElement>, details: NodeListOf<HTMLElement>): void {
@@ -23,6 +25,50 @@ function relocateSharedDetails(panel: HTMLElement): void {
   });
 }
 
+// The grain oracle gate is another single shared node (like the rite-detail
+// blocks above), relocated into whichever panel needs it via a
+// grain-oracle-slot placeholder.
+let chosenGrain: string | null = null;
+
+function applyGrainChoice(grain: string, panel: HTMLElement): void {
+  chosenGrain = grain;
+  const gate = document.querySelector<HTMLElement>(".grain-oracle-gate");
+  if (gate) gate.hidden = true;
+  const gated = panel.querySelector<HTMLElement>(".grain-gated-content");
+  if (gated) gated.hidden = false;
+  document.querySelectorAll<HTMLElement>(".grain-slot").forEach((el) => {
+    el.textContent = grain;
+    el.dataset.ingredient = grain;
+  });
+  highlightIngredients(panel);
+}
+
+function relocateGrainOracleGate(panel: HTMLElement): void {
+  const slot = panel.querySelector<HTMLElement>(".grain-oracle-slot");
+  const gate = document.querySelector<HTMLElement>(".grain-oracle-gate");
+  if (!slot || !gate) return;
+
+  if (gate.parentElement !== slot) slot.appendChild(gate);
+  gate.hidden = chosenGrain !== null;
+
+  const gated = panel.querySelector<HTMLElement>(".grain-gated-content");
+  if (gated) gated.hidden = chosenGrain === null;
+  if (chosenGrain) applyGrainChoice(chosenGrain, panel);
+}
+
+function initGrainOracle(): void {
+  const gate = document.querySelector<HTMLElement>(".grain-oracle-gate");
+  if (!gate) return;
+
+  gate.querySelectorAll<HTMLElement>(".grain-oracle-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const grain = btn.dataset.grainChoice;
+      const panel = gate.closest<HTMLElement>(".rite-variant");
+      if (grain && panel) applyGrainChoice(grain, panel);
+    });
+  });
+}
+
 function initTimeline(): void {
   const stops = document.querySelectorAll<HTMLElement>(".rite-stop");
   const details = document.querySelectorAll<HTMLElement>(".rite-detail");
@@ -37,8 +83,10 @@ function initTimeline(): void {
 }
 
 function highlightIngredients(panel: HTMLElement | null): void {
+  const gated = panel?.querySelector<HTMLElement>(".grain-gated-content");
+  const revealed = !gated || !gated.hidden;
   const used = new Set(
-    panel ? Array.from(panel.querySelectorAll<HTMLElement>(".rite-ingredient")).map((el) => el.dataset.ingredient) : [],
+    panel && revealed ? Array.from(panel.querySelectorAll<HTMLElement>(".rite-ingredient")).map((el) => el.dataset.ingredient) : [],
   );
   document.querySelectorAll<HTMLElement>(".eat-ingredient").forEach((el) => {
     el.classList.toggle("eat-ingredient-active", used.has(el.dataset.ingredient));
@@ -57,6 +105,7 @@ function selectVariant(
 
   const panel = Array.from(panels).find((el) => el.dataset.riteVariantPanel === name) ?? null;
   if (panel) relocateSharedDetails(panel);
+  if (panel) relocateGrainOracleGate(panel);
   highlightIngredients(panel);
   if (!panel) return;
 
@@ -84,6 +133,7 @@ function initVariantToggle(): void {
 
 function init(): void {
   initTimeline();
+  initGrainOracle();
   initVariantToggle();
 }
 

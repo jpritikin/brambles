@@ -339,6 +339,40 @@ details summary:hover {
   }
 }
 
+.grain-oracle-gate {
+  max-width: 28rem;
+  margin: 1.5rem auto;
+  padding: 1.5rem;
+  text-align: center;
+  border: 2px solid #d4af37;
+  border-radius: 0.75rem;
+  background: #fdfaf3;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15), 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
+}
+.grain-oracle-gate h3 {
+  margin-top: 0;
+}
+.grain-oracle-choices {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+.grain-oracle-btn {
+  cursor: pointer;
+  font: inherit;
+  font-weight: bold;
+  color: #8a7a55;
+  background: #fff;
+  border: 1px solid #d4af37;
+  border-radius: 999px;
+  padding: 0.5rem 1.25rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.grain-oracle-btn:hover {
+  background-color: rgba(212, 175, 55, 0.14);
+}
+
 .must-be-fresh {
   display: inline-block;
   cursor: pointer;

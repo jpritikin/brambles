@@ -68,7 +68,7 @@ Eat:
   - <span class="eat-ingredient" data-ingredient="oats">Oats</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="peanuts">Peanuts</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="millet">Millet</span>[^srinivasan2019]
-  - Sorghum[^srinivasan2019]
+  - <span class="eat-ingredient" data-ingredient="sorghum">Sorghum</span>[^srinivasan2019]
 - **Spices**
   - <span class="eat-ingredient" data-ingredient="pepper">Pepper</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="cinnamon">Cinnamon</span>[^srinivasan2019]
@@ -134,11 +134,32 @@ Mix the [recipe](#recipe) above with 2-4 drops of <span class="rite-ingredient" 
 
 </div>
 
+<div class="grain-oracle-gate" data-grain-gate="shared-grain-oracle" hidden>
+
+### 🌾 A Crucial Question 🌾
+
+The ancients will not let you plan further until you answer a question that has echoed through millennia, dividing households, ending friendships, and determining the fate of empires:
+
+**Millet... or Sorghum?**
+
+Choose wisely. Choose with your whole heart.
+
+<div class="grain-oracle-choices">
+  <button type="button" class="grain-oracle-btn" data-grain-choice="millet">🌾 Millet</button>
+  <button type="button" class="grain-oracle-btn" data-grain-choice="sorghum">🌾 Sorghum</button>
+</div>
+
+</div>
+
 <div class="rite-variant" data-rite-variant-panel="uninspired" hidden>
+
+<div class="grain-oracle-slot" data-grain-oracle-slot="shared-grain-oracle"></div>
+
+<div class="grain-gated-content" hidden>
 
 Prepare a one-pot dish:
 
-1. Combine 2½ cups water, ¼ cup <span class="rite-ingredient" data-ingredient="peanuts">peanuts</span>, ½ cup dried beans (black, pinto, red, or a mix), ½ cup <span class="rite-ingredient" data-ingredient="millet">millet</span>, 1 tsp black <span class="rite-ingredient" data-ingredient="pepper">pepper</span>, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> in the pressure cooker.
+1. Combine 2½ cups water, ¼ cup <span class="rite-ingredient" data-ingredient="peanuts">peanuts</span>, ½ cup dried beans (black, pinto, red, or a mix), ½ cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span>, 1 tsp black <span class="rite-ingredient" data-ingredient="pepper">pepper</span>, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> in the pressure cooker.
 2. Pressure cook for 50 minutes.
 3. Stir in ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span> and 1 cup <span class="rite-ingredient" data-ingredient="pineapple">pineapple</span> chunks.
 
@@ -175,12 +196,18 @@ Finish the portion from the one-pot dish that you set aside.
 
 </div>
 
+</div>
+
 <div class="rite-variant" data-rite-variant-panel="thai" hidden>
+
+<div class="grain-oracle-slot" data-grain-oracle-slot="shared-grain-oracle"></div>
+
+<div class="grain-gated-content" hidden>
 
 Prepare a Thai peanut sauce flavored entrée:
 
 1. Blend ½ cup water, ½ tbsp vinegar, 2 tsp soy sauce, 1 table date sugar (or 3 dates), 25g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, 160g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
-2. Pressure cook ⅔ cup <span class="rite-ingredient" data-ingredient="millet">millet</span> for 10 minutes.
+2. Pressure cook ½ cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span> for 10 minutes.
 3. Mix in ⅓ cup shelled edamame[^legume=option] and ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
 
 [^legume=option]: Alternately, mix 1/3 cup dry lentils with the millet and pressure cook 'em together.
@@ -215,6 +242,8 @@ Finish the portion from the Thai peanut sauce dish that you set aside.
 </div>
 
 {{< tooltip label="<span class=\"diet-tag\">VEGAN</span>" >}}No animal products.{{< /tooltip >}}{{< tooltip label="<span class=\"diet-tag\">WFPB</span>" >}}Whole food plant based.{{< /tooltip >}}
+
+</div>
 
 </div>
 
