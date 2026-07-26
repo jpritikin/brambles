@@ -29,6 +29,22 @@ Since it's hard to tell 5mg from 300mg at baseline, judging THH's intensity seem
 
 "Not recommended."—Your Humble Guinea Pig
 
+## Optimism VU Meter
+
+Turn the knob to pick a dose and watch the optimism meter respond.
+
+<div id="thh-vu-meter"></div>
+
+<div id="thh-vu-max-label" hidden>
+
+Dad-level pathological optimism[^dad-optimism]
+
+</div>
+
+<script type="module" src="/js/thh-vu-meter.js"></script>
+
+There's no empirical dose-response study behind this. It's a playful guess.
+
 ## Tolerability
 
 A serving of Daime might contain 300mg of THH, with harmine often present in roughly a 1:1 ratio.[^callaway2005] Across five servings during an all-day work, that could add up to 1.5g of THH on a single day.
@@ -36,6 +52,8 @@ A serving of Daime might contain 300mg of THH, with harmine often present in rou
 No tolerability study of pure THH exists. However, harmine—a closely related beta-carboline—has been tested: healthy volunteers tolerated doses up to 300mg.[^ables2024] Above that, nausea and other unpleasant effects can occur, but nothing life-threatening. THH and harmine are not identical molecules, so these results are suggestive rather than definitive for THH.
 
 ## Notes
+
+[^dad-optimism]: With or without THH, I'm notoriously optimistic. My offspring coined the term—they'd know.
 
 [^tihkal]: Shulgin, A., & Shulgin, A. (1997). *TiHKAL: The Continuation.* Transform Press.
 
