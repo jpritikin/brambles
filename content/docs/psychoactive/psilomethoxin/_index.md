@@ -10,7 +10,7 @@ weight: 10
 
 [![psilomethoxin](4-HO-5-MeO-DMT.svg.png)](https://en.wikipedia.org/wiki/4-Hydroxy-5-methoxydimethyltryptamine)
 
-For more information, read [my case report]({{< relref "psilomethoxin-case-report" >}}) and see this <a type="application/pdf" target="_blank" href="instrument_and_case_v7.pdf">mass spectrometry analysis</a> confirming the compound’s identity.
+For more information, read [my case report]({{< relref "psilomethoxin-case-report" >}}) and see this <a type="application/pdf" target="_blank" href="instrument_and_case.pdf">mass spectrometry analysis</a> confirming the compound’s identity.
 
 ## Safety
 
