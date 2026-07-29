@@ -130,7 +130,7 @@ Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats
 
 <div class="rite-detail" data-rite-detail="shared-kykeon" hidden>
 
-Mix the [recipe](#recipe) above with 2-4 drops of <span class="rite-ingredient" data-ingredient="peppermint">peppermint</span> essential oil and ¼ tsp of <span class="rite-ingredient" data-ingredient="nutmeg">nutmeg</span>. Chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="pineapple">pineapple</span>, <span class="rite-ingredient" data-ingredient="papaya">papaya</span>, and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
+Mix the [recipe](#recipe) above with 2-4 drops of <span class="rite-ingredient" data-ingredient="peppermint">peppermint</span> essential oil and ¼ tsp of <span class="rite-ingredient" data-ingredient="pepper">pepper</span>. Chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="pineapple">pineapple</span>, <span class="rite-ingredient" data-ingredient="papaya">papaya</span>, and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
 
 </div>
 
@@ -207,10 +207,8 @@ Finish the portion from the one-pot dish that you set aside.
 Prepare a Thai peanut sauce flavored entrée:
 
 1. Blend ½ cup water, ½ tbsp vinegar, 2 tsp soy sauce, 1 table date sugar (or 3 dates), 25g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, 160g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
-2. Pressure cook ½ cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span> for 10 minutes.
-3. Mix in ⅓ cup shelled edamame[^legume=option] and ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
-
-[^legume=option]: Alternately, mix 1/3 cup dry lentils with the millet and pressure cook 'em together.
+2. Pressure cook 1/3 cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span> with 1/3 cup dry lentils for 12 minutes.
+3. Mix in ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
 
 Split into two servings: one for T-1 dinner, one for T-0 lunch.
 
