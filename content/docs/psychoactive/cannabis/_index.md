@@ -30,9 +30,11 @@ It is widely studied for its potential therapeutic benefits, including anti-infl
 
 ### Terpenes
 
-Terpenes are aromatic compounds that give different cannabis strains their unique scents and flavors. Found in many plants, cannabis contains over 100 different terpenes. These compounds may work synergistically with cannabinoids in what's called the *entourage effect*. Common terpenes include myrcene, limonene, and pinene.
+Terpenes are aromatic compounds that give different cannabis strains their unique scents and flavors. Found in many plants, cannabis contains over 100 different terpenes. These compounds may work synergistically with cannabinoids in what's called the *entourage effect*.
 
-I know nothing about terpenes.
+I know almost nothing about terpenes.
+
+![Terpenes](terpenes.webp)
 
 ### Fellow Travelers
 
