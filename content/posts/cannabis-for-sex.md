@@ -19,13 +19,15 @@ Both versions are straightforward DIY projects. The ratio that matters most is C
 
 ### Why This Helps with Sex Specifically
 
-The relax blend supports intimacy in three distinct ways:
+The relax blend supports intimacy in four distinct ways:
 
 **Mild cognitive narrowing is presence.** Mild short-term memory impairment makes it difficult to sustain the long chains of thought that pull you out of the moment—rumination, self-monitoring, rehearsal. What remains is sensation and the person in front of you.
 
 **It slows things down.** Orgasm is an autonomic sequence of contractions. Cannabis appears to alter the perception of that sequence—stretching what is usually a few moments into a more expansive and satisfying experience.
 
 **It gets out of its own way.** The stability of this blend means the cannabis itself isn't competing for your attention.
+
+**It softens the afterglow's edge.** For hours after orgasm, empathy runs higher and emotional defenses run lower—a tender window, but also one where stress lands harder than usual. The relax blend's stability carries into this period, buffering that vulnerability.
 
 ### When the Blend Isn't Enough
 
