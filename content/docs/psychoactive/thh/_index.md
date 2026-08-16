@@ -11,7 +11,7 @@ weight: 1
 
 ## An Enigma
 
-Almost nothing is known about Tetrahydroharmine (THH). Shulgin reportedly took 300mg.[^tihkal] When sober, I can't tell the difference between 5mg and 300mg.[^novisuals] There is optimism (not quite reaching mild euphoria) and a sense of well-being, but it's barely noticeable.
+Almost nothing is known about Tetrahydroharmine (THH). Shulgin reportedly took 300mg.[^tihkal] When sober, I can't tell the difference between 5mg and 300mg.[^novisuals] There is optimism (not quite reaching mild euphoria) and a sense of well-being, but it's barely noticeable. There's also a gentle pressure around the forehead.
 
 Some say THH is a stimulant, but I doubt it. It can prevent sleep, but it doesn't produce the jitteriness of coffee. I think it's more accurate to say that it increases alertness, which can interfere with sleep.
 
