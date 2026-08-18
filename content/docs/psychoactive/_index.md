@@ -218,7 +218,7 @@ Yes, this is one of their most valuable potential benefits.[^carse2009]
 ### Predicting your reaction 🏹
 
 Your reaction to a psychedelic strongly depends on the willingness of your Parts to get quiet.[^aday2021]
-See my discussion of [effortless meditation]({{< relref "effortlessness" >}}) to learn more about Parts
+See my discussion of [effortless meditation](https://partsandself.org/ifs-and-meditation/) to learn more about Parts
 and how to help them relax. There are at least three possible outcomes:
 - Parts are overactive and not willing to get quiet. A psychedelic will tend to make Parts more loud and extreme. This is going to be a difficult trip and corresponds to the monkey mind of an inexperienced meditator 🐒, magnified to Godzilla size 🦍.[^cheetah]
 - Parts are active but willing to get quiet. In this situation, the client gains more access to Self energy and may do Parts work spontaneously. There is the opportunity to make rapid strides toward therapeutic goals.[^ifs-mdma]
@@ -288,7 +288,7 @@ Daime or Ayahuasca, a serotonin 2A agonist, does not spotlight any particular em
 Initial use of 5-HT1A psychedelics can be seen as preparatory, akin to training wheels.
 If 5-HT1A is likened to vanilla ice cream, 5-HT2A offers a vast array of flavors.
 
-Unaided, [effortless meditation]({{< relref "effortlessness" >}}) is precarious in the sense that we can not entertain targets that prompt much Part involvement.
+Unaided, [effortless meditation](https://partsandself.org/ifs-and-meditation/) is precarious in the sense that we can not entertain targets that prompt much Part involvement.
 This is where Daime can pick up the slack.
 Daime can facilitate Self energy in environments that require effortful participation.
 For example, in [Santo Daime]({{< relref "santo-daime" >}}) ceremonies, everybody is expected to sing 🎶 and dance.
@@ -312,7 +312,7 @@ But what about journeys that do not contain a utilitarian message?
 Perhaps there is only an altered consciousness.
 Like a breathtaking vista, it may not need analysis, just appreciation.
 Embracing this beauty with open arms isn't a failure to "get the message"–it's a form of wisdom.
-We don't have to be on a constant quest for self-improvement and there's no shame in seeking [help]({{< relref "effortlessness" >}}/#beyond-your-ability-a-helping-hand) to taste the heights of beauty. 🌺
+We don't have to be on a constant quest for self-improvement and there's no shame in seeking [help](https://partsandself.org/ifs-and-meditation/) to taste the heights of beauty. 🌺
 
 ### Self-evaluation 🗹 / bucket list 🪣
 

@@ -2,6 +2,7 @@
 title: Breathing
 weight: 40
 bookToc: false
+bookHidden: true
 ---
 
 # Extended Exhale 🫁

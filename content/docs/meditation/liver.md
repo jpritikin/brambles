@@ -2,6 +2,7 @@
 title: Ice on the liver
 weight: 90
 bookToc: false
+bookHidden: true
 ---
 
 # Ice on the liver

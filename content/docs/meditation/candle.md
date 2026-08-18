@@ -2,6 +2,7 @@
 title: Candle treatment
 weight: 70
 bookToc: false
+bookHidden: true
 ---
 
 # Candle treatment

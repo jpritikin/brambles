@@ -59,9 +59,11 @@ Sheldon Solomon, Jeff Greenberg & Tom Pyszczynski, 2016
 Meditation is more like a dance than a desk lamp 🪔. There are moves to learn.
 The techniques that I describe in sub-sections assume that you are already
 proficient in meditation. Without a basic competence in
-[effortless meditation]({{< relref "effortlessness" >}}),
-you may not obtain any benefit from these techniques. Moreover, these
-techniques may not work when under the influence of psychedelics.
+[effortless meditation](https://partsandself.org/ifs-and-meditation/),
+you may not obtain any benefit from these techniques.
+
+Some techniques are more exploratory and would benefit from further study
+before I'd recommend them, e.g. [candle treatment]({{< relref "candle" >}}).
 
 ### On breathing
 
@@ -77,7 +79,7 @@ unaddressed issues that would otherwise be in dialog filling your head
 with thoughts. Suppression is not a good long-term strategy.
 
 In a group context, prayers and music can help synchronize individuals
-and invite communitas.[^turner2012]
+and invite communitas.
 
 ### Timing
 
@@ -88,12 +90,10 @@ The best time to practice meditation is 4:30 to 9:00 (am and pm) in your local t
 | When | Activity | Duration |
 | ---- | -------- | -------- |
 | morning | drink green tea 🍵 | - |
-|      | [withdrawal of the senses]({{< relref "senses"  >}}) | 10 min |
-|      | [sahasrara]({{< relref "sahasrara"  >}}) | 5-10 min |
+|      | [self/other fusion]({{< relref "self-other-fusion"  >}}) | 30 min |
 | lunch | eat calmly and undistracted[^lunch] | - |
 | before dinner | [foot soak]({{< relref "foot-soak"  >}}) \& [withdrawal of the senses]({{< relref "senses"  >}}) | 15 min |
 |      | [sahasrara]({{< relref "sahasrara"  >}}) | 10 min |
-| before sleep | [ice on the liver]({{< relref "liver"  >}}) | 15 min |
 
 {{% details "Take cayenne pepper 🌶️ capsules 💊 with meals." %}}
 - Use 300-600mg per day. Capsaicin acts as a relaxing analgesic for [TRPV1](https://en.wikipedia.org/wiki/TRPV1) in the colon.[^bortolotti2011]
@@ -120,8 +120,6 @@ This is just a sample schedule. Customize as per your preference.
 ## References
 
 [^lenz]: Among others, I was a student of [Rama a.k.a. Frederick Lenz](https://fredericklenz.com/) for a few years. For a retrospective, check out the associated [Smoke Screen Podcast](https://www.neonhum.com/show-pages/i-am-rama).
-
-[^turner2012]: Turner, E. (2012). *Communitas: The anthropology of collective joy.* Springer.
 
 [^lunch]: Calm and undistracted meals are generally a good idea, but particularly important for lunch.
 

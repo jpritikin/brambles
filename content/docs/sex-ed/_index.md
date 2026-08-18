@@ -101,7 +101,7 @@ Sensate Focus Therapy[^masters1994]
 - [Exercise caution.](https://www.justice.gov/usao-edny/pr/onetaste-founder-and-former-head-sales-indicted-forced-labor-conspiracy) [21 Apr 2024 Update](https://frankreport.com/feds-cant-stroke-up-evidence-in-onetaste-case)
 - Heard enough? [Learn how to do the practice](https://om.instituteofom.com/)
 - Daedone, N. (2011). *Slow Sex: The Art and Craft of the Female Orgasm.* Grand Central Life & Style.
-- Compare the 2023 May 16 presentation [Climax and Goallessness with Yia](https://om.instituteofom.com/live_events/climax-and-goallessness-with-yia/replay) with [effortless meditation]({{< relref "effortlessness" >}}).
+- Compare the 2023 May 16 presentation [Climax and Goallessness with Yia](https://om.instituteofom.com/live_events/climax-and-goallessness-with-yia/replay) with [effortless meditation](https://partsandself.org/ifs-and-meditation/).
 {{% /details %}}
 
 Morin, J. (1996). *The Erotic Mind: Unlocking the Inner Sources of Passion and Fulfillment.* Harper Perennial.

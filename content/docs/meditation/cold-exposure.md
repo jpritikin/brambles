@@ -2,6 +2,7 @@
 title: Cold exposure
 weight: 80
 bookToc: false
+bookHidden: true
 ---
 
 # Cold exposure

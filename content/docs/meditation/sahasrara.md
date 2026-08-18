@@ -2,9 +2,14 @@
 title: Sahasrara
 weight: 100
 bookToc: false
+bookHidden: true
 ---
 
 # Sahasrara (chakra #7)
+
+{{% hint info %}}
+For practitioners already comfortable with THH, see [Self/Other Fusion]({{< relref "self-other-fusion" >}}), which builds on this posture with THH and vaped N,N-DMT.
+{{% /hint %}}
 
 Sahasrara is the point of connection between the universal Self and
 our personal Self.
