@@ -78,9 +78,7 @@ Big Emotion can be found in many areas:
 | [sex, relationships, family]({{< relref "sex-ed" >}}) | developmental psychology, evolution, genetics, urban design |
 
 Often, people have one favorite area, or at most, a few favorites.
-For example, an important subproblem is how to reconcile psychedelic journeys with our mundane practical reality.
-I [address this subproblem]({{< relref "integration" >}}).
-However, I encourage broader ambition.
+I encourage broad ambition.
 More enjoyment might be available by exploiting synergies between areas than would be possible when limited to fewer areas.
 I challenge you to explore and integrate as many areas as possible.
 

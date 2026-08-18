@@ -307,11 +307,11 @@ Daime prompts you to both control the environment and navigate simultaneously - 
 > If you get the message, hang up the phone. For psychedelic drugs are simply instruments, like microscopes, telescopes, and telephones. The biologist does not sit with eye permanently glued to the microscope, he goes away and works on what he has seen.
 
 **Rebuttal:** I agree with Watts that psychedelics can be powerful tools for self-discovery.
-Sometimes, like the biologist stepping away from the microscope, we need to [integrate]({{< relref "integration" >}}) the insights from a trip, incorporating them to our daily lives.
+Sometimes, like the biologist stepping away from the microscope, we need to integrate the insights from a trip, incorporating them to our daily lives.
 But what about journeys that do not contain a utilitarian message?
 Perhaps there is only an altered consciousness.
 Like a breathtaking vista, it may not need analysis, just appreciation.
-Embracing this beauty with open arms isn't a failure to "get the message" – it's a form of wisdom.
+Embracing this beauty with open arms isn't a failure to "get the message"–it's a form of wisdom.
 We don't have to be on a constant quest for self-improvement and there's no shame in seeking [help]({{< relref "effortlessness" >}}/#beyond-your-ability-a-helping-hand) to taste the heights of beauty. 🌺
 
 ### Self-evaluation 🗹 / bucket list 🪣
