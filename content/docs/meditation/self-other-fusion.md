@@ -25,11 +25,11 @@ Neither frame is more correct than the other. Alternate between them until both 
 
 ### THH: locating the intersection
 
-Take 5-30mg of THH beforehand. THH lights up the intersection point between the two frames, the place where head-frame and hand-frame overlap.
+Take 5-30mg of THH beforehand. THH lights up a region near the two frames, the place where head-frame and hand-frame overlap.
 
 ### DMT: concentrating attention
 
-N,N-DMT helps concentrate attention near the intersection point, deepening the blur and making the collapse of self/other more complete. You only need enough to loosen things up, not so much that you start having visions or lose awareness of consensus reality.
+N,N-DMT helps concentrate attention near that region, deepening the blur and making the collapse of self/other more complete. You only need enough to loosen things up, not so much that you start having visions or lose awareness of consensus reality.
 
 ## Notes
 
