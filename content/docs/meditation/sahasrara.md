@@ -11,31 +11,26 @@ bookHidden: true
 For practitioners already comfortable with THH, see [Self/Other Fusion]({{< relref "self-other-fusion" >}}), which builds on this posture with THH and vaped N,N-DMT.
 {{% /hint %}}
 
-Sahasrara is the point of connection between the universal Self and
-our personal Self.
 The founder of [Sahaja Yoga Meditation](https://us.sahajayoga.org/)
 claimed that she, "opened the sahasrara." Hence, one would expect some
-technique for meditating on the sahasrara. Here is a mash-up of two
-such techniques from Sahaja Yoga.[^tribute]
+sahasrara meditation technique. Here is a mash-up of two such techniques.[^tribute]
 
 {{< youtube id="I7sv1sPUinw" title="Demo of Sahasrara meditation" >}}
 
 ## Details
 
-Although the primary location of the sahasrara is above the head, one
-discovery from Sahaja Yoga is that the chakras are associated with
-regions on the hands (see figure). This is fortunate since it
-quickly becomes tiring to keep the right hand lifted above the
-head. Switch back and forth between the saharsara areas on the head
-and left hand whenever you feel fatigued.
+According to Sahaja Yoga, primary location of the sahasrara is above the head.
+There are also regions on the hands associated with each chakra (see figure).
+It can become tiring to keep the right hand lifted above the head.
+Switch back and forth between the saharsara areas on the head and left hand whenever you feel fatigued.
 
-How you attend to these maneuvers is of critical importance. 
+How you attend to these maneuvers is of critical importance.
 Feel into the fingertips of your right hand and the current
 sahasrara area.  Moreover, try to feel into the gap between these
 two parts of your body.
 
 {{% hint warning %}}
-You know how sometimes a song gets stuck in your head--an *earworm*--playing over and over? The amount of mental discipline needed to break free of a looping song is exactly the level of concentration you need for this technique. It's not a straining focus, but rather a gentle yet deliberate attention that can interrupt the automatic replay in your mind.
+You know how sometimes a song gets stuck in your head--an *earworm*--playing over and over? The amount of mental discipline needed to break free of a looping song is the level of concentration you need for this technique. It's not a straining focus, but rather a gentle yet deliberate attention that can interrupt the automatic replay in your mind.
 
 {{% details "You might create this situation on purpose!" %}}
 Think of one of your favorite melodies--something simple and familiar. Let it play in your mind. Really let it loop until you can feel that familiar mental stickiness. (Or attend a [Santo Daime]({{< relref "santo-daime" >}}) ceremony 🎶.) Now we'll use this earworm as a tool. This is your chance to practice that perfect level of concentration--just enough to shift your mind away from the melody and fully attend to your focus target.
@@ -75,7 +70,7 @@ head, one acquires the perspective of the perfected ones.
 variation on the Namaskar Mudra 🙏🏼. The fingers are divided into three
 groups: The thumb is alone, then three fingers together, and then the
 pinky is alone. The idea is that learning and emotion should be kept
-apart while confidence, diplomacy, and forgiveness work well together.    
+apart while confidence, diplomacy, and forgiveness work well together.
 ![Namaskar](namaskar1.webp) ![Namaskar](namaskar2.webp)
 
 [^neural-adaptation]: See [Neural adaptation](https://en.wikipedia.org/wiki/Neural_adaptation)

@@ -10,7 +10,7 @@ This technique supersedes [sahasrara]({{< relref "sahasrara" >}}) for practition
 
 ## The problem: subject and object
 
-Our experience can often be divided into a subject and object. It is obvious that there are many objects to focus on, but what is less obvious is that the origin of the subject can also move. Close your eyes and touch something. Your hand can be the origin. The soles of your feet too. This is not an exhaustive list; there are others.
+Our experience can often be divided into a subject and object. It is obvious that there are many objects to focus on: a sound, a thought, the taste in your mouth, an itch on your arm. What is less obvious is that the origin of the subject, the point from which you seem to be looking or touching, can also move. Close your eyes and touch something. Notice your hand as the origin: you seem to be sensing the object from your hand, reaching out to meet it. Now shift attention to the soles of your feet, pressing against the floor; the origin relocates there, as if you were sensing the floor from your feet instead. This is not an exhaustive list; the origin can move to other places on the body as well.
 
 This subject/object, self/other divide defines individuality. To transcend individuality, we can set up two overlapping frames with opposite self/other divisions and blur them together.
 
