@@ -23,7 +23,7 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 1. <span class="recipe-step" data-step="0">Grind the <span class="recipe-substep" data-substep="seeds">seeds</span> to a fine powder in the coffee grinder.</span>
 2. <span class="recipe-step" data-step="1">In a shot glass, combine the <span class="recipe-substep" data-substep="seed-powder">seed powder</span> with 30mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span> and the <span class="recipe-substep" data-substep="ethanol">ethanol</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes, as if coaxing the spirit free.</span>
 3. <span class="recipe-step" data-step="2">Refrigerate for 20 minutes, a brief incubation in the cold and dark to let the seed fragments settle out of the solution.</span>
-4. <span class="recipe-step" data-step="3">Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let gentle heat and a fan carry the alcohol away.</span>
+4. <span class="recipe-step" data-step="3">Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a fan carry the alcohol away.</span>
 5. <span class="recipe-step" data-step="4">Scrape the remaining <span class="recipe-substep" data-substep="residue">residue</span> into a fresh shot glass with 10mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span>, <span class="recipe-substep" data-substep="barley-grass">barley grass powder</span>, and <span class="recipe-substep" data-substep="water">water</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes.</span>
 6. <span class="recipe-step" data-step="5">With God's grace, you have created LSI, LSV, and LSCr. Drink with reverence.</span>
 
@@ -47,7 +47,7 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 - Shot glass
 - Refrigerator
 - Small glass baking dish
-- Fan (and gentle heat source)
+- Fan
 - Magnetic stir machine (optional)
 
 ## Aldehydes TLC
