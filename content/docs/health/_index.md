@@ -16,7 +16,7 @@ Ad libitum, low fat diet
 <br/>
 
 {{% details "All you can eat? I don't need to count calories or refrain from eating to surfeit?" %}}
-Yep, that's correct. The key is to choose foods by <a type="application/pdf" target="_blank" href="ucdim-energydensitychart.pdf">calorie density</a>. Most likely, you may actually eat a greater volume of food (median food intake of 2776 vs 2974 grams per day).[^rizzo2013]
+Yep, that's correct. The key is to choose foods by <a type="application/pdf" target="_blank" href="ucdim-energydensitychart.pdf">calorie density</a>. Most likely, you can actually eat a greater volume of food (median food intake of 2776 vs 2974 grams per day).[^kahleova2026]
 {{% /details %}}
 
 ## About me
@@ -85,6 +85,6 @@ Ferritin is a blood test measure of our backup iron stores. A ferritin test may 
 
 ## Notes
 
-[^rizzo2013]: Rizzo, N. S., Jaceldo-Siegl, K., Sabate, J., & Fraser, G. E. (2013). Nutrient profiles of vegetarian and nonvegetarian dietary patterns. *Journal of the Academy of Nutrition and Dietetics, 113*(12), 1610–1619.
+[^kahleova2026]: Kahleova, H., Znayenko-Miller, T., Maracine, C., Holubkov, R., & Barnard, N. D. (2026). Vegan diets and dietary energy density: A secondary analysis of a randomized clinical trial. *JAMA Network Open, 9*(8), e2627483.
 
 [^pritikin2024]: Nathan Pritikin was finally recognized in 2024 by the American College of Lifestyle Medicine with a [Distinguished Lifetime Achievement Award](https://connect.lifestylemedicine.org/aclm-programs/awards/lifetime).
