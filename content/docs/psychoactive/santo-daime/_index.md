@@ -31,7 +31,7 @@ Daime contains three psychoactive substances with different durations.[^harmalin
 
 **Harmine** is a monoamine oxidase inhibitor (MAOI) that makes oral DMT active by blocking its gut metabolism. It is also the primary cause of nausea, as it stimulates serotonin receptors in the gut.
 
-**Tetrahydroharmine (THH)** is a serotonin reuptake inhibitor with effects lasting 36–48 hours. If you feel unusually reflective, emotionally open, or have disrupted sleep the day after a work, that is likely THH. <span class="psych-scale" data-pattern="🚂3️⃣🤍🍃"></span>
+**Tetrahydroharmine (THH)** is a serotonin reuptake inhibitor with effects lasting 36–48 hours. If you feel unusually reflective, emotionally open, or have disrupted sleep after a work, that is likely THH. <span class="psych-scale" data-pattern="🚂3️⃣🤍🍃"></span>
 
 People sometimes wonder how ayahuasca was ever discovered. The Amazon contains tens of thousands of plant species, and the odds of randomly combining *Banisteriopsis caapi* with *Psychotria viridis* seem vanishingly small. But the puzzle dissolves if you consider that *B. caapi* alone produces noticeable psychoactive effects. That experience would have made *B. caapi* a widely experimented-with plant long before ayahuasca was formulated. Combining it with other plants to explore synergies would have been a natural next step.
 
@@ -62,17 +62,39 @@ On one hand, recommendations largely align with a [whole food plant-based diet](
 It's a good idea to eat healthy food.
 Also, tyramine should be avoided due to potentially dangerous interactions.[^weiss2018]
 However, healthy eating and tyramine are not the only considerations.
-Vegans need to know that the pharmacodynamics of Daime are vividly affected by insoluble [fiber](/posts/fiber-is-not-fibrous/).
-Insoluble fiber buffers the force of the Daime (my conjecture).
+Vegans need to know that the pharmacodynamics of Daime are vividly affected by [fiber](/posts/fiber-is-not-fibrous/).
+Some foods buffer the force of the Daime.
 Consequently, participants may feel little (mostly sober) for much of the time, followed by an overwhelmingly strong, brief burst of Daime after 1-2 hours.
 
-Foods high in insoluble fiber include pineapple.[^fiber]
-To set yourself up for success, here is a specific dietary recommendation.
-Take 1-2 tablespoon ground cayenne pepper with dinner on the evening prior to the event.
-This should take care of any insoluble fiber lingering in your intestines.
-If you're not fasting, on the day of, [cook a sweet potato]({{< relref "sweet-potato" >}}) and blend it with a small slice of fresh ginger.
-Don't eat anything else.
-The sweet potato is about 50% soluble fiber and does not monkey with the pharmacodynamics of Daime.
+Extrapolating from pineapple, I originally conjectured that insoluble fiber was the culprit.[^fiber]
+But avocado is no problem despite a fiber profile of about 3.5g insoluble to 2g soluble, contradicting a simple insoluble ratio story.
+Solubility is just one characteristic of fiber which is made up of an extremely complex matrix of food compounds.
+
+Below are results of testing so far. ❌ means the food interacts with (buffers/blunts) the Daime, or causes more nausea in combination; 👍 means no interaction.
+
+| Food | Safe |
+| ---- | :--------------------: |
+| Pineapple | ❌ |
+| Whole wheat bread | ❌? |
+| Sweet potato | ❌? |
+| Avocado | 👍 |
+| Peanut/almond/sesame butter | 👍 |
+| Bagels (not whole wheat) + toppings like an everything bagel | 👍 |
+| Goji berries | 👍 |
+| Aloe vera | 👍[^aloe] |
+
+Option: Peanut butter and goji berries on a bagel.
+
+### Anti-Nausea Water
+
+| Ingredient | Helps |
+| ---- | :--------: |
+| food-grade rosemary essential oil | 👍 |
+| food-grade peppermint (Mentha piperita) essential oil | 👍 |
+| white vinegar (5% acetic acid) | 👍 |
+| food-grade Ho wood essential oil | 🤷 |
+
+Best tested: Combine 700 mL of water, quarter cup of white vinegar, two drops of peppermint oil, and five drops of rosemary oil. Sip during ceremony.
 
 ### Lyrics
 
@@ -224,6 +246,12 @@ Congregants can meditate as much as they want at home without daime.
 
 When I attend a work, I expect to transcend the turmoil and reach the serene heights, at least for one serving. So, I urge leaders: don't be stingy.
 
+### Sleep 😴
+
+Some report that Daime interferes with sleep. Exhibit A right here. 🙋
+
+[Cannabinphorol (CBN-P)]({{< relref "sleep" >}}) works pretty well. If that's not enough, try layering on Kava. Let me know if you figure out a better solution.
+
 ### After Ceremony Lentil Salad
 
 Ingredients:
@@ -232,26 +260,17 @@ Ingredients:
 - 2-3 table pecan
 - 1 tea italian spices
 - 1/4 tea black pepper
-- 700 mL of water
-- food-grade rosemary essential oil
-- food-grade peppermint (Mentha piperita) essential oil
-- quarter cup of white vinegar (5% acetic acid)
+- onion and garlic to taste
 
 Steps:
 
 1. Cook lentils in boiling water for 10-15 minutes. Drain.
 
-2. Toss the cooked lentils with 2 tablespoons pecans and 1 tablespoons Italian spices. Set aside.
+2. Optional: dehydrate the cooked lentils. This avoids the risk of spoiling on hot days.
 
-3. Dressing: Combine water, two drops of peppermint oil, and six drops of rosemary oil. (The batch size is way more than you need. You can sip this during the ceremony.)
+3. Combine all ingredients.
 
-4. Dress and serve: Pour a few tablespoons of the dressing onto the lentil mix and toss to combine.
-
-### Sleep 😴
-
-Some report that Daime interferes with sleep. Exhibit A right here. 🙋
-
-[Cannabinphorol (CBN-P)]({{< relref "sleep" >}}) works pretty well. If that's not enough, try layering on Kava. Let me know if you figure out a better solution.
+4. Pour a few tablespoons of water (or anti-nausea water) onto the lentils and mix, immediately before eating.
 
 ### Status
 
@@ -297,7 +316,9 @@ Guess what this gesture means.
 [^fiber]: You can access a 2018 fiber database [here](1-s2.0-S0889157518301182-mmc1.xlsx). I received this file from Eleanor Beck on 20 Nov 2024. She said that I could share it.
     - Fuller, S., Tapsell, L. C., & Beck, E. J. (2018). Creation of a fibre categories database to quantify different dietary fibres. *Journal of Food Composition and Analysis, 71*, 36–43.
 
-[^harmaline]: Brews also contain [harmaline](https://en.wikipedia.org/wiki/Harmaline), but typically only 0–20mg per serving. Harmaline produces uncomfortable sleepiness and does not contribute anything important to the psychoactive effects ([Stahl 2026]({{< relref "stahl-shrine" >}}), p. 184).
+[^harmaline]: Brews also contain [harmaline](https://en.wikipedia.org/wiki/Harmaline), but typically only 0–20mg per serving. Harmaline produces uncomfortable sleepiness and does not contribute anything important to the psychoactive effects (Stahl 2026, p. 184).
+
+[^aloe]: Stahl, M. (2026). *LSI, Ancient LSD, Secrets of the Eleusis Kykeon and Vedic SOMA.* Sacred Forest Botanicals, p. 179ff.
 
 [^dawson2013]: Dawson, A. (2013). *Santo Daime: A New World Religion.*  Bloomsbury Academic.
 
