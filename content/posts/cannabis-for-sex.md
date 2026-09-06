@@ -7,6 +7,8 @@ menu = "main"
 bookToc = false
 +++
 
+*Here, the blend and justification reflect male sexual response. That's the experience I can speak to directly. Women may find a different recipe works better. One worth trying: Δ8-THC:CBN:CBC in a 6:2:1 ratio.*
+
 Most cannabis formulations, built around just THC and CBD, can work for intimacy—but they require a certain amount of mental effort to stay in a good headspace. That's the kind of effort you don't need to be making.
 
 ### Relax Blend
