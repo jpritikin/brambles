@@ -6,7 +6,7 @@ bookToc: true
 
 # Self/Other Fusion
 
-This technique supersedes [sahasrara]({{< relref "sahasrara" >}}) for practitioners ready to leverage [THH]({{< relref "thh" >}}) and vaporized N,N-DMT.
+This technique supersedes [sahasrara]({{< relref "sahasrara" >}}) for practitioners ready to leverage vaporized N,N-DMT.
 
 ## The problem: subject and object
 
@@ -22,10 +22,6 @@ Assume the [sahasrara]({{< relref "sahasrara" >}}) hand position: right (or left
 - Origin at the hand, observing the head as object
 
 Neither frame is more correct than the other. Alternate between them until both are equally available, then blur them together.
-
-### THH: locating the intersection
-
-Take 5-30mg of THH beforehand. THH lights up a region near the two frames, the place where head-frame and hand-frame overlap.
 
 ### DMT: concentrating attention
 
