@@ -226,7 +226,7 @@ and how to help them relax. There are at least three possible outcomes:
 
 ### Psychological Characterization
 
-Three criteria are worth tracking for each substance:
+Several criteria are worth tracking for each substance:
 
 {{% psych-scale-legend %}}
 
