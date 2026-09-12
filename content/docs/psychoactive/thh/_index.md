@@ -51,6 +51,8 @@ A serving of Daime might contain 300mg of THH, with harmine often present in rou
 
 No tolerability study of pure THH exists. However, harmine—a closely related beta-carboline—has been tested: healthy volunteers tolerated doses up to 300mg.[^ables2024] Above that, nausea and other unpleasant effects can occur, but nothing life-threatening. THH and harmine are not identical molecules, so these results are suggestive rather than definitive for THH.
 
+If THH makes you feel dizzy, increase the dosage with caution. Making more mental space—for example, with a meditation practice—can likely resolve it.
+
 ## Notes
 
 [^dad-optimism]: With or without THH, I'm notoriously optimistic. My offspring coined the term—they'd know.
