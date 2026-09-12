@@ -232,6 +232,9 @@ Several criteria are worth tracking for each substance:
 
 At lower doses, substances that invite more Self energy 1️⃣ can facilitate unblending 3️⃣. For example, low dose psilomethoxin can feel similar to 5-MAPB <span class="psych-scale" data-pattern="🛶3️⃣❤️🍃"></span>.
 
+<div id="inward-perspective-explorer"></div>
+<script type="module" src="/js/inward-perspective-explorer.js"></script>
+
 ### Cannabinoids
 
 I agree with the cliche that cannabis is the quintessential gateway drug.
