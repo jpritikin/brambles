@@ -1,0 +1,196 @@
+INWARD PERSPECTIVE EXPLORER - PRIMER
+======================================
+
+What this is
+-------------
+An animated widget for the "Inward perspective" axis of the Psychological
+Characterization scale (see data/psychScale.json and psych-scale.ts).
+Embedded via <div id="inward-perspective-explorer"> in
+content/docs/psychoactive/_index.md. Three vertices - Self (1st), blended
+(2nd), unblended (3rd) - form a triangle. A dashed, wobbling boundary
+(visual language borrowed from urbb-web's StarBorder) encloses a "focus
+region" whose area and position are pulled by emoji "parts" that drift in
+and out on their own, plus dose sliders for named substances. A rotary
+knob at the Self vertex sets ambient "Self energy" by hand.
+
+Entry point: src/inward-perspective-explorer.ts's `InwardPerspectiveExplorer`
+class, instantiated directly against the container div at module load (no
+separate init() - see the bottom of the file).
+
+Core architecture
+------------------
+
+1. src/inward/geometry.ts - triangle/vertex constants and pure math, no
+   drug/UI knowledge.
+   - `VERTICES`/`VERTEX_BY_NAME`: the three triangle corners (Self, blended,
+     unblended) with fixed screen positions.
+   - `RegionPressure`: a weighted point contribution toward the region's
+     target centroid, plus a `narrowness` (0..1) saying how much it should
+     narrow vs. diffuse the boundary's shrink-wrap and radius. Region-
+     placement code only ever consumes a flat list of these - it has no
+     knowledge of drugs, parts, or any other source, which is what keeps
+     regionPhysics.ts pure.
+   - `clampPartPosition`: keeps a part inside the triangle's lower half
+     (Self's vertical midpoint down to the blended/unblended corners). Both
+     axes are clamped together in one function because at a given height
+     the triangle's slanted left/right edges are narrower than the full
+     corner-to-corner width - clamping x and y independently would let
+     points escape near the slanted edges.
+   - `sigmoid(x, midpoint, steepness)`: generic logistic curve, used to turn
+     a linear 0..1 latent into a "not much happens, then a transition, then
+     near-max" response (e.g. Self energy's push against blended).
+
+2. src/inward/drugData.ts - the substance model, no rendering/UI code.
+   - `DrugEffect`: one substance's dosing shape (`doseSteps` for a few
+     discrete doses vs. a free 0-100 slider), how its dose maps to a
+     `pull` on the region's three vertices, its Self-energy contribution
+     (`selfEnergyBoostSteps`/`selfEnergyBoostMax`), and optional
+     `unblendPushMax` (a direct push on every part, bypassing ambient Self
+     energy - THH's mechanism) or `rendersAsPart` (cannabis: doesn't pull
+     the region directly, instead spawns its own drifting emoji part near
+     a vertex).
+   - `doseUnitRange` (linear, e.g. cannabis 4-12mg) vs. `doseUnitLogRange`
+     (exponential, e.g. THH 1-1000mg - most slider travel covers the low
+     end) control how a free slider's 0-100% fraction is displayed.
+   - `DRUGS`/`DRUG_BY_KEY`: the substance list, each with real-world dosing
+     notes in comments (5-MAPB is binary 80mg/100mg with no inactive step;
+     5-MeO-DMT is threshold-or-breakthrough; THH's unblending bypasses
+     Self energy entirely and can reach 0.9 on the normalized blend-force
+     scale, enough to override ~90% of parts' randomly sampled
+     blendPropensity).
+   - `INTERACTIONS`: explicit named pairs only, severity "contraindicated"
+     (hard-blocked, e.g. 5-MAPB + 5-MeO-DMT serotonin syndrome risk) or
+     "caution" (warned, not blocked). A pair absent from this table (e.g.
+     DMT + THH, the Daime brew combination) gets no warning at all - no
+     substance is assumed risky with "anything else."
+
+3. src/inward/part.ts - `Part` type: a drifting emoji's live state (x/y/vx/
+   vy, opacity, fadingOut, its SVG element, and `blendPropensity` - see
+   below). Plus `PARTS_PALETTE`, the pool random parts are drawn from.
+
+4. src/inward/regionPhysics.ts - pure boundary-placement functions,
+   consuming only `RegionPressure[]` (never drugs or parts directly).
+   - `collectRegionPressures(doses, isActive)`: turns dose/active state into
+     a flat pressure list - the one place drug data crosses into physics.
+   - `computeTargetCentroid`/`computeTargetShrinkWrap`/`computeRadius`: the
+     boundary's target position, its shrink-wrap latent (0 = loose and
+     padded, 1 = tightly hugging whatever's enclosed), and its radius,
+     each a weighted blend of the pressures plus a Self-inclusion
+     constraint (the boundary is never allowed to exclude Self entirely).
+   - `buildRegionPath`: renders the wobbling dashed SVG path from centroid/
+     radius/shrinkWrap/wobblePhase.
+   - `BLEND_FORCE_SCALE`: converts the normalized 0..1 "blending force"
+     scale (shared by ambient Self-energy push, blendPropensity, and
+     unblendPushMax) into actual per-frame velocity units.
+
+5. src/inward/selfEnergyKnob.ts - `SelfEnergyKnob`: the rotary control at
+   the Self vertex, fully self-contained (owns its own SVG ring/wedge/
+   label DOM and pointer-drag handling).
+   - Ambient Self energy = a drug-set baseline floor (e.g. 5-MAPB) plus the
+     user's knob adjustment on top of it, via `energy` getter. Low Self
+     energy lets the boundary collapse toward blended even with no parts
+     present.
+   - The knob's `userFraction` is a 0..1 fraction *of the range above the
+     current baseline* - not an absolute value. With no drug baseline the
+     range is [0, 0.5]; with 5-MAPB's baseline at 0.25, the range becomes
+     [0.25, 0.75]. `setBaseline()` reinterprets (never resets) this
+     fraction when the baseline changes, so administering/cancelling a
+     drug shifts the knob's *range*, not silently its position.
+   - Drag math tracks *relative* rotation (delta from the previous raw
+     atan2 angle, unwrapped and accumulated) rather than an absolute angle,
+     specifically to avoid a jump when the cursor crosses the wrap point
+     directly below the knob (atan2 discontinuity at +-180deg). A delta can
+     never exceed 180deg by construction, and clamping only trims from
+     whichever end the travel is already approaching - so the rendered
+     angle always passes through every intermediate value.
+   - Standard 270deg sweep: 0% at bottom-left (7:30), straight up = 50%
+     (12 o'clock), 100% at bottom-right (4:30), with a dead zone across
+     the bottom.
+   - The caller (InwardPerspectiveExplorer) reads `.energy` live every
+     animation frame - there's no change callback, since the knob's state
+     is polled rather than pushed.
+
+6. src/inward/doseController.ts - `DoseController`: owns dosing state
+   (which drugs are administered, at what dose) and the picker UI wired to
+   it - the dose slider, Administer button, contraindication blocking, the
+   warning banner, and the applied-substances list rendered in the SVG.
+   - Dosing is staged: moving the slider only updates `pendingDose` and its
+     label; nothing takes effect (region pull, cannabis part, Self-energy
+     baseline) until Administer is clicked. `doses[key]` only updates on
+     administer.
+   - `administeredKeys` tracks activity independently of dose value -
+     needed because cannabis's 0 fraction is a real 4mg dose (its
+     doseUnitRange floor), not "inactive." Cancelling (the applied list's
+     X) removes the key and zeroes the dose.
+   - 5-MAPB is exclusive in both directions: administering it while
+     anything else is active is blocked, and administering anything else
+     while it's active is blocked (`mapbExclusivityError`).
+   - Constructed with an `onDoseChange` callback so the parent
+     (InwardPerspectiveExplorer) can react to the parts of a dose change
+     that live outside dosing itself: syncing the cannabis part and
+     recomputing the Self-energy baseline.
+
+7. src/inward/readoutText.ts - word banks for the "Subjective read-out"
+   text: `focusPhrase` (keyed off boundary radius), `selfQualitiesFor`
+   (keyed off Self energy), `blendIntensityWord` (keyed off a part's
+   blendPropensity).
+
+8. src/inward/drugWheel.ts - `DrugWheel`: the pie-menu substance picker UI
+   (collapsed button -> radial slice menu), independent of dosing logic.
+
+9. src/inward-perspective-explorer.ts - the top-level class. Owns:
+   - The SVG scaffold and injected CSS (constructor).
+   - Spontaneous part spawning/reaping: a new part every 10-20s
+     (`scheduleSpawn`, probability 1/n where n = current spontaneous part
+     count, so it self-limits), stochastically reaped back down every
+     1-2s once more than one is present (`scheduleReap`, 10% chance per
+     tick above the floor). `HIGH_SELF_ENERGY_THRESHOLD` (0.85): above this
+     (e.g. full-breakthrough 5-MeO-DMT, which floors Self energy at 0.9),
+     spawning stops entirely and the "always keep >=1 part" floor lifts, so
+     the region can clear to zero parts. `spontaneousParts` (oldest-first)
+     excludes the cannabis part, which tracks its own dose instead of being
+     reaped.
+   - Part dragging (`startDrag`) and the cannabis part's lifecycle
+     (`syncCannabisPart` - spawns/despawns it near the blended vertex,
+     keeps its blendPropensity locked to the THC dose fraction rather than
+     randomly sampled like other parts).
+   - The animation tick loop (`tick`): per-frame part physics (random
+     wander, push away from blended scaled by ambient Self energy through
+     a sigmoid, a separate linear "unblending" push along the Self-to-part
+     line, each part's own blendPropensity pulling it back toward blended,
+     mutual part repulsion), then calls into regionPhysics for the
+     boundary's centroid/shrinkWrap/radius, then re-renders.
+   - The debug overlay (`?debug=1` in the URL): shows centroid pull
+     sources, shrink-wrap latent, and whether/how far the Self-inclusion
+     constraint is currently stretching the radius.
+   - Wires SelfEnergyKnob and DoseController together: DoseController's
+     `onDoseChange` callback triggers `syncCannabisPart` and
+     `selfEnergyKnob.setBaseline(doseController.computeSelfEnergyBaseline())`.
+
+Design notes worth knowing before touching the physics
+--------------------------------------------------------
+- Everything pushing a part or the region boundary is normalized to a
+  shared 0..1 "blending force" scale (ambient Self-energy push via
+  sigmoid, a part's own blendPropensity, THH's unblendPushMax - which is
+  allowed to exceed 1). `BLEND_FORCE_SCALE` (regionPhysics.ts) is the only
+  place that scale gets converted into actual velocity units, so tuning
+  relative strengths means changing the 0..1 inputs, not per-force
+  velocity constants scattered around.
+- Self energy is never a single stored number - it's always derived
+  (`SelfEnergyKnob.energy` = baseline + fraction*range). If you need the
+  live value elsewhere, read the getter every frame; don't cache it.
+- Applied-list X-position uses a rough per-character width estimate
+  instead of `getBBox()`, deliberately, to avoid forcing a synchronous
+  layout reflow on every dose-list update.
+
+Known WIP / things to watch
+-----------------------------
+- The refactor that split this into src/inward/*.ts (see git log: "Refactor")
+  plus the later SelfEnergyKnob/DoseController extraction moved all
+  design-rationale comments here; the source files now carry only short
+  why-comments for non-obvious local logic. If you add a new drug mechanic
+  or force, document the *shape* of the mechanic here, not just inline.
+- No test suite for this widget - verify changes by loading
+  /docs/psychoactive/#psychological-characterization in a browser and
+  exercising the Self knob, dose picker/administer flow, drug wheel, and
+  (for physics changes) the `?debug=1` overlay.
