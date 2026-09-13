@@ -4,7 +4,7 @@
 import { DRUGS, type DrugEffect } from "./inward/drugData";
 import { CX, H, VERTEX_BY_NAME, VERTICES, W, clampPartPosition, lerp, sigmoid, svgEl } from "./inward/geometry";
 import { PARTS_PALETTE, type Part, type PartForce } from "./inward/part";
-import { BLEND_FORCE_SCALE, buildAttnPerimeterPath, buildCircles, buildConnectorCapsules, computeTargetShrinkWrap, approximateExtentRadius, fieldAt, thresholdFor, type Circle, type Capsule } from "./inward/attnPerimeter";
+import { BLEND_FORCE_SCALE, EMOJI_VERTICAL_CENTER_OFFSET, buildAttnPerimeterPath, buildCircles, buildConnectorCapsules, computeTargetShrinkWrap, fieldAt, thresholdFor, type Circle, type Capsule } from "./inward/attnPerimeter";
 import { blendIntensityWord, focusPhrase, selfQualitiesFor } from "./inward/readoutText";
 import { DrugWheel } from "./inward/drugWheel";
 import { SelfEnergyKnob } from "./inward/selfEnergyKnob";
@@ -12,9 +12,6 @@ import { DoseController } from "./inward/doseController";
 
 // Legend colors for the per-part force breakdown popup, keyed by force name (part.ts's
 // PartForce.name). One entry per named force pushed in the tick loop below.
-// Part emoji are drawn as SVG <text> with y as the baseline, not the glyph's visual
-// center; this shifts overlays (conflict ring, popup anchor) up to the glyph's center.
-const EMOJI_VERTICAL_CENTER_OFFSET = 9;
 
 // Broader emoji choices for the manual part-add picker, beyond PARTS_PALETTE's small
 // spontaneous-spawn set - the user isn't restricted to a handful of preset feelings.
@@ -53,7 +50,8 @@ class InwardPerspectiveExplorer {
     private drugWheelCenterX = 0;
     private drugWheelCenterY = 0;
     private cannabisPart: Part | null = null;
-    private currentExtentRadius = 70;
+    // Circle count backing the readout's focusPhrase, updated once per tick.
+    private currentCircleCount = 1;
     private lastTs = 0;
 
     // Debug overlay, enabled via ?debug=1 in the URL.
@@ -61,6 +59,9 @@ class InwardPerspectiveExplorer {
     private debugPanel!: HTMLElement;
     private debugCircles!: SVGGElement;
     private debugField!: SVGGElement;
+    // Non-null while the debug shrink-wrap slider is being used, overriding
+    // computeTargetShrinkWrap() for manual inspection of the perimeter's tightness.
+    private debugShrinkWrapOverride: number | null = null;
 
     // Force-breakdown popup (hover, or click-to-lock) and per-part conflict ring.
     private forcePopupGroup!: SVGGElement;
@@ -137,6 +138,8 @@ class InwardPerspectiveExplorer {
       .ipe-readout-title { font-size: 12px; font-weight: 600; }
       .ipe-readout-feelings { opacity: 0.85; }
       .ipe-debug-panel { margin-top: 0.75em; padding: 0.6em 0.8em; border: 1px dashed #f400d7; border-radius: 6px; font: 11px/1.5 ui-monospace, monospace; white-space: pre-wrap; background: rgba(244,0,215,0.05); }
+      .ipe-debug-shrinkwrap-row { margin-top: 0.4em; display: flex; align-items: center; gap: 0.5em; font: 11px/1.5 ui-monospace, monospace; }
+      .ipe-debug-shrinkwrap-row input[type=range] { flex: 1; }
       .ipe-debug-circle { fill: none; stroke: #00b894; stroke-width: 1; stroke-dasharray: 2,2; opacity: 0.7; }
       .ipe-debug-capsule { stroke: #0984e3; stroke-width: 1; stroke-dasharray: 3,2; opacity: 0.6; }
       .ipe-debug-field-dot { opacity: 0.55; }
@@ -292,6 +295,31 @@ class InwardPerspectiveExplorer {
             this.debugPanel = document.createElement("div");
             this.debugPanel.className = "ipe-debug-panel";
             this.root.appendChild(this.debugPanel);
+
+            const shrinkWrapRow = document.createElement("div");
+            shrinkWrapRow.className = "ipe-debug-shrinkwrap-row";
+            const shrinkWrapLabel = document.createElement("label");
+            shrinkWrapLabel.textContent = "shrinkWrap override: ";
+            const shrinkWrapCheckbox = document.createElement("input");
+            shrinkWrapCheckbox.type = "checkbox";
+            const shrinkWrapSlider = document.createElement("input");
+            shrinkWrapSlider.type = "range";
+            shrinkWrapSlider.min = "0";
+            shrinkWrapSlider.max = "1";
+            shrinkWrapSlider.step = "0.01";
+            shrinkWrapSlider.value = "0.5";
+            shrinkWrapSlider.disabled = true;
+            shrinkWrapCheckbox.addEventListener("change", () => {
+                shrinkWrapSlider.disabled = !shrinkWrapCheckbox.checked;
+                this.debugShrinkWrapOverride = shrinkWrapCheckbox.checked ? Number(shrinkWrapSlider.value) : null;
+            });
+            shrinkWrapSlider.addEventListener("input", () => {
+                if (shrinkWrapCheckbox.checked) this.debugShrinkWrapOverride = Number(shrinkWrapSlider.value);
+            });
+            shrinkWrapLabel.appendChild(shrinkWrapCheckbox);
+            shrinkWrapRow.appendChild(shrinkWrapLabel);
+            shrinkWrapRow.appendChild(shrinkWrapSlider);
+            this.root.appendChild(shrinkWrapRow);
         }
 
         this.buildManualPartPanel();
@@ -308,11 +336,24 @@ class InwardPerspectiveExplorer {
     // Spontaneous parts, oldest first (excludes the cannabis part).
     private spontaneousParts: Part[] = [];
 
-    // Above this Self energy, spawning stops and parts can be reaped to zero.
-    private static readonly HIGH_SELF_ENERGY_THRESHOLD = 0.85;
+    // Centered on the Self energy where spawning stops and parts start getting reaped to
+    // zero; the sigmoid's output (rather than a hard >= cutoff) is used as a per-check
+    // probability, so the transition is gradual instead of abrupt.
+    private static readonly HIGH_SELF_ENERGY_CENTER = 0.9;
+    private static readonly HIGH_SELF_ENERGY_STEEPNESS = 20;
+    private static highSelfEnergyOdds(selfEnergy: number): number {
+        return sigmoid(
+            selfEnergy,
+            InwardPerspectiveExplorer.HIGH_SELF_ENERGY_CENTER,
+            InwardPerspectiveExplorer.HIGH_SELF_ENERGY_STEEPNESS,
+        );
+    }
     // Tuned so that at selfEnergy=1 and dy=300 (the triangle's bottom vertices' y-level),
     // the push is ~0.03 units - negligible next to the other forces (order 1-24).
     private static readonly SELF_GRAVITY_CONSTANT = 3000;
+    // Random wander: an occasional single-direction impulse rather than continuous jitter.
+    private static readonly WANDER_KICK_CHANCE_PER_SEC = 0.25;
+    private static readonly WANDER_KICK_STRENGTH = 2;
     // Fixed unit direction from blended toward unblended, used for the unblend/blend-
     // propensity forces so their direction never depends on a part's own position.
     private static readonly BLEND_TO_UNBLEND_DIR = (() => {
@@ -326,9 +367,10 @@ class InwardPerspectiveExplorer {
         const delay = 10000 + Math.random() * 10000;
         window.setTimeout(() => {
             const proposed = this.spontaneousParts.length + 1;
+            const highSelfEnergyOdds = InwardPerspectiveExplorer.highSelfEnergyOdds(this.selfEnergy);
             if (
                 this.simulatePartsEnabled &&
-                this.selfEnergy < InwardPerspectiveExplorer.HIGH_SELF_ENERGY_THRESHOLD &&
+                Math.random() >= highSelfEnergyOdds &&
                 Math.random() < 1 / proposed
             ) {
                 this.addRandomPart();
@@ -338,18 +380,116 @@ class InwardPerspectiveExplorer {
     }
 
     private scheduleReap(): void {
-        const delay = 1000 + Math.random() * 1000;
+        const delay = 1000;
         window.setTimeout(() => {
-            const highSelfEnergy = this.selfEnergy >= InwardPerspectiveExplorer.HIGH_SELF_ENERGY_THRESHOLD;
+            // Hyper-focused parts (Private reverie's sole target, or its linked partner) are
+            // exempt from reaping - they're currently the entire object of attention.
+            const reapable = this.spontaneousParts.filter((p) => !p.hyperFocused);
+            const highSelfEnergyOdds = InwardPerspectiveExplorer.highSelfEnergyOdds(this.selfEnergy);
+            const forceReap = Math.random() < highSelfEnergyOdds;
             const canReap =
-                (this.simulatePartsEnabled || highSelfEnergy) &&
-                this.spontaneousParts.length > (highSelfEnergy ? 0 : 1);
-            if (canReap && (highSelfEnergy || Math.random() < 0.1)) {
-                const oldest = this.spontaneousParts.shift()!;
+                (this.simulatePartsEnabled || forceReap) &&
+                reapable.length > (forceReap ? 0 : 1);
+            if (canReap && (forceReap || Math.random() < 0.1)) {
+                const oldest = reapable[0];
                 oldest.fadingOut = true;
+                this.spontaneousParts.splice(this.spontaneousParts.indexOf(oldest), 1);
             }
+            this.updateFocusLock();
             this.scheduleReap();
         }, delay);
+    }
+
+    // "Private reverie": while N,N-DMT's blending pressure is high enough, the attention
+    // perimeter can collapse onto a single part (plus its extraLinkTo partner, if any),
+    // excluding Self entirely - checked once a second, alongside reap. Hysteresis
+    // (FOCUS_LOCK_ENTER_ODDS > FOCUS_LOCK_EXIT_ODDS) keeps it from flickering in/out right at
+    // the threshold: entering takes a decisive push, exiting takes a real drop in dose.
+    private static readonly FOCUS_LOCK_ENTER_ODDS = 0.8;
+    private static readonly FOCUS_LOCK_EXIT_ODDS = 0.3;
+    private focusedParts: Part[] = [];
+
+    // extraLinkTo is stored directionally (A.extraLinkTo = B) but represents an undirected
+    // attention-perimeter connector - the capsule it produces has no direction, and for
+    // Private reverie's purposes "linked to" must be checked both ways, transitively (if A
+    // links to B and B links to C, all three belong in the same reverie group).
+    private linkedGroup(start: Part): Part[] {
+        const group: Part[] = [start];
+        const seen = new Set<Part>([start]);
+        for (let i = 0; i < group.length; i++) {
+            const p = group[i];
+            const neighbors = [
+                p.extraLinkTo,
+                ...this.parts.filter((other) => other.extraLinkTo === p),
+            ];
+            for (const n of neighbors) {
+                if (n && !n.fadingOut && !seen.has(n)) {
+                    seen.add(n);
+                    group.push(n);
+                }
+            }
+        }
+        return group;
+    }
+
+    private updateFocusLock(): void {
+        // Opposing drugs' pressures cancel before the sigmoid - e.g. enough THH
+        // (unblendPressure) can prevent N,N-DMT's blendPressure alone from reaching
+        // hyper-focus, and vice versa. Generalizes to any drug with blendPushMax/
+        // unblendPushMax set, not just THH/DMT specifically.
+        const netBlendPressure = Math.max(0, this.blendPressure() - this.unblendPressure());
+        const blendPushOdds = sigmoid(netBlendPressure, 0.7, 20);
+        if (this.focusedParts.length === 0) {
+            if (blendPushOdds < InwardPerspectiveExplorer.FOCUS_LOCK_ENTER_ODDS) return;
+            const candidates = this.parts.filter((p) => p !== this.cannabisPart && !p.fadingOut);
+            if (candidates.length === 0) return;
+            const target = candidates.reduce((best, p) => (p.blendPropensity > best.blendPropensity ? p : best));
+            this.focusedParts = this.linkedGroup(target);
+            // Cannabis always stays part of the attention perimeter, reverie or not - it
+            // joins the focus group (but isn't itself reap-protected/hyperFocused, since its
+            // own lifecycle is dose-driven, not focus-lock-driven).
+            if (this.cannabisPart && !this.cannabisPart.fadingOut && !this.focusedParts.includes(this.cannabisPart)) {
+                this.focusedParts.push(this.cannabisPart);
+            }
+            for (const p of this.focusedParts) {
+                if (p !== this.cannabisPart) p.hyperFocused = true;
+            }
+            // Private reverie is about just these parts - anything else fades out rather
+            // than sitting unseen outside the now Self-excluding perimeter.
+            const focusedSet = new Set(this.focusedParts);
+            for (const p of this.parts) {
+                if (!focusedSet.has(p) && !p.fadingOut) {
+                    p.fadingOut = true;
+                    const spontaneousIdx = this.spontaneousParts.indexOf(p);
+                    if (spontaneousIdx !== -1) this.spontaneousParts.splice(spontaneousIdx, 1);
+                }
+            }
+        } else if (blendPushOdds < InwardPerspectiveExplorer.FOCUS_LOCK_EXIT_ODDS) {
+            for (const p of this.focusedParts) p.hyperFocused = false;
+            this.focusedParts = [];
+        }
+    }
+
+    // Total direct push toward blended contributed by active drugs' blendPushMax (0..1
+    // blend-force scale, may exceed 1) - N,N-DMT's mechanism, mirroring unblendPressure.
+    private blendPressure(): number {
+        let pressure = 0;
+        for (const drug of DRUGS) {
+            if (drug.blendPushMax === undefined) continue;
+            pressure += drug.blendPushMax * this.doseController.doses[drug.key];
+        }
+        return pressure;
+    }
+
+    // Total direct push away from blended contributed by active drugs' unblendPushMax (0..1
+    // blend-force scale, may exceed 1) - THH's mechanism, mirroring blendPressure above.
+    private unblendPressure(): number {
+        let pressure = 0;
+        for (const drug of DRUGS) {
+            if (drug.unblendPushMax === undefined) continue;
+            pressure += drug.unblendPushMax * this.doseController.doses[drug.key];
+        }
+        return pressure;
     }
 
     private addRandomPart(): void {
@@ -368,7 +508,7 @@ class InwardPerspectiveExplorer {
             this.startDrag(part, e);
         });
         this.svg.appendChild(el);
-        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendPropensity: Math.random(), forces: [], extraLinkTo: this.rollExtraLink() };
+        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendPropensity: Math.random(), forces: [], extraLinkTo: this.rollExtraLink(), hyperFocused: false };
         this.parts.push(part);
         this.spontaneousParts.push(part);
         this.wireForcePopup(part);
@@ -381,6 +521,16 @@ class InwardPerspectiveExplorer {
     private rollExtraLink(): Part | null {
         if (this.parts.length === 0 || Math.random() >= 0.5) return null;
         return this.parts[Math.floor(Math.random() * this.parts.length)];
+    }
+
+    // Removes the least-recently-added part (this.parts is in insertion order), skipping the
+    // cannabis part since its lifecycle is dose-driven, not manually removable.
+    private sweepOldestPart(): void {
+        const oldest = this.parts.find((p) => p !== this.cannabisPart && !p.fadingOut);
+        if (!oldest) return;
+        oldest.fadingOut = true;
+        const spontaneousIdx = this.spontaneousParts.indexOf(oldest);
+        if (spontaneousIdx !== -1) this.spontaneousParts.splice(spontaneousIdx, 1);
     }
 
     // Adds a part the user placed by hand via the manual-add panel, bypassing spontaneous
@@ -396,7 +546,7 @@ class InwardPerspectiveExplorer {
         el.style.opacity = "0";
         el.textContent = emoji;
         const feeling = PARTS_PALETTE.find((p) => p.emoji === emoji)?.feeling ?? "";
-        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendPropensity, forces: [], extraLinkTo: this.rollExtraLink() };
+        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendPropensity, forces: [], extraLinkTo: this.rollExtraLink(), hyperFocused: false };
         el.addEventListener("pointerdown", (e) => {
             e.stopPropagation();
             this.startDrag(part, e);
@@ -484,6 +634,14 @@ class InwardPerspectiveExplorer {
         });
         row.appendChild(addBtn);
 
+        const sweepBtn = document.createElement("button");
+        sweepBtn.type = "button";
+        sweepBtn.className = "ipe-manual-part-sweep-btn";
+        sweepBtn.textContent = "🧹 Sweep";
+        sweepBtn.title = "Remove the least recently added part";
+        sweepBtn.addEventListener("click", () => this.sweepOldestPart());
+        row.appendChild(sweepBtn);
+
         panel.appendChild(row);
         this.root.appendChild(panel);
 
@@ -493,22 +651,18 @@ class InwardPerspectiveExplorer {
         });
     }
 
-    // Sums each part's forces two ways: vector sum of magnitudes (what actually moves the
-    // part) vs. sum of scalar magnitudes (what would move it if nothing opposed anything).
-    // When forces are large but pull in opposite directions, the vector sum shrinks toward
-    // zero while the scalar sum stays large - the ratio between them is the conflict measure.
+    // Self-unblend and blend-urgency are the only two forces on the shared 0-1 psychological
+    // blending-force scale (PartForce.displayMag), and always point exactly opposite along the
+    // fixed blended<->unblended axis - so unlike the general force list (which also mixes in
+    // Self differentiation and part repulsion, neither on that scale, the latter with no
+    // psychological meaning at all), their conflict is just how much they overlap as opposing
+    // scalars: min(a, b). Un-normalized deliberately - two strongly opposed forces (e.g. 0.8
+    // vs 0.9) read as more conflicted than two weakly opposed ones (0.1 vs 0.2), unlike a
+    // sum-of-magnitudes ratio which would call both "fully conflicted."
     private static computeConflict(forces: PartForce[]): number {
-        let sumMagnitudes = 0;
-        let vecX = 0;
-        let vecY = 0;
-        for (const f of forces) {
-            sumMagnitudes += Math.hypot(f.x, f.y);
-            vecX += f.x;
-            vecY += f.y;
-        }
-        if (sumMagnitudes < 0.01) return 0;
-        const netMagnitude = Math.hypot(vecX, vecY);
-        return 1 - netMagnitude / sumMagnitudes;
+        const selfUnblend = forces.find((f) => f.name === "Self-energy unblend")?.displayMag ?? 0;
+        const blendUrgency = forces.find((f) => f.name === "Blend urgency")?.displayMag ?? 0;
+        return Math.min(selfUnblend, blendUrgency);
     }
 
     private wireForcePopup(part: Part): void {
@@ -546,12 +700,17 @@ class InwardPerspectiveExplorer {
             this.forcePopupGroup.removeChild(this.forcePopupGroup.lastChild!);
         }
 
+        // Part repulsion is purely a display/anti-overlap mechanic with no psychological
+        // meaning, so it's omitted from the legend (it still participates in the vector plot
+        // and computeConflict above, since it does affect the part's actual motion).
+        const legendRows = rows.filter((f) => f.name !== "Part repulsion");
+
         const rowHeight = 13;
         const width = 150;
         const plotSize = 90;
         const plotTop = 6;
         const legendTop = plotTop + plotSize + 10;
-        const height = legendTop + rowHeight * Math.max(rows.length, 1);
+        const height = legendTop + rowHeight * Math.max(legendRows.length, 1);
 
         // Vector plot: each force as an arrow from the plot's center, scaled so the
         // largest-magnitude force (across all of this part's forces) reaches the edge.
@@ -633,7 +792,7 @@ class InwardPerspectiveExplorer {
             this.forcePopupGroup.appendChild(netLine);
         }
 
-        rows.forEach((f, i) => {
+        legendRows.forEach((f, i) => {
             const y = legendTop + i * rowHeight;
             const swatch = svgEl("line");
             swatch.classList.add("ipe-force-popup-swatch");
@@ -644,11 +803,12 @@ class InwardPerspectiveExplorer {
             swatch.style.stroke = f.color;
             this.forcePopupGroup.appendChild(swatch);
 
+            const displayMag = f.displayMag ?? Math.hypot(f.x, f.y);
             const label = svgEl("text");
             label.classList.add("ipe-force-popup-row");
             label.setAttribute("x", "23");
             label.setAttribute("y", String(y));
-            label.textContent = `${f.name} (${Math.hypot(f.x, f.y).toFixed(2)})`;
+            label.textContent = `${f.name} (${displayMag.toFixed(2)})`;
             this.forcePopupGroup.appendChild(label);
         });
 
@@ -676,7 +836,7 @@ class InwardPerspectiveExplorer {
             ring.setAttribute("r", "17");
             // Fixed red hue; opacity itself conveys the degree of conflict.
             ring.style.stroke = "hsl(0, 85%, 50%)";
-            ring.style.opacity = conflict > 0.35 ? String(Math.min(1, (conflict - 0.35) / 0.4)) : "0";
+            ring.style.opacity = conflict > 0.75 ? String(Math.min(1, (conflict - 0.75) / 0.25)) : "0";
         }
         if (this.lockedPart === part || (!this.lockedPart && this.hoveredPart === part)) {
             this.showForcePopup(part);
@@ -757,6 +917,7 @@ class InwardPerspectiveExplorer {
                 blendPropensity: this.doseController.doses.cannabis,
                 forces: [],
                 extraLinkTo: this.rollExtraLink(),
+                hyperFocused: false,
             };
             el.addEventListener("pointerdown", (e) => {
                 e.stopPropagation();
@@ -785,7 +946,10 @@ class InwardPerspectiveExplorer {
             ),
         );
 
-        this.readoutTitle.textContent = focusPhrase(this.currentExtentRadius, this.selfEnergy);
+        this.readoutTitle.textContent =
+            this.focusedParts.length > 0
+                ? "Private reverie"
+                : focusPhrase(this.currentCircleCount, this.shrinkWrap, this.selfEnergy);
         this.readoutBody.textContent = `${qualities.join(", ")}.`;
         this.readoutFeelings.textContent = activeFeelings.length ? `parts: ${activeFeelings.join(", ")}` : "";
     }
@@ -795,30 +959,33 @@ class InwardPerspectiveExplorer {
         this.lastTs = ts;
 
         const AVOID_PART_RADIUS = 40;
-        // Total direct push away from blended contributed by active drugs' unblendPushMax.
-        let unblendPush = 0;
-        for (const drug of DRUGS) {
-            if (drug.unblendPushMax === undefined) continue;
-            unblendPush += drug.unblendPushMax * this.doseController.doses[drug.key];
-        }
+        const unblendPush = this.unblendPressure();
+        const blendPush = this.blendPressure();
         for (const p of this.parts) {
             if (p === this.draggingPart) continue;
-            p.vx += (Math.random() - 0.5) * 12 * dt;
-            p.vy += (Math.random() - 0.5) * 12 * dt;
+            // Wander as occasional larger impulses rather than continuous per-frame noise -
+            // WANDER_KICK_CHANCE_PER_SEC tuned so a kick lands roughly every couple of seconds
+            // per part, each one a single discrete nudge (not scaled by dt, since it's an
+            // event, not a rate) rather than smoothed-out jitter that reads as nervous.
+            if (Math.random() < InwardPerspectiveExplorer.WANDER_KICK_CHANCE_PER_SEC * dt) {
+                const angle = Math.random() * Math.PI * 2;
+                p.vx += Math.cos(angle) * InwardPerspectiveExplorer.WANDER_KICK_STRENGTH;
+                p.vy += Math.sin(angle) * InwardPerspectiveExplorer.WANDER_KICK_STRENGTH;
+            }
 
             // Every named force is always recorded, even at zero magnitude, so the
             // force-breakdown popup's legend/vectors stay stable frame to frame instead of
             // rows appearing and disappearing as a part sits at a boundary or between others.
             const forces: PartForce[] = [
                 { name: "Self-energy unblend", color: FORCE_COLORS.selfUnblend, x: 0, y: 0 },
-                { name: "Self proximity", color: FORCE_COLORS.selfProximity, x: 0, y: 0 },
+                { name: "Self differentiation", color: FORCE_COLORS.selfProximity, x: 0, y: 0 },
                 { name: "Blend urgency", color: FORCE_COLORS.blendPropensity, x: 0, y: 0 },
                 { name: "Part repulsion", color: FORCE_COLORS.partRepulsion, x: 0, y: 0 },
             ];
             const [fSelfUnblend, fSelfProximity, fBlendPropensity, fPartRepulsion] = forces;
 
-            // Ambient Self energy pushes parts away from blended, via a sigmoid ramp.
-            const selfPushFactor = sigmoid(this.selfEnergy, 0.325, 28);
+            // Ambient Self energy pushes parts away from blended, linearly.
+            const selfPushFactor = this.selfEnergy;
             const selfPush = selfPushFactor * BLEND_FORCE_SCALE;
             // Fixed blended-to-unblended direction, independent of the part's own position -
             // using a per-part direction here would make the force's direction depend on the
@@ -828,6 +995,7 @@ class InwardPerspectiveExplorer {
             {
                 fSelfUnblend.x = pushDirX * (selfPush + unblendPush * BLEND_FORCE_SCALE);
                 fSelfUnblend.y = pushDirY * (selfPush + unblendPush * BLEND_FORCE_SCALE);
+                fSelfUnblend.displayMag = selfPushFactor + unblendPush;
                 p.vx += fSelfUnblend.x * dt;
                 p.vy += fSelfUnblend.y * dt;
             }
@@ -841,11 +1009,14 @@ class InwardPerspectiveExplorer {
             fSelfProximity.y = (this.selfEnergy * InwardPerspectiveExplorer.SELF_GRAVITY_CONSTANT) / (dy * dy);
             p.vy += fSelfProximity.y * dt;
 
-            // Each part's own blendPropensity pulls it steadily toward blended.
-            if (p.blendPropensity > 0) {
-                const blendPull = p.blendPropensity * BLEND_FORCE_SCALE;
+            // Each part's own blendPropensity pulls it steadily toward blended, plus any
+            // direct drug-driven blendPush (N,N-DMT's mechanism, mirroring unblendPush above -
+            // bypasses ambient Self energy the same way THH's unblend push does).
+            {
+                const blendPull = (p.blendPropensity + blendPush) * BLEND_FORCE_SCALE;
                 fBlendPropensity.x = -pushDirX * blendPull;
                 fBlendPropensity.y = -pushDirY * blendPull;
+                fBlendPropensity.displayMag = p.blendPropensity + blendPush;
                 p.vx += fBlendPropensity.x * dt;
                 p.vy += fBlendPropensity.y * dt;
             }
@@ -899,20 +1070,31 @@ class InwardPerspectiveExplorer {
                     for (const other of this.parts) {
                         if (other.extraLinkTo === p) other.extraLinkTo = null;
                     }
+                    // Removed by some other path (Sweep, cannabis cancel) while still the
+                    // Private reverie focus target - drop it so focus-lock re-evaluates
+                    // cleanly next check instead of referencing a removed part.
+                    if (this.focusedParts.includes(p)) {
+                        this.focusedParts = this.focusedParts.filter((f) => f !== p);
+                        for (const f of this.focusedParts) f.hyperFocused = false;
+                        this.focusedParts = [];
+                    }
                 }
             }
             this.parts = this.parts.filter((p) => !(p.fadingOut && p.opacity < 0.02));
         }
 
-        const circles = buildCircles(this.selfEnergy, this.parts);
+        const circles = buildCircles(this.selfEnergy, this.parts, this.focusedParts);
 
-        this.targetShrinkWrap = computeTargetShrinkWrap();
+        this.targetShrinkWrap = this.debugShrinkWrapOverride ?? computeTargetShrinkWrap(this.selfEnergy, this.blendPressure());
         this.shrinkWrap = lerp(this.shrinkWrap, this.targetShrinkWrap, 1 - Math.exp(-1.5 * dt));
 
-        this.currentExtentRadius = approximateExtentRadius(circles);
+        this.currentCircleCount = circles.length;
         this.wobblePhase = this.wobblePhase.map((ph, i) => ph + dt * (0.6 + i * 0.23));
 
-        this.attnPerimeterPath.setAttribute("d", buildAttnPerimeterPath(circles, this.parts, this.shrinkWrap, this.wobblePhase));
+        this.attnPerimeterPath.setAttribute(
+            "d",
+            buildAttnPerimeterPath(circles, this.parts, this.shrinkWrap, this.wobblePhase, this.focusedParts),
+        );
         this.updateReadout();
 
         if (this.debugEnabled) this.updateDebugOverlay(circles);
@@ -983,9 +1165,10 @@ class InwardPerspectiveExplorer {
 
         const lines: string[] = [];
         lines.push(`selfEnergy: ${this.selfEnergy.toFixed(2)} (baseline ${this.selfEnergyKnob.currentBaseline.toFixed(2)} + fraction ${this.selfEnergyKnob.currentUserFraction.toFixed(2)})`);
-        lines.push(`circles: ${circles.length} (self r=${circles[0].r.toFixed(1)})${this.parts.length ? " parts @ " + this.parts.map((p) => `(${p.x.toFixed(0)},${p.y.toFixed(0)})`).join(", ") : ""}`);
+        const focusNote = this.focusedParts.length > 0 ? ` [Private reverie: ${this.focusedParts.length} part(s), Self excluded]` : "";
+        lines.push(`circles: ${circles.length}${focusNote}${this.parts.length ? " parts @ " + this.parts.map((p) => `(${p.x.toFixed(0)},${p.y.toFixed(0)})`).join(", ") : ""}`);
         lines.push(`shrinkWrap: ${this.shrinkWrap.toFixed(2)} (target ${this.targetShrinkWrap.toFixed(2)})  threshold: ${threshold.toFixed(3)}`);
-        lines.push(`approx extent radius: ${this.currentExtentRadius.toFixed(1)}`);
+        lines.push(`blendPressure: ${this.blendPressure().toFixed(2)}  unblendPressure: ${this.unblendPressure().toFixed(2)}`);
         lines.push(`field grid: red dot = inside (field >= threshold), gray = outside`);
 
         this.debugPanel.textContent = lines.join("\n");

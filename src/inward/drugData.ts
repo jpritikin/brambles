@@ -22,6 +22,9 @@ export interface DrugEffect {
     // Direct push away from blended applied to every part (0..1 blend-force scale,
     // may exceed 1), scaled linearly by dose fraction.
     unblendPushMax?: number;
+    // Direct push toward blended applied to every part (0..1 blend-force scale, may exceed
+    // 1), scaled linearly by dose fraction - the blended-side mirror of unblendPushMax.
+    blendPushMax?: number;
     // Renders as a standalone drifting part near a vertex instead of pulling the region.
     rendersAsPart?: Vertex["name"];
 }
@@ -70,9 +73,13 @@ export const DRUGS: DrugEffect[] = [
         key: "nndmt",
         name: "N,N-DMT",
         emoji: "🌪️",
-        pull: { self: 0.55, blended: 0.35, unblended: 0.1 },
-        doseSteps: [0, 0.5, 1],
-        doseStepLabels: ["0", "50%", "100%"],
+        // 1mg-60mg linear range; combinable (no INTERACTIONS entry).
+        doseUnitRange: { min: 1, max: 60, unit: "mg" },
+        // Modest Self-energy lift, but a strong direct push toward blended (mirroring THH's
+        // unblendPushMax) - past a high-dose threshold this is what lets the attention
+        // perimeter collapse onto a single part alone ("Private reverie"), Self excluded.
+        selfEnergyBoostMax: 0.15,
+        blendPushMax: 0.9,
     },
     {
         key: "psilocybin",

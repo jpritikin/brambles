@@ -5,6 +5,9 @@ export interface PartForce {
     color: string;
     x: number;
     y: number;
+    // Pre-BLEND_FORCE_SCALE magnitude on the shared 0-1 blending-force scale, for forces that
+    // have one; omitted for forces (Self differentiation, part repulsion) with no such scale.
+    displayMag?: number;
 }
 
 export interface Part {
@@ -31,6 +34,10 @@ export interface Part {
     // top of this part's own always-present link to Self. Null if the roll failed or no
     // other parts existed yet. Fixed for this part's lifetime, not re-rolled per frame.
     extraLinkTo: Part | null;
+    // True while this part is the sole target of a "Private reverie" attention perimeter
+    // (Self excluded) - see InwardPerspectiveExplorer's focus-lock hysteresis. Exempt from
+    // spontaneous reaping while true, since it's currently the entire focus of attention.
+    hyperFocused: boolean;
 }
 
 export const PARTS_PALETTE: { emoji: string; feeling: string }[] = [

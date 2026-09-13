@@ -24,11 +24,13 @@ export function blendIntensityWord(propensity: number): string {
     return (BLEND_INTENSITY_WORDS.find((tier) => propensity <= tier.max) ?? BLEND_INTENSITY_WORDS[BLEND_INTENSITY_WORDS.length - 1]).word;
 }
 
-// Spectrum of focus words from a small, narrow, hyper-concentrated region to a
-// large, diffuse, broad one. Indexed by how the current radius sits between
-// FOCUS_MIN_RADIUS (narrowest) and FOCUS_MAX_RADIUS (most diffuse).
-export const FOCUS_MIN_RADIUS = 42;
-export const FOCUS_MAX_RADIUS = 340;
+// Spectrum of focus words from a small, narrow, hyper-concentrated attention perimeter to
+// a large, diffuse, broad one. Indexed by a score combining how many circles (Self/parts)
+// the perimeter currently encloses (more = more diffuse) and how tightly it's shrink-wrapped
+// around them (tighter = more focused) - not a geometric radius estimate, since there's no
+// single radius once the perimeter wraps a variable number of circles.
+const FOCUS_SCORE_MIN = 1 - 1; // sqrt(1 circle) - shrinkWrap=1 (tightest single-circle case)
+const FOCUS_SCORE_MAX = Math.sqrt(8) - 0; // sqrt(8 circles) - shrinkWrap=0 (loosest many-circle case)
 const FOCUS_WORDS = ["hyper-focused", "narrow", "concentrated", "settled", "open", "spacious", "diffuse"];
 
 // Below this Self energy (matching SELF_ENERGY_QUALITIES' lowest "depleted" tier), a
@@ -37,8 +39,9 @@ const FOCUS_WORDS = ["hyper-focused", "narrow", "concentrated", "settled", "open
 // rather than focus.
 const SLEEP_SELF_ENERGY_MAX = 0.2;
 
-export function focusPhrase(radius: number, selfEnergy: number): string {
-    const t = Math.min(1, Math.max(0, (radius - FOCUS_MIN_RADIUS) / (FOCUS_MAX_RADIUS - FOCUS_MIN_RADIUS)));
+export function focusPhrase(circleCount: number, shrinkWrap: number, selfEnergy: number): string {
+    const score = Math.sqrt(Math.max(1, circleCount)) - shrinkWrap;
+    const t = Math.min(1, Math.max(0, (score - FOCUS_SCORE_MIN) / (FOCUS_SCORE_MAX - FOCUS_SCORE_MIN)));
     const idx = Math.min(FOCUS_WORDS.length - 1, Math.floor(t * FOCUS_WORDS.length));
     if (idx === 0 && selfEnergy <= SLEEP_SELF_ENERGY_MAX) return "sleep";
     return FOCUS_WORDS[idx];

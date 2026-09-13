@@ -15,42 +15,47 @@ const PART_CIRCLE_RADIUS = 13; // half of .ipe-part's 26px font-size
 const SELF_CIRCLE_MIN_RADIUS = 24;
 const SELF_CIRCLE_MAX_RADIUS = SELF_CIRCLE_MIN_RADIUS * 2;
 
+// Part emoji are drawn as SVG <text> with y as the baseline, not the glyph's visual center;
+// every circle built from a part's (x, y) must shift up by this much to center on the glyph
+// instead of its baseline, or the perimeter reads as offset below the emoji it's wrapping.
+export const EMOJI_VERTICAL_CENTER_OFFSET = 9;
+
 export function selfCircleRadius(selfEnergy: number): number {
     return lerp(SELF_CIRCLE_MIN_RADIUS, SELF_CIRCLE_MAX_RADIUS, selfEnergy);
 }
 
 // One circle for Self (radius grows with ambient Self energy) plus one fixed-radius
 // circle per drifting part. The attention perimeter wraps around all of them.
-export function buildCircles(selfEnergy: number, parts: Part[]): Circle[] {
+//
+// When focusedParts is non-empty ("Private reverie" - N,N-DMT's high-blend-pressure focus
+// lock, see InwardPerspectiveExplorer.updateFocusLock), Self is excluded entirely and the
+// perimeter wraps only those parts, so circles[0] is not guaranteed to be Self - callers
+// needing the Self circle specifically (buildConnectorCapsules's star hub) must check for
+// focus mode first via buildFocusCapsules instead.
+export function buildCircles(selfEnergy: number, parts: Part[], focusedParts: Part[] = []): Circle[] {
+    if (focusedParts.length > 0) {
+        return focusedParts.map((p) => ({ x: p.x, y: p.y - EMOJI_VERTICAL_CENTER_OFFSET, r: PART_CIRCLE_RADIUS * p.opacity }));
+    }
     const circles: Circle[] = [{ x: VERTEX_BY_NAME.self.x, y: VERTEX_BY_NAME.self.y, r: selfCircleRadius(selfEnergy) }];
     for (const p of parts) {
         // Scaled by opacity so a fading-in/out part's circle ramps in/out smoothly
         // instead of popping to full size.
-        circles.push({ x: p.x, y: p.y, r: PART_CIRCLE_RADIUS * p.opacity });
+        circles.push({ x: p.x, y: p.y - EMOJI_VERTICAL_CENTER_OFFSET, r: PART_CIRCLE_RADIUS * p.opacity });
     }
     return circles;
 }
 
-// Fixed for now; drug effects will drive this later (see docs/inward-primer.txt).
-const FIXED_TARGET_SHRINK_WRAP = 0.3;
+// Baseline with no drug pushing on it: higher when Self energy is low (a depleted Self
+// lets the boundary go loose/soft) and 0 once Self energy is maxed (nothing left to widen
+// it). N,N-DMT's blendPressure (0-1+ scale, see InwardPerspectiveExplorer.blendPressure)
+// then adds on top linearly, clamped to 1 - the same pressure that drives the "Private
+// reverie" single-part focus lock also tightens the perimeter's shrink-wrap in the
+// ordinary (non-focus-locked) case.
+const BASELINE_TARGET_SHRINK_WRAP_MAX = 0.3;
 
-export function computeTargetShrinkWrap(): number {
-    return FIXED_TARGET_SHRINK_WRAP;
-}
-
-// A rough "how big/diffuse does this feel" scalar for the readout text, derived from
-// the circles' bounding extent rather than a single radius (there's no one radius
-// anymore now that the perimeter wraps a variable number of circles).
-export function approximateExtentRadius(circles: Circle[]): number {
-    if (circles.length === 0) return 0;
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const c of circles) {
-        minX = Math.min(minX, c.x - c.r);
-        minY = Math.min(minY, c.y - c.r);
-        maxX = Math.max(maxX, c.x + c.r);
-        maxY = Math.max(maxY, c.y + c.r);
-    }
-    return Math.max(maxX - minX, maxY - minY) / 2;
+export function computeTargetShrinkWrap(selfEnergy: number, blendPressure: number): number {
+    const baseline = BASELINE_TARGET_SHRINK_WRAP_MAX * (1 - selfEnergy);
+    return Math.min(1, baseline + 0.5 * blendPressure);
 }
 
 // --- Connectivity: explicit capsule corridors -------------------------------
@@ -83,9 +88,38 @@ export function buildConnectorCapsules(selfCircle: Circle, parts: Part[], shrink
     const r = connectorRadiusFor(shrinkWrap);
     const capsules: Capsule[] = [];
     for (const p of parts) {
-        capsules.push({ ax: selfCircle.x, ay: selfCircle.y, bx: p.x, by: p.y, r });
+        capsules.push({ ax: selfCircle.x, ay: selfCircle.y, bx: p.x, by: p.y - EMOJI_VERTICAL_CENTER_OFFSET, r });
         if (p.extraLinkTo) {
-            capsules.push({ ax: p.x, ay: p.y, bx: p.extraLinkTo.x, by: p.extraLinkTo.y, r });
+            capsules.push({
+                ax: p.x,
+                ay: p.y - EMOJI_VERTICAL_CENTER_OFFSET,
+                bx: p.extraLinkTo.x,
+                by: p.extraLinkTo.y - EMOJI_VERTICAL_CENTER_OFFSET,
+                r,
+            });
+        }
+    }
+    return capsules;
+}
+
+// "Private reverie" capsules: no Self hub to fan out from, so connect focused parts along
+// their actual extraLinkTo edges (treated as undirected - see
+// InwardPerspectiveExplorer.linkedGroup) rather than a star from the first part, since the
+// group can be a transitive chain (A links to B, B links to C) where A and C aren't
+// directly connected.
+export function buildFocusCapsules(focusedParts: Part[], shrinkWrap: number): Capsule[] {
+    const r = connectorRadiusFor(shrinkWrap);
+    const capsules: Capsule[] = [];
+    const group = new Set(focusedParts);
+    for (const p of focusedParts) {
+        if (p.extraLinkTo && group.has(p.extraLinkTo)) {
+            capsules.push({
+                ax: p.x,
+                ay: p.y - EMOJI_VERTICAL_CENTER_OFFSET,
+                bx: p.extraLinkTo.x,
+                by: p.extraLinkTo.y - EMOJI_VERTICAL_CENTER_OFFSET,
+                r,
+            });
         }
     }
     return capsules;
@@ -132,9 +166,13 @@ export function fieldAt(x: number, y: number, circles: Circle[], capsules: Capsu
 }
 
 // Loose: threshold well below 1, so the isoline sits far outside every circle's edge
-// (soft padded oval). Tight: threshold approaches 1, the circles' own edge value.
+// (soft padded oval). Tight: threshold high enough that the isoline hugs each circle
+// closely, but capped at 0.78 rather than approaching 1 - at 1 the isoline sits almost
+// exactly at each circle's nominal radius, which (for a part) is smaller than the emoji
+// glyph's visual size, so the dashed ring reads as clipping through the emoji instead of
+// wrapping outside it. 0.78 keeps a ~15% radius margin at the tightest setting.
 export function thresholdFor(shrinkWrap: number): number {
-    return lerp(0.12, 0.92, shrinkWrap);
+    return lerp(0.12, 0.78, shrinkWrap);
 }
 
 interface GridPoint {
@@ -147,7 +185,18 @@ interface GridPoint {
 // bounding box (plus margin for the loose/padded case), producing an ordered polygon
 // approximating the isoline.
 function marchingSquaresContour(circles: Circle[], capsules: Capsule[], threshold: number): { x: number; y: number }[] {
-    const margin = 60;
+    // The isoline around a lone circle of radius r sits at distance r/sqrt(threshold -
+    // BACKGROUND_FIELD) from its center (solving fieldAt's inverse-square term for where it
+    // crosses threshold) - a fixed margin big enough for a tight threshold clips the isoline
+    // at low (loose) thresholds instead, where it sits much farther out, leaving the grid's
+    // boundary cutting through the true contour and the marching-squares/greedy-chaining step
+    // stitching the resulting fragments into a malformed path. Deriving margin from the actual
+    // threshold and the largest circle present keeps the isoline inside the grid at any
+    // shrinkWrap setting.
+    const maxRadius = Math.max(0, ...circles.map((c) => c.r), ...capsules.map((c) => c.r));
+    const fieldAboveBackground = Math.max(0.005, threshold - BACKGROUND_FIELD);
+    const isolineDistance = maxRadius / Math.sqrt(fieldAboveBackground);
+    const margin = Math.max(60, isolineDistance - maxRadius + 20);
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const c of circles) {
         minX = Math.min(minX, c.x - c.r);
@@ -164,11 +213,19 @@ function marchingSquaresContour(circles: Circle[], capsules: Capsule[], threshol
     minX -= margin; minY -= margin; maxX += margin; maxY += margin;
 
     // A far-flung part stretches the bounding box a lot; scale sample density with the
-    // box size (capped) so the corridor connecting it stays resolvable by the grid
-    // instead of being thinner than one cell and slipping through undetected.
+    // box size (capped) so the corridor connecting it stays resolvable by the grid instead
+    // of being thinner than one cell and slipping through undetected. A thin connector
+    // (tight shrinkWrap, CONNECTOR_RADIUS_TIGHT=3) between two widely-spaced circles is the
+    // narrowest thing the grid ever needs to resolve - size cells off the smaller of the
+    // span-based estimate and the thinnest capsule present, not span alone, or the corridor
+    // can be narrower than a cell and the marching-squares/greedy-chaining step mis-stitches
+    // the two circles' isolines into one malformed loop instead of a proper closed contour
+    // wrapping both.
+    const minCapsuleRadius = capsules.length > 0 ? Math.min(...capsules.map((c) => c.r)) : Infinity;
+    const targetCellSize = Math.min(12, minCapsuleRadius / 2.5);
     const spanX = maxX - minX, spanY = maxY - minY;
-    const cols = Math.min(160, Math.max(48, Math.round(spanX / 12)));
-    const rows = Math.min(140, Math.max(42, Math.round(spanY / 12)));
+    const cols = Math.min(220, Math.max(48, Math.round(spanX / targetCellSize)));
+    const rows = Math.min(200, Math.max(42, Math.round(spanY / targetCellSize)));
     const cellW = spanX / cols;
     const cellH = spanY / rows;
 
@@ -294,14 +351,81 @@ function resampleClosed(poly: { x: number; y: number }[], n: number): { x: numbe
     return out;
 }
 
-export function buildAttnPerimeterPath(circles: Circle[], parts: Part[], shrinkWrap: number, wobblePhase: number[]): string {
+// At tight shrinkWrap, three-plus mutually-nearby circles' overlapping metaball fields
+// still sum above threshold across their whole convex hull's interior (e.g. the middle of
+// a Self+2-parts triangle), even though the isoline hugs each circle's own edge closely -
+// summing fields doesn't erode a shape the way intersecting/subtracting them would. Rather
+// than reshaping the field itself (which would also have to keep every connector corridor
+// intact), this pulls each already-extracted contour point inward toward its nearest
+// feature (a circle's edge, or a capsule's own radius from its segment) by up to that
+// point's "slack" - how far past the nearest feature's true edge it currently sits - scaled
+// by erosion strength (0 below EROSION_START_SHRINK_WRAP, ramping to full over the rest of
+// the range, so a loose boundary still reads as one soft padded oval rather than pinching in
+// early). A point already sitting right on some circle or capsule edge has ~0 slack and
+// doesn't move, so the erosion can never pull a point past a feature it's supposed to still
+// enclose; only the puffed-out middle, which is slack everywhere, erodes.
+const EROSION_MAX = 40;
+
+function nearestFeatureDistance(x: number, y: number, circles: Circle[], capsules: Capsule[]): { dist: number; toX: number; toY: number } {
+    let best = Infinity, bestX = x, bestY = y;
+    for (const c of circles) {
+        const dx = x - c.x, dy = y - c.y;
+        const distToCenter = Math.max(Math.hypot(dx, dy), 0.001);
+        const d = distToCenter - c.r;
+        if (d < best) {
+            best = d;
+            bestX = c.x + dx * (c.r / distToCenter);
+            bestY = c.y + dy * (c.r / distToCenter);
+        }
+    }
+    for (const cap of capsules) {
+        const nearest = nearestPointOnSegment(x, y, cap.ax, cap.ay, cap.bx, cap.by);
+        const dx = x - nearest.x, dy = y - nearest.y;
+        const segDist = Math.hypot(dx, dy) - cap.r;
+        if (segDist < best) {
+            best = segDist;
+            const distToSeg = Math.max(Math.hypot(dx, dy), 0.001);
+            bestX = nearest.x + dx * (cap.r / distToSeg);
+            bestY = nearest.y + dy * (cap.r / distToSeg);
+        }
+    }
+    return { dist: Math.max(0, best), toX: bestX, toY: bestY };
+}
+
+// No erosion below this shrinkWrap - a loose boundary is supposed to look like one soft
+// padded oval, not start pinching in early. Above it, erosion strength ramps 0..1 over the
+// remaining range instead of starting from shrinkWrap itself.
+const EROSION_START_SHRINK_WRAP = 0.5;
+
+function erodeContour(pts: { x: number; y: number }[], circles: Circle[], capsules: Capsule[], shrinkWrap: number): { x: number; y: number }[] {
+    const erosionStrength = Math.max(0, (shrinkWrap - EROSION_START_SHRINK_WRAP) / (1 - EROSION_START_SHRINK_WRAP));
+    if (erosionStrength <= 0) return pts;
+    return pts.map((p) => {
+        const { dist, toX, toY } = nearestFeatureDistance(p.x, p.y, circles, capsules);
+        const pull = Math.min(dist, EROSION_MAX) * erosionStrength;
+        if (pull <= 0 || dist < 0.01) return p;
+        const t = pull / dist;
+        return { x: lerp(p.x, toX, t), y: lerp(p.y, toY, t) };
+    });
+}
+
+export function buildAttnPerimeterPath(
+    circles: Circle[],
+    parts: Part[],
+    shrinkWrap: number,
+    wobblePhase: number[],
+    focusedParts: Part[] = [],
+): string {
     const threshold = thresholdFor(shrinkWrap);
-    const capsules = buildConnectorCapsules(circles[0], parts, shrinkWrap);
+    const capsules = focusedParts.length > 0
+        ? buildFocusCapsules(focusedParts, shrinkWrap)
+        : buildConnectorCapsules(circles[0], parts, shrinkWrap);
     const rawContour = marchingSquaresContour(circles, capsules, threshold);
     if (rawContour.length < 3) return "";
 
     const N = 48;
-    const pts = resampleClosed(rawContour, N);
+    const resampled = resampleClosed(rawContour, N);
+    const pts = erodeContour(resampled, circles, capsules, shrinkWrap);
 
     // A loose boundary has slack and wobbles more; a shrink-wrapped one is taut and crisp.
     const wobbleScale = lerp(1, 0.35, shrinkWrap);
