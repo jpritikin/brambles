@@ -31,9 +31,16 @@ export const FOCUS_MIN_RADIUS = 42;
 export const FOCUS_MAX_RADIUS = 340;
 const FOCUS_WORDS = ["hyper-focused", "narrow", "concentrated", "settled", "open", "spacious", "diffuse"];
 
-export function focusPhrase(radius: number): string {
+// Below this Self energy (matching SELF_ENERGY_QUALITIES' lowest "depleted" tier), a
+// hyper-focused reading isn't concentration - it's the attention region collapsing in on
+// itself for lack of any ambient Self energy to hold it open, which reads as sleep
+// rather than focus.
+const SLEEP_SELF_ENERGY_MAX = 0.2;
+
+export function focusPhrase(radius: number, selfEnergy: number): string {
     const t = Math.min(1, Math.max(0, (radius - FOCUS_MIN_RADIUS) / (FOCUS_MAX_RADIUS - FOCUS_MIN_RADIUS)));
     const idx = Math.min(FOCUS_WORDS.length - 1, Math.floor(t * FOCUS_WORDS.length));
+    if (idx === 0 && selfEnergy <= SLEEP_SELF_ENERGY_MAX) return "sleep";
     return FOCUS_WORDS[idx];
 }
 

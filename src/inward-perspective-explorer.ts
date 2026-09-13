@@ -3,20 +3,38 @@
 
 import { DRUGS, type DrugEffect } from "./inward/drugData";
 import { CX, H, VERTEX_BY_NAME, VERTICES, W, clampPartPosition, lerp, sigmoid, svgEl } from "./inward/geometry";
-import { PARTS_PALETTE, type Part } from "./inward/part";
-import { BLEND_FORCE_SCALE, buildRegionPath, collectRegionPressures, computeRadius, computeTargetCentroid, computeTargetShrinkWrap } from "./inward/regionPhysics";
+import { PARTS_PALETTE, type Part, type PartForce } from "./inward/part";
+import { BLEND_FORCE_SCALE, buildAttnPerimeterPath, buildCircles, buildConnectorCapsules, computeTargetShrinkWrap, approximateExtentRadius, fieldAt, thresholdFor, type Circle, type Capsule } from "./inward/attnPerimeter";
 import { blendIntensityWord, focusPhrase, selfQualitiesFor } from "./inward/readoutText";
 import { DrugWheel } from "./inward/drugWheel";
 import { SelfEnergyKnob } from "./inward/selfEnergyKnob";
 import { DoseController } from "./inward/doseController";
 
+// Legend colors for the per-part force breakdown popup, keyed by force name (part.ts's
+// PartForce.name). One entry per named force pushed in the tick loop below.
+// Part emoji are drawn as SVG <text> with y as the baseline, not the glyph's visual
+// center; this shifts overlays (conflict ring, popup anchor) up to the glyph's center.
+const EMOJI_VERTICAL_CENTER_OFFSET = 9;
+
+// Broader emoji choices for the manual part-add picker, beyond PARTS_PALETTE's small
+// spontaneous-spawn set - the user isn't restricted to a handful of preset feelings.
+const MANUAL_PART_EMOJI_CHOICES: string[] = [
+    "😠", "😢", "😨", "😳", "💭", "🧐", "😔", "😤", "😰", "🥺",
+    "😞", "😖", "😣", "😩", "😫", "🥶", "😶", "🙄", "😑", "😒",
+    "🤔", "😬", "😕", "🙁", "😟", "😥", "😓", "🥱", "😴", "🤐",
+];
+
+const FORCE_COLORS: Record<string, string> = {
+    selfUnblend: "#e74c3c",
+    selfProximity: "#2980b9",
+    blendPropensity: "#27ae60",
+    partRepulsion: "#f39c12",
+};
+
 class InwardPerspectiveExplorer {
     private root: HTMLElement;
     private svg: SVGSVGElement;
-    private regionPath: SVGPathElement;
-    private centroid = { x: CX, y: 170 };
-    private targetCentroid = { x: CX, y: 170 };
-    private baseRadius = 70; // diffuse-Self default
+    private attnPerimeterPath: SVGPathElement;
     // Latent shrink-wrap tendency of the boundary, 0..1 (0 = loose, 1 = tight).
     private shrinkWrap = 0;
     private targetShrinkWrap = 0;
@@ -35,16 +53,29 @@ class InwardPerspectiveExplorer {
     private drugWheelCenterX = 0;
     private drugWheelCenterY = 0;
     private cannabisPart: Part | null = null;
-    private currentRadius = 70;
+    private currentExtentRadius = 70;
     private lastTs = 0;
 
     // Debug overlay, enabled via ?debug=1 in the URL.
     private debugEnabled = false;
     private debugPanel!: HTMLElement;
-    private debugTargetDot!: SVGCircleElement;
-    private debugCentroidDot!: SVGCircleElement;
-    private debugPartLines!: SVGGElement;
-    private debugSelfLine!: SVGLineElement;
+    private debugCircles!: SVGGElement;
+    private debugField!: SVGGElement;
+
+    // Force-breakdown popup (hover, or click-to-lock) and per-part conflict ring.
+    private forcePopupGroup!: SVGGElement;
+    private forcePopupBg!: SVGRectElement;
+    private hoveredPart: Part | null = null;
+    private lockedPart: Part | null = null;
+    private conflictRings = new Map<Part, SVGCircleElement>();
+
+    // Manual part-add panel
+    private simulatePartsEnabled = true;
+    private manualEmoji: string = MANUAL_PART_EMOJI_CHOICES[0];
+    private manualEmojiTriggerBtn!: HTMLButtonElement;
+    private manualEmojiPopup!: HTMLElement;
+    private manualUrgencyInput!: HTMLInputElement;
+    private manualUrgencyValue!: HTMLElement;
 
     constructor(container: HTMLElement) {
         this.root = container;
@@ -74,7 +105,7 @@ class InwardPerspectiveExplorer {
       .ipe-self-knob-wedge { fill: #ffe600; fill-opacity: 0.9; stroke: #000; stroke-width: 2; display: none; pointer-events: none; }
       .ipe-self-knob-value-bg { fill: #f400d7; display: none; pointer-events: none; }
       .ipe-self-knob-value { font-size: 14px; font-weight: 700; fill: #fff; text-anchor: middle; display: none; user-select: none; pointer-events: none; }
-      .ipe-region { fill: #f400d7; fill-opacity: 0.08; stroke: #f400d7; stroke-width: 1.5; stroke-dasharray: 4,3; }
+      .ipe-attn-perimeter { fill: #f400d7; fill-opacity: 0.08; stroke: #f400d7; stroke-width: 1.5; stroke-dasharray: 4,3; }
       .ipe-part { font-size: 26px; text-anchor: middle; cursor: grab; user-select: none; }
       .ipe-part:active { cursor: grabbing; }
       .ipe-control-group { fill: none; stroke: rgba(128,128,128,0.35); stroke-width: 1; }
@@ -106,10 +137,27 @@ class InwardPerspectiveExplorer {
       .ipe-readout-title { font-size: 12px; font-weight: 600; }
       .ipe-readout-feelings { opacity: 0.85; }
       .ipe-debug-panel { margin-top: 0.75em; padding: 0.6em 0.8em; border: 1px dashed #f400d7; border-radius: 6px; font: 11px/1.5 ui-monospace, monospace; white-space: pre-wrap; background: rgba(244,0,215,0.05); }
-      .ipe-debug-target-dot { fill: #00b894; stroke: #000; stroke-width: 0.5; }
-      .ipe-debug-centroid-dot { fill: #f400d7; stroke: #000; stroke-width: 0.5; }
-      .ipe-debug-part-line { stroke: #00b894; stroke-width: 1; stroke-dasharray: 2,2; opacity: 0.7; }
-      .ipe-debug-self-line { stroke: #ff5722; stroke-width: 1.5; stroke-dasharray: 3,2; }
+      .ipe-debug-circle { fill: none; stroke: #00b894; stroke-width: 1; stroke-dasharray: 2,2; opacity: 0.7; }
+      .ipe-debug-capsule { stroke: #0984e3; stroke-width: 1; stroke-dasharray: 3,2; opacity: 0.6; }
+      .ipe-debug-field-dot { opacity: 0.55; }
+      .ipe-conflict-ring { fill: none; stroke-width: 2.5; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
+      .ipe-force-popup { pointer-events: none; }
+      .ipe-force-popup-bg { fill: var(--body-background, #fff); stroke: #888; stroke-width: 1; opacity: 0.95; }
+      .ipe-force-popup-row { font-size: 9.5px; fill: currentColor; }
+      .ipe-force-popup-swatch { stroke-width: 3; stroke-linecap: round; }
+      .ipe-manual-part-panel { margin-top: 0.75em; display: flex; flex-direction: column; gap: 0.5em; font-size: 0.85em; }
+      .ipe-manual-part-panel label.ipe-sim-toggle { display: flex; align-items: center; gap: 0.4em; cursor: pointer; }
+      .ipe-manual-part-row { display: flex; align-items: center; gap: 0.6em; flex-wrap: wrap; }
+      .ipe-manual-part-row.ipe-disabled { opacity: 0.4; pointer-events: none; }
+      .ipe-manual-part-row input[type=range] { width: 8em; }
+      .ipe-manual-part-add-btn { border: 1px solid currentColor; background: transparent; border-radius: 999px; padding: 0.2em 0.8em; font-size: 0.9em; cursor: pointer; }
+      .ipe-manual-emoji-picker-wrap { position: relative; }
+      .ipe-manual-emoji-trigger { border: 1px solid currentColor; background: transparent; border-radius: 6px; font-size: 1.3em; line-height: 1; padding: 0.15em 0.4em; cursor: pointer; }
+      .ipe-manual-emoji-popup { display: none; position: absolute; z-index: 10; top: calc(100% + 4px); left: 0; grid-template-columns: repeat(6, 2.2em); gap: 0.1em; padding: 0.4em; background: var(--body-background, #fff); border: 1px solid rgba(128,128,128,0.4); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+      .ipe-manual-emoji-popup.ipe-open { display: grid; }
+      .ipe-manual-emoji-btn { border: 1px solid transparent; background: transparent; border-radius: 6px; font-size: 1.7em; line-height: 2.2em; padding: 0; cursor: pointer; text-align: center; }
+      .ipe-manual-emoji-btn:hover { background: rgba(128,128,128,0.2); }
+      .ipe-manual-urgency-value { font-variant-numeric: tabular-nums; opacity: 0.75; min-width: 2.5em; }
     `;
         this.root.appendChild(style);
 
@@ -135,25 +183,17 @@ class InwardPerspectiveExplorer {
         }
         this.selfEnergyKnob = new SelfEnergyKnob(this.svg, W);
 
-        this.regionPath = svgEl("path");
-        this.regionPath.classList.add("ipe-region");
-        this.svg.insertBefore(this.regionPath, this.svg.firstChild);
+        this.attnPerimeterPath = svgEl("path");
+        this.attnPerimeterPath.classList.add("ipe-attn-perimeter");
+        this.svg.insertBefore(this.attnPerimeterPath, this.svg.firstChild);
 
-        // Debug overlay markers.
-        this.debugSelfLine = svgEl("line");
-        this.debugSelfLine.classList.add("ipe-debug-self-line");
-        this.debugPartLines = svgEl("g");
-        this.debugTargetDot = svgEl("circle");
-        this.debugTargetDot.classList.add("ipe-debug-target-dot");
-        this.debugTargetDot.setAttribute("r", "3");
-        this.debugCentroidDot = svgEl("circle");
-        this.debugCentroidDot.classList.add("ipe-debug-centroid-dot");
-        this.debugCentroidDot.setAttribute("r", "4");
+        // Debug overlay: outlines of the actual Self/part circles the perimeter wraps,
+        // plus a sampled-field grid so the marching-squares input is directly visible.
+        this.debugField = svgEl("g");
+        this.debugCircles = svgEl("g");
         if (this.debugEnabled) {
-            this.svg.appendChild(this.debugSelfLine);
-            this.svg.appendChild(this.debugPartLines);
-            this.svg.appendChild(this.debugTargetDot);
-            this.svg.appendChild(this.debugCentroidDot);
+            this.svg.appendChild(this.debugField);
+            this.svg.appendChild(this.debugCircles);
         }
 
         this.drugWheelCenterX = VERTEX_BY_NAME.self.x - 115;
@@ -223,6 +263,16 @@ class InwardPerspectiveExplorer {
         this.readoutFeelings.setAttribute("y", String(207));
         this.svg.appendChild(this.readoutFeelings);
 
+        // Force-breakdown popup, appended last so it renders above every part.
+        this.forcePopupGroup = svgEl("g");
+        this.forcePopupGroup.classList.add("ipe-force-popup");
+        this.forcePopupGroup.style.display = "none";
+        this.forcePopupBg = svgEl("rect");
+        this.forcePopupBg.classList.add("ipe-force-popup-bg");
+        this.forcePopupBg.setAttribute("rx", "6");
+        this.forcePopupGroup.appendChild(this.forcePopupBg);
+        this.svg.appendChild(this.forcePopupGroup);
+
         this.root.appendChild(this.svg);
 
         this.doseController = new DoseController(
@@ -244,6 +294,8 @@ class InwardPerspectiveExplorer {
             this.root.appendChild(this.debugPanel);
         }
 
+        this.buildManualPartPanel();
+
         this.svg.addEventListener("pointerdown", (e) => this.onPointerDown(e));
 
         requestAnimationFrame((ts) => this.tick(ts));
@@ -258,12 +310,27 @@ class InwardPerspectiveExplorer {
 
     // Above this Self energy, spawning stops and parts can be reaped to zero.
     private static readonly HIGH_SELF_ENERGY_THRESHOLD = 0.85;
+    // Tuned so that at selfEnergy=1 and dy=300 (the triangle's bottom vertices' y-level),
+    // the push is ~0.03 units - negligible next to the other forces (order 1-24).
+    private static readonly SELF_GRAVITY_CONSTANT = 3000;
+    // Fixed unit direction from blended toward unblended, used for the unblend/blend-
+    // propensity forces so their direction never depends on a part's own position.
+    private static readonly BLEND_TO_UNBLEND_DIR = (() => {
+        const dx = VERTEX_BY_NAME.unblended.x - VERTEX_BY_NAME.blended.x;
+        const dy = VERTEX_BY_NAME.unblended.y - VERTEX_BY_NAME.blended.y;
+        const dist = Math.hypot(dx, dy);
+        return { x: dx / dist, y: dy / dist };
+    })();
 
     private scheduleSpawn(): void {
         const delay = 10000 + Math.random() * 10000;
         window.setTimeout(() => {
             const proposed = this.spontaneousParts.length + 1;
-            if (this.selfEnergy < InwardPerspectiveExplorer.HIGH_SELF_ENERGY_THRESHOLD && Math.random() < 1 / proposed) {
+            if (
+                this.simulatePartsEnabled &&
+                this.selfEnergy < InwardPerspectiveExplorer.HIGH_SELF_ENERGY_THRESHOLD &&
+                Math.random() < 1 / proposed
+            ) {
                 this.addRandomPart();
             }
             this.scheduleSpawn();
@@ -274,7 +341,9 @@ class InwardPerspectiveExplorer {
         const delay = 1000 + Math.random() * 1000;
         window.setTimeout(() => {
             const highSelfEnergy = this.selfEnergy >= InwardPerspectiveExplorer.HIGH_SELF_ENERGY_THRESHOLD;
-            const canReap = this.spontaneousParts.length > (highSelfEnergy ? 0 : 1);
+            const canReap =
+                (this.simulatePartsEnabled || highSelfEnergy) &&
+                this.spontaneousParts.length > (highSelfEnergy ? 0 : 1);
             if (canReap && (highSelfEnergy || Math.random() < 0.1)) {
                 const oldest = this.spontaneousParts.shift()!;
                 oldest.fadingOut = true;
@@ -287,7 +356,7 @@ class InwardPerspectiveExplorer {
         const { emoji, feeling } = PARTS_PALETTE[Math.floor(Math.random() * PARTS_PALETTE.length)];
         const angle = Math.random() * Math.PI * 2;
         const r = 30 + Math.random() * 20;
-        const { x, y } = clampPartPosition(this.centroid.x + Math.cos(angle) * r, this.centroid.y + Math.sin(angle) * r);
+        const { x, y } = clampPartPosition(VERTEX_BY_NAME.self.x + Math.cos(angle) * r, VERTEX_BY_NAME.self.y + Math.sin(angle) * r);
         const el = svgEl("text");
         el.classList.add("ipe-part");
         el.setAttribute("x", String(x));
@@ -299,9 +368,319 @@ class InwardPerspectiveExplorer {
             this.startDrag(part, e);
         });
         this.svg.appendChild(el);
-        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendPropensity: Math.random() };
+        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendPropensity: Math.random(), forces: [], extraLinkTo: this.rollExtraLink() };
         this.parts.push(part);
         this.spontaneousParts.push(part);
+        this.wireForcePopup(part);
+    }
+
+    // Rolled once per new part: on top of its always-present link to Self, a 50% chance
+    // of one extra attention-perimeter connector to a part already present, so the
+    // perimeter occasionally links parts directly to each other rather than only fanning
+    // out from Self.
+    private rollExtraLink(): Part | null {
+        if (this.parts.length === 0 || Math.random() >= 0.5) return null;
+        return this.parts[Math.floor(Math.random() * this.parts.length)];
+    }
+
+    // Adds a part the user placed by hand via the manual-add panel, bypassing spontaneous
+    // spawn/reap bookkeeping (spontaneousParts) since it isn't subject to auto-reaping.
+    private addManualPart(emoji: string, blendPropensity: number): void {
+        const angle = Math.random() * Math.PI * 2;
+        const r = 30 + Math.random() * 20;
+        const { x, y } = clampPartPosition(VERTEX_BY_NAME.self.x + Math.cos(angle) * r, VERTEX_BY_NAME.self.y + Math.sin(angle) * r);
+        const el = svgEl("text");
+        el.classList.add("ipe-part");
+        el.setAttribute("x", String(x));
+        el.setAttribute("y", String(y));
+        el.style.opacity = "0";
+        el.textContent = emoji;
+        const feeling = PARTS_PALETTE.find((p) => p.emoji === emoji)?.feeling ?? "";
+        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendPropensity, forces: [], extraLinkTo: this.rollExtraLink() };
+        el.addEventListener("pointerdown", (e) => {
+            e.stopPropagation();
+            this.startDrag(part, e);
+        });
+        this.svg.appendChild(el);
+        this.parts.push(part);
+        this.wireForcePopup(part);
+    }
+
+    private buildManualPartPanel(): void {
+        const panel = document.createElement("div");
+        panel.className = "ipe-manual-part-panel";
+
+        const toggleLabel = document.createElement("label");
+        toggleLabel.className = "ipe-sim-toggle";
+        const toggle = document.createElement("input");
+        toggle.type = "checkbox";
+        toggle.checked = this.simulatePartsEnabled;
+        toggleLabel.appendChild(toggle);
+        toggleLabel.appendChild(document.createTextNode("Let parts appear and disappear on their own schedule"));
+        panel.appendChild(toggleLabel);
+
+        const row = document.createElement("div");
+        row.className = "ipe-manual-part-row ipe-disabled";
+
+        const emojiPickerWrap = document.createElement("div");
+        emojiPickerWrap.className = "ipe-manual-emoji-picker-wrap";
+
+        this.manualEmojiTriggerBtn = document.createElement("button");
+        this.manualEmojiTriggerBtn.type = "button";
+        this.manualEmojiTriggerBtn.className = "ipe-manual-emoji-trigger";
+        this.manualEmojiTriggerBtn.textContent = this.manualEmoji;
+        this.manualEmojiTriggerBtn.addEventListener("click", () => {
+            this.manualEmojiPopup.classList.toggle("ipe-open");
+        });
+        emojiPickerWrap.appendChild(this.manualEmojiTriggerBtn);
+
+        this.manualEmojiPopup = document.createElement("div");
+        this.manualEmojiPopup.className = "ipe-manual-emoji-popup";
+        for (const emoji of MANUAL_PART_EMOJI_CHOICES) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "ipe-manual-emoji-btn";
+            btn.textContent = emoji;
+            btn.addEventListener("click", () => {
+                this.manualEmoji = emoji;
+                this.manualEmojiTriggerBtn.textContent = emoji;
+                this.manualEmojiPopup.classList.remove("ipe-open");
+            });
+            this.manualEmojiPopup.appendChild(btn);
+        }
+        emojiPickerWrap.appendChild(this.manualEmojiPopup);
+        document.addEventListener("click", (e) => {
+            if (!emojiPickerWrap.contains(e.target as Node)) this.manualEmojiPopup.classList.remove("ipe-open");
+        });
+        row.appendChild(emojiPickerWrap);
+
+        const urgencyLabel = document.createElement("span");
+        urgencyLabel.textContent = "Blending urgency";
+        row.appendChild(urgencyLabel);
+
+        this.manualUrgencyInput = document.createElement("input");
+        this.manualUrgencyInput.type = "range";
+        this.manualUrgencyInput.min = "0";
+        this.manualUrgencyInput.max = "1";
+        this.manualUrgencyInput.step = "0.01";
+        this.manualUrgencyInput.value = "0.5";
+        row.appendChild(this.manualUrgencyInput);
+
+        this.manualUrgencyValue = document.createElement("span");
+        this.manualUrgencyValue.className = "ipe-manual-urgency-value";
+        this.manualUrgencyValue.textContent = Number(this.manualUrgencyInput.value).toFixed(2);
+        row.appendChild(this.manualUrgencyValue);
+        this.manualUrgencyInput.addEventListener("input", () => {
+            this.manualUrgencyValue.textContent = Number(this.manualUrgencyInput.value).toFixed(2);
+        });
+
+        const addBtn = document.createElement("button");
+        addBtn.type = "button";
+        addBtn.className = "ipe-manual-part-add-btn";
+        addBtn.textContent = "Add part";
+        addBtn.addEventListener("click", () => {
+            const urgency = Number(this.manualUrgencyInput.value);
+            this.addManualPart(this.manualEmoji, urgency);
+        });
+        row.appendChild(addBtn);
+
+        panel.appendChild(row);
+        this.root.appendChild(panel);
+
+        toggle.addEventListener("change", () => {
+            this.simulatePartsEnabled = toggle.checked;
+            row.classList.toggle("ipe-disabled", this.simulatePartsEnabled);
+        });
+    }
+
+    // Sums each part's forces two ways: vector sum of magnitudes (what actually moves the
+    // part) vs. sum of scalar magnitudes (what would move it if nothing opposed anything).
+    // When forces are large but pull in opposite directions, the vector sum shrinks toward
+    // zero while the scalar sum stays large - the ratio between them is the conflict measure.
+    private static computeConflict(forces: PartForce[]): number {
+        let sumMagnitudes = 0;
+        let vecX = 0;
+        let vecY = 0;
+        for (const f of forces) {
+            sumMagnitudes += Math.hypot(f.x, f.y);
+            vecX += f.x;
+            vecY += f.y;
+        }
+        if (sumMagnitudes < 0.01) return 0;
+        const netMagnitude = Math.hypot(vecX, vecY);
+        return 1 - netMagnitude / sumMagnitudes;
+    }
+
+    private wireForcePopup(part: Part): void {
+        part.el.addEventListener("pointerenter", () => {
+            this.hoveredPart = part;
+            if (!this.lockedPart) this.showForcePopup(part);
+        });
+        part.el.addEventListener("pointerleave", () => {
+            if (this.hoveredPart === part) this.hoveredPart = null;
+            if (!this.lockedPart) this.hideForcePopup();
+        });
+        part.el.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (this.lockedPart === part) {
+                this.lockedPart = null;
+                if (this.hoveredPart) this.showForcePopup(this.hoveredPart);
+                else this.hideForcePopup();
+            } else {
+                this.lockedPart = part;
+                this.showForcePopup(part);
+            }
+        });
+
+        const ring = svgEl("circle");
+        ring.classList.add("ipe-conflict-ring");
+        this.svg.insertBefore(ring, this.forcePopupGroup);
+        this.conflictRings.set(part, ring);
+    }
+
+    private showForcePopup(part: Part): void {
+        this.forcePopupGroup.style.display = "";
+        const rows = part.forces;
+
+        while (this.forcePopupGroup.children.length > 1) {
+            this.forcePopupGroup.removeChild(this.forcePopupGroup.lastChild!);
+        }
+
+        const rowHeight = 13;
+        const width = 150;
+        const plotSize = 90;
+        const plotTop = 6;
+        const legendTop = plotTop + plotSize + 10;
+        const height = legendTop + rowHeight * Math.max(rows.length, 1);
+
+        // Vector plot: each force as an arrow from the plot's center, scaled so the
+        // largest-magnitude force (across all of this part's forces) reaches the edge.
+        const plotCx = width / 2;
+        const plotCy = plotTop + plotSize / 2;
+        const maxMag = Math.max(0.01, ...rows.map((f) => Math.hypot(f.x, f.y)));
+        const plotScale = plotSize / 2 - 10;
+
+        const plotBorder = svgEl("rect");
+        plotBorder.setAttribute("x", "4");
+        plotBorder.setAttribute("y", String(plotTop));
+        plotBorder.setAttribute("width", String(width - 8));
+        plotBorder.setAttribute("height", String(plotSize));
+        plotBorder.setAttribute("rx", "4");
+        plotBorder.setAttribute("fill", "none");
+        plotBorder.setAttribute("stroke", "currentColor");
+        plotBorder.setAttribute("stroke-opacity", "0.2");
+        this.forcePopupGroup.appendChild(plotBorder);
+
+        const center = svgEl("circle");
+        center.setAttribute("cx", String(plotCx));
+        center.setAttribute("cy", String(plotCy));
+        center.setAttribute("r", "2.5");
+        center.setAttribute("fill", "currentColor");
+        center.setAttribute("fill-opacity", "0.5");
+        this.forcePopupGroup.appendChild(center);
+
+        for (const f of rows) {
+            const mag = Math.hypot(f.x, f.y);
+            if (mag < 0.01) continue;
+            const ex = plotCx + (f.x / maxMag) * plotScale;
+            const ey = plotCy + (f.y / maxMag) * plotScale;
+
+            const arrow = svgEl("line");
+            arrow.setAttribute("x1", String(plotCx));
+            arrow.setAttribute("y1", String(plotCy));
+            arrow.setAttribute("x2", String(ex));
+            arrow.setAttribute("y2", String(ey));
+            arrow.setAttribute("stroke", f.color);
+            arrow.setAttribute("stroke-width", "2");
+            this.forcePopupGroup.appendChild(arrow);
+
+            const angle = Math.atan2(f.y, f.x);
+            const headLen = 5;
+            for (const spread of [Math.PI * 0.8, -Math.PI * 0.8]) {
+                const hx = ex + Math.cos(angle + spread) * headLen;
+                const hy = ey + Math.sin(angle + spread) * headLen;
+                const head = svgEl("line");
+                head.setAttribute("x1", String(ex));
+                head.setAttribute("y1", String(ey));
+                head.setAttribute("x2", String(hx));
+                head.setAttribute("y2", String(hy));
+                head.setAttribute("stroke", f.color);
+                head.setAttribute("stroke-width", "2");
+                this.forcePopupGroup.appendChild(head);
+            }
+        }
+
+        // Net (summed) vector, drawn on top in the current text color so it stands out
+        // from the individual per-force colors.
+        let netX = 0;
+        let netY = 0;
+        for (const f of rows) {
+            netX += f.x;
+            netY += f.y;
+        }
+        const netMag = Math.hypot(netX, netY);
+        if (netMag > 0.01) {
+            const nx = plotCx + (netX / maxMag) * plotScale;
+            const ny = plotCy + (netY / maxMag) * plotScale;
+            const netLine = svgEl("line");
+            netLine.setAttribute("x1", String(plotCx));
+            netLine.setAttribute("y1", String(plotCy));
+            netLine.setAttribute("x2", String(nx));
+            netLine.setAttribute("y2", String(ny));
+            netLine.setAttribute("stroke", "currentColor");
+            netLine.setAttribute("stroke-width", "1.5");
+            netLine.setAttribute("stroke-dasharray", "3,2");
+            this.forcePopupGroup.appendChild(netLine);
+        }
+
+        rows.forEach((f, i) => {
+            const y = legendTop + i * rowHeight;
+            const swatch = svgEl("line");
+            swatch.classList.add("ipe-force-popup-swatch");
+            swatch.setAttribute("x1", "6");
+            swatch.setAttribute("x2", "18");
+            swatch.setAttribute("y1", String(y - 3));
+            swatch.setAttribute("y2", String(y - 3));
+            swatch.style.stroke = f.color;
+            this.forcePopupGroup.appendChild(swatch);
+
+            const label = svgEl("text");
+            label.classList.add("ipe-force-popup-row");
+            label.setAttribute("x", "23");
+            label.setAttribute("y", String(y));
+            label.textContent = `${f.name} (${Math.hypot(f.x, f.y).toFixed(2)})`;
+            this.forcePopupGroup.appendChild(label);
+        });
+
+        this.forcePopupBg.setAttribute("width", String(width));
+        this.forcePopupBg.setAttribute("height", String(height));
+
+        const partCy = part.y - EMOJI_VERTICAL_CENTER_OFFSET;
+        let px = part.x + 18;
+        let py = partCy - height - 10;
+        if (px + width > W) px = part.x - width - 18;
+        if (py < 0) py = partCy + 18;
+        this.forcePopupGroup.setAttribute("transform", `translate(${px}, ${py})`);
+    }
+
+    private hideForcePopup(): void {
+        this.forcePopupGroup.style.display = "none";
+    }
+
+    private updateForceOverlay(part: Part): void {
+        const ring = this.conflictRings.get(part);
+        if (ring) {
+            const conflict = InwardPerspectiveExplorer.computeConflict(part.forces);
+            ring.setAttribute("cx", String(part.x));
+            ring.setAttribute("cy", String(part.y - EMOJI_VERTICAL_CENTER_OFFSET));
+            ring.setAttribute("r", "17");
+            // Fixed red hue; opacity itself conveys the degree of conflict.
+            ring.style.stroke = "hsl(0, 85%, 50%)";
+            ring.style.opacity = conflict > 0.35 ? String(Math.min(1, (conflict - 0.35) / 0.4)) : "0";
+        }
+        if (this.lockedPart === part || (!this.lockedPart && this.hoveredPart === part)) {
+            this.showForcePopup(part);
+        }
     }
 
     private draggingPart: Part | null = null;
@@ -376,6 +755,8 @@ class InwardPerspectiveExplorer {
                 el,
                 // Tracks THC dose fraction rather than being randomly sampled.
                 blendPropensity: this.doseController.doses.cannabis,
+                forces: [],
+                extraLinkTo: this.rollExtraLink(),
             };
             el.addEventListener("pointerdown", (e) => {
                 e.stopPropagation();
@@ -384,6 +765,7 @@ class InwardPerspectiveExplorer {
             this.svg.appendChild(el);
             this.cannabisPart = part;
             this.parts.push(part);
+            this.wireForcePopup(part);
         } else {
             this.cannabisPart.blendPropensity = this.doseController.doses.cannabis;
         }
@@ -403,7 +785,7 @@ class InwardPerspectiveExplorer {
             ),
         );
 
-        this.readoutTitle.textContent = focusPhrase(this.currentRadius);
+        this.readoutTitle.textContent = focusPhrase(this.currentExtentRadius, this.selfEnergy);
         this.readoutBody.textContent = `${qualities.join(", ")}.`;
         this.readoutFeelings.textContent = activeFeelings.length ? `parts: ${activeFeelings.join(", ")}` : "";
     }
@@ -424,36 +806,48 @@ class InwardPerspectiveExplorer {
             p.vx += (Math.random() - 0.5) * 12 * dt;
             p.vy += (Math.random() - 0.5) * 12 * dt;
 
+            // Every named force is always recorded, even at zero magnitude, so the
+            // force-breakdown popup's legend/vectors stay stable frame to frame instead of
+            // rows appearing and disappearing as a part sits at a boundary or between others.
+            const forces: PartForce[] = [
+                { name: "Self-energy unblend", color: FORCE_COLORS.selfUnblend, x: 0, y: 0 },
+                { name: "Self proximity", color: FORCE_COLORS.selfProximity, x: 0, y: 0 },
+                { name: "Blend urgency", color: FORCE_COLORS.blendPropensity, x: 0, y: 0 },
+                { name: "Part repulsion", color: FORCE_COLORS.partRepulsion, x: 0, y: 0 },
+            ];
+            const [fSelfUnblend, fSelfProximity, fBlendPropensity, fPartRepulsion] = forces;
+
             // Ambient Self energy pushes parts away from blended, via a sigmoid ramp.
             const selfPushFactor = sigmoid(this.selfEnergy, 0.325, 28);
             const selfPush = selfPushFactor * BLEND_FORCE_SCALE;
-            const bdx = p.x - VERTEX_BY_NAME.blended.x;
-            const bdy = p.y - VERTEX_BY_NAME.blended.y;
-            const bDist = Math.hypot(bdx, bdy);
-            let pushDirX = 0;
-            let pushDirY = 0;
-            if (bDist > 0.01) {
-                pushDirX = bdx / bDist;
-                pushDirY = bdy / bDist;
-                p.vx += pushDirX * (selfPush + unblendPush * BLEND_FORCE_SCALE) * dt;
-                p.vy += pushDirY * (selfPush + unblendPush * BLEND_FORCE_SCALE) * dt;
+            // Fixed blended-to-unblended direction, independent of the part's own position -
+            // using a per-part direction here would make the force's direction depend on the
+            // part's y coordinate, which isn't a meaningful psychological distinction.
+            const pushDirX = InwardPerspectiveExplorer.BLEND_TO_UNBLEND_DIR.x;
+            const pushDirY = InwardPerspectiveExplorer.BLEND_TO_UNBLEND_DIR.y;
+            {
+                fSelfUnblend.x = pushDirX * (selfPush + unblendPush * BLEND_FORCE_SCALE);
+                fSelfUnblend.y = pushDirY * (selfPush + unblendPush * BLEND_FORCE_SCALE);
+                p.vx += fSelfUnblend.x * dt;
+                p.vy += fSelfUnblend.y * dt;
             }
 
-            // Linear push from Self, along the Self-to-part line.
-            const sdx = p.x - VERTEX_BY_NAME.self.x;
-            const sdy = p.y - VERTEX_BY_NAME.self.y;
-            const sDist = Math.hypot(sdx, sdy);
-            if (sDist > 0.01) {
-                const selfEdgePush = this.selfEnergy * 6;
-                p.vx += (sdx / sDist) * selfEdgePush * dt;
-                p.vy += (sdy / sDist) * selfEdgePush * dt;
-            }
+            // Self-energy "gravity": a downward-only push along y, falling off with the
+            // square of vertical distance from Self, like inverse-square gravity pointed
+            // away from Self. SELF_GRAVITY_CONSTANT is chosen so that even at 100% Self
+            // energy this is barely perceptible down at the blended/unblended vertices'
+            // y-level (~300px below Self), but noticeably stronger for a part near Self.
+            const dy = Math.max(30, p.y - VERTEX_BY_NAME.self.y);
+            fSelfProximity.y = (this.selfEnergy * InwardPerspectiveExplorer.SELF_GRAVITY_CONSTANT) / (dy * dy);
+            p.vy += fSelfProximity.y * dt;
 
             // Each part's own blendPropensity pulls it steadily toward blended.
-            if (p.blendPropensity > 0 && bDist > 0.01) {
+            if (p.blendPropensity > 0) {
                 const blendPull = p.blendPropensity * BLEND_FORCE_SCALE;
-                p.vx += -pushDirX * blendPull * dt;
-                p.vy += -pushDirY * blendPull * dt;
+                fBlendPropensity.x = -pushDirX * blendPull;
+                fBlendPropensity.y = -pushDirY * blendPull;
+                p.vx += fBlendPropensity.x * dt;
+                p.vy += fBlendPropensity.y * dt;
             }
 
             for (const other of this.parts) {
@@ -463,100 +857,136 @@ class InwardPerspectiveExplorer {
                 const oDist = Math.hypot(odx, ody);
                 if (oDist < AVOID_PART_RADIUS && oDist > 0.01) {
                     const push = (1 - oDist / AVOID_PART_RADIUS) * 50;
-                    p.vx += (odx / oDist) * push * dt;
-                    p.vy += (ody / oDist) * push * dt;
+                    fPartRepulsion.x += (odx / oDist) * push;
+                    fPartRepulsion.y += (ody / oDist) * push;
                 }
             }
+            p.vx += fPartRepulsion.x * dt;
+            p.vy += fPartRepulsion.y * dt;
+
+            p.forces = forces;
 
             p.vx *= 0.95;
             p.vy *= 0.95;
             const clamped = clampPartPosition(p.x + p.vx, p.y + p.vy);
             p.x = clamped.x;
             p.y = clamped.y;
+
             p.el.setAttribute("x", String(p.x));
             p.el.setAttribute("y", String(p.y));
 
             const targetOpacity = p.fadingOut ? 0 : 1;
             p.opacity = lerp(p.opacity, targetOpacity, 1 - Math.exp(-6 * dt));
             p.el.style.opacity = String(p.opacity);
+
+            this.updateForceOverlay(p);
         }
 
         if (this.parts.some((p) => p.fadingOut && p.opacity < 0.02)) {
             for (const p of this.parts) {
-                if (p.fadingOut && p.opacity < 0.02) p.el.remove();
+                if (p.fadingOut && p.opacity < 0.02) {
+                    p.el.remove();
+                    this.conflictRings.get(p)?.remove();
+                    this.conflictRings.delete(p);
+                    if (this.hoveredPart === p) this.hoveredPart = null;
+                    if (this.lockedPart === p) {
+                        this.lockedPart = null;
+                        this.hideForcePopup();
+                    }
+                    // Any other part's extra attention-perimeter link may point at this
+                    // one; left dangling, its connector capsule would keep enclosing the
+                    // now-gone part's last position forever.
+                    for (const other of this.parts) {
+                        if (other.extraLinkTo === p) other.extraLinkTo = null;
+                    }
+                }
             }
             this.parts = this.parts.filter((p) => !(p.fadingOut && p.opacity < 0.02));
         }
 
-        const pressures = collectRegionPressures(this.doseController.doses, (key) => this.doseController.isActive(key));
+        const circles = buildCircles(this.selfEnergy, this.parts);
 
-        this.targetCentroid = computeTargetCentroid(this.selfEnergy, this.parts, pressures);
-        this.centroid.x = lerp(this.centroid.x, this.targetCentroid.x, 1 - Math.exp(-3.5 * dt));
-        this.centroid.y = lerp(this.centroid.y, this.targetCentroid.y, 1 - Math.exp(-3.5 * dt));
-
-        this.targetShrinkWrap = computeTargetShrinkWrap(this.parts, pressures);
+        this.targetShrinkWrap = computeTargetShrinkWrap();
         this.shrinkWrap = lerp(this.shrinkWrap, this.targetShrinkWrap, 1 - Math.exp(-1.5 * dt));
 
-        const radius = computeRadius(this.baseRadius, this.shrinkWrap, this.selfEnergy, this.centroid, this.parts, pressures);
-        this.currentRadius = radius;
+        this.currentExtentRadius = approximateExtentRadius(circles);
         this.wobblePhase = this.wobblePhase.map((ph, i) => ph + dt * (0.6 + i * 0.23));
 
-        this.regionPath.setAttribute("d", buildRegionPath(this.centroid, radius, this.shrinkWrap, this.wobblePhase));
+        this.attnPerimeterPath.setAttribute("d", buildAttnPerimeterPath(circles, this.parts, this.shrinkWrap, this.wobblePhase));
         this.updateReadout();
 
-        if (this.debugEnabled) this.updateDebugOverlay(pressures);
+        if (this.debugEnabled) this.updateDebugOverlay(circles);
 
         requestAnimationFrame((next) => this.tick(next));
     }
 
-    private updateDebugOverlay(pressures: ReturnType<typeof collectRegionPressures>): void {
-        this.debugTargetDot.setAttribute("cx", String(this.targetCentroid.x));
-        this.debugTargetDot.setAttribute("cy", String(this.targetCentroid.y));
-        this.debugCentroidDot.setAttribute("cx", String(this.centroid.x));
-        this.debugCentroidDot.setAttribute("cy", String(this.centroid.y));
+    private updateDebugOverlay(circles: Circle[]): void {
+        const capsules = buildConnectorCapsules(circles[0], this.parts, this.shrinkWrap);
 
-        this.debugPartLines.textContent = "";
-        for (const p of this.parts) {
-            const line = svgEl("line");
-            line.classList.add("ipe-debug-part-line");
-            line.setAttribute("x1", String(this.centroid.x));
-            line.setAttribute("y1", String(this.centroid.y));
-            line.setAttribute("x2", String(p.x));
-            line.setAttribute("y2", String(p.y));
-            this.debugPartLines.appendChild(line);
+        this.debugCircles.textContent = "";
+        for (const c of circles) {
+            const el = svgEl("circle");
+            el.classList.add("ipe-debug-circle");
+            el.setAttribute("cx", String(c.x));
+            el.setAttribute("cy", String(c.y));
+            el.setAttribute("r", String(c.r));
+            this.debugCircles.appendChild(el);
+        }
+        for (const cap of capsules) {
+            const el = svgEl("line");
+            el.classList.add("ipe-debug-capsule");
+            el.setAttribute("x1", String(cap.ax));
+            el.setAttribute("y1", String(cap.ay));
+            el.setAttribute("x2", String(cap.bx));
+            el.setAttribute("y2", String(cap.by));
+            this.debugCircles.appendChild(el);
         }
 
-        const wSelf = 1.0 * this.selfEnergy;
-        const wBlendedDrift = 0.9 * (1 - this.selfEnergy);
-        const pullDrugs = DRUGS.filter((d) => d.pull && !d.rendersAsPart && this.doseController.isActive(d.key));
-        const distToSelf = Math.hypot(this.centroid.x - VERTEX_BY_NAME.self.x, this.centroid.y - VERTEX_BY_NAME.self.y);
-        const selfInclusionRadius = (distToSelf + 24) * this.selfEnergy;
-        const selfConstraintActive = selfInclusionRadius > this.currentRadius - 0.5;
-
-        this.debugSelfLine.setAttribute("x1", String(this.centroid.x));
-        this.debugSelfLine.setAttribute("y1", String(this.centroid.y));
-        this.debugSelfLine.setAttribute("x2", String(VERTEX_BY_NAME.self.x));
-        this.debugSelfLine.setAttribute("y2", String(VERTEX_BY_NAME.self.y));
-        this.debugSelfLine.style.display = selfConstraintActive ? "" : "none";
+        // Coarse sampled-field grid: each dot's fill/size shows the raw metaball field
+        // value at that point, red once it crosses the current threshold (i.e. "inside"
+        // the perimeter marching squares would draw) - this is the actual scalar field
+        // the isoline-extraction algorithm walks, made visible directly instead of only
+        // showing its end result (the perimeter path).
+        this.debugField.textContent = "";
+        const threshold = thresholdFor(this.shrinkWrap);
+        const cols = 24, rows = 20;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const c of circles) {
+            minX = Math.min(minX, c.x - c.r);
+            minY = Math.min(minY, c.y - c.r);
+            maxX = Math.max(maxX, c.x + c.r);
+            maxY = Math.max(maxY, c.y + c.r);
+        }
+        for (const cap of capsules) {
+            minX = Math.min(minX, cap.ax - cap.r, cap.bx - cap.r);
+            minY = Math.min(minY, cap.ay - cap.r, cap.by - cap.r);
+            maxX = Math.max(maxX, cap.ax + cap.r, cap.bx + cap.r);
+            maxY = Math.max(maxY, cap.ay + cap.r, cap.by + cap.r);
+        }
+        const margin = 60;
+        minX -= margin; minY -= margin; maxX += margin; maxY += margin;
+        for (let j = 0; j <= rows; j++) {
+            for (let i = 0; i <= cols; i++) {
+                const x = lerp(minX, maxX, i / cols);
+                const y = lerp(minY, maxY, j / rows);
+                const f = fieldAt(x, y, circles, capsules);
+                const inside = f >= threshold;
+                const dot = svgEl("circle");
+                dot.classList.add("ipe-debug-field-dot");
+                dot.setAttribute("cx", String(x));
+                dot.setAttribute("cy", String(y));
+                dot.setAttribute("r", inside ? "2.2" : "1");
+                dot.setAttribute("fill", inside ? "#e74c3c" : "#7f8c8d");
+                this.debugField.appendChild(dot);
+            }
+        }
 
         const lines: string[] = [];
         lines.push(`selfEnergy: ${this.selfEnergy.toFixed(2)} (baseline ${this.selfEnergyKnob.currentBaseline.toFixed(2)} + fraction ${this.selfEnergyKnob.currentUserFraction.toFixed(2)})`);
-        lines.push(`centroid weights: self=${wSelf.toFixed(2)} blendedDrift=${wBlendedDrift.toFixed(2)}`);
-        lines.push(`parts: ${this.parts.length} (weight 2.2 each)${this.parts.length ? " @ " + this.parts.map((p) => `(${p.x.toFixed(0)},${p.y.toFixed(0)})`).join(", ") : ""}`);
-        if (pullDrugs.length) {
-            lines.push(
-                "drug pull: " +
-                pullDrugs
-                    .map((drug) => `${drug.name} dose=${this.doseController.doses[drug.key].toFixed(2)} pull=(self ${drug.pull!.self}, blended ${drug.pull!.blended}, unblended ${drug.pull!.unblended})`)
-                    .join("; "),
-            );
-        } else {
-            lines.push("drug pull: none");
-        }
-        lines.push(`target centroid: (${this.targetCentroid.x.toFixed(1)}, ${this.targetCentroid.y.toFixed(1)})  actual: (${this.centroid.x.toFixed(1)}, ${this.centroid.y.toFixed(1)})`);
-        lines.push(`shrinkWrap: ${this.shrinkWrap.toFixed(2)} (target ${this.targetShrinkWrap.toFixed(2)})`);
-        lines.push(`radius: ${this.currentRadius.toFixed(1)}  selfInclusionRadius: ${selfInclusionRadius.toFixed(1)}${selfConstraintActive ? " <- ACTIVE, setting the floor" : ""}`);
-        lines.push(`distToSelf: ${distToSelf.toFixed(1)}`);
+        lines.push(`circles: ${circles.length} (self r=${circles[0].r.toFixed(1)})${this.parts.length ? " parts @ " + this.parts.map((p) => `(${p.x.toFixed(0)},${p.y.toFixed(0)})`).join(", ") : ""}`);
+        lines.push(`shrinkWrap: ${this.shrinkWrap.toFixed(2)} (target ${this.targetShrinkWrap.toFixed(2)})  threshold: ${threshold.toFixed(3)}`);
+        lines.push(`approx extent radius: ${this.currentExtentRadius.toFixed(1)}`);
+        lines.push(`field grid: red dot = inside (field >= threshold), gray = outside`);
 
         this.debugPanel.textContent = lines.join("\n");
     }

@@ -6,18 +6,6 @@ export interface Vertex {
     y: number;
 }
 
-// A weighted point contribution toward the region's target centroid, plus how much it
-// should narrow (vs. diffuse) the boundary's shrink-wrap and radius. Region-placement
-// code (computeTargetCentroid/computeTargetShrinkWrap/computeRadius) only ever consumes
-// a flat list of these — it has no knowledge of drugs, parts, or any other source.
-export interface RegionPressure {
-    x: number;
-    y: number;
-    weight: number;
-    // 0 (pull spread evenly across all three vertices) .. 1 (pull concentrated on one).
-    narrowness: number;
-}
-
 export const W = 480;
 export const H = 420;
 export const CX = W / 2;
@@ -44,15 +32,17 @@ export function sigmoid(x: number, midpoint: number, steepness: number): number 
     return 1 / (1 + Math.exp(-steepness * (x - midpoint)));
 }
 
-// Parts live in the lower half of the triangle, from the vertical midpoint down to the
-// blended/unblended corners, and can drift horizontally all the way out to those corners.
+// Parts can drift anywhere inside the triangle, from the Self vertex down to the
+// blended/unblended corners - the tick loop's Self-proximity gravity (an inverse-square
+// push away from Self) is what actually keeps parts from congregating near the top, so
+// this only needs to keep them inside the triangle's shape, not clamp a fixed lower half.
 // The two axes can't be clamped independently: at a given height the triangle's left/right
 // edges (self-blended, self-unblended) are narrower than the full corner-to-corner width,
 // so clamping x and y separately let points escape the triangle up near its slanted edges.
 export function clampPartPosition(x: number, y: number): { x: number; y: number } {
-    const midY = (VERTEX_BY_NAME.self.y + VERTEX_BY_NAME.blended.y) / 2;
+    const topY = VERTEX_BY_NAME.self.y;
     const bottomY = VERTEX_BY_NAME.blended.y;
-    const clampedY = Math.min(bottomY, Math.max(midY, y));
+    const clampedY = Math.min(bottomY, Math.max(topY, y));
 
     // At clampedY, interpolate how far the self-blended and self-unblended edges
     // have widened from a point at Self out to the full corners at the bottom.

@@ -7,11 +7,12 @@ An animated widget for the "Inward perspective" axis of the Psychological
 Characterization scale (see data/psychScale.json and psych-scale.ts).
 Embedded via <div id="inward-perspective-explorer"> in
 content/docs/psychoactive/_index.md. Three vertices - Self (1st), blended
-(2nd), unblended (3rd) - form a triangle. A dashed, wobbling boundary
-(visual language borrowed from urbb-web's StarBorder) encloses a "focus
-region" whose area and position are pulled by emoji "parts" that drift in
-and out on their own, plus dose sliders for named substances. A rotary
-knob at the Self vertex sets ambient "Self energy" by hand.
+(2nd), unblended (3rd) - form a triangle. A dashed, wobbling "attention
+perimeter" (visual language borrowed from urbb-web's StarBorder) wraps
+around a Self circle (radius grows with ambient "Self energy", set by hand
+via a rotary knob at the Self vertex) and one fixed-radius circle per
+drifting emoji "part" that fades in and out on its own, plus dose sliders
+for named substances.
 
 Entry point: src/inward-perspective-explorer.ts's `InwardPerspectiveExplorer`
 class, instantiated directly against the container div at module load (no
@@ -24,31 +25,27 @@ Core architecture
    drug/UI knowledge.
    - `VERTICES`/`VERTEX_BY_NAME`: the three triangle corners (Self, blended,
      unblended) with fixed screen positions.
-   - `RegionPressure`: a weighted point contribution toward the region's
-     target centroid, plus a `narrowness` (0..1) saying how much it should
-     narrow vs. diffuse the boundary's shrink-wrap and radius. Region-
-     placement code only ever consumes a flat list of these - it has no
-     knowledge of drugs, parts, or any other source, which is what keeps
-     regionPhysics.ts pure.
-   - `clampPartPosition`: keeps a part inside the triangle's lower half
-     (Self's vertical midpoint down to the blended/unblended corners). Both
-     axes are clamped together in one function because at a given height
-     the triangle's slanted left/right edges are narrower than the full
-     corner-to-corner width - clamping x and y independently would let
-     points escape near the slanted edges.
+   - `clampPartPosition`: keeps a part inside the triangle's full extent
+     (Self down to the blended/unblended corners) - staying out of the area
+     near Self is instead handled by the Self-proximity gravity force in
+     inward-perspective-explorer.ts's tick loop. Both axes are clamped
+     together in one function because at a given height the triangle's
+     slanted left/right edges are narrower than the full corner-to-corner
+     width - clamping x and y independently would let points escape near
+     the slanted edges.
    - `sigmoid(x, midpoint, steepness)`: generic logistic curve, used to turn
      a linear 0..1 latent into a "not much happens, then a transition, then
      near-max" response (e.g. Self energy's push against blended).
 
 2. src/inward/drugData.ts - the substance model, no rendering/UI code.
    - `DrugEffect`: one substance's dosing shape (`doseSteps` for a few
-     discrete doses vs. a free 0-100 slider), how its dose maps to a
-     `pull` on the region's three vertices, its Self-energy contribution
+     discrete doses vs. a free 0-100 slider), a `pull` on the triangle's
+     three vertices (dormant - see "Known WIP" below, not currently
+     consumed anywhere), its Self-energy contribution
      (`selfEnergyBoostSteps`/`selfEnergyBoostMax`), and optional
      `unblendPushMax` (a direct push on every part, bypassing ambient Self
-     energy - THH's mechanism) or `rendersAsPart` (cannabis: doesn't pull
-     the region directly, instead spawns its own drifting emoji part near
-     a vertex).
+     energy - THH's mechanism) or `rendersAsPart` (cannabis: instead spawns
+     its own drifting emoji part near a vertex).
    - `doseUnitRange` (linear, e.g. cannabis 4-12mg) vs. `doseUnitLogRange`
      (exponential, e.g. THH 1-1000mg - most slider travel covers the low
      end) control how a free slider's 0-100% fraction is displayed.
@@ -66,30 +63,82 @@ Core architecture
 
 3. src/inward/part.ts - `Part` type: a drifting emoji's live state (x/y/vx/
    vy, opacity, fadingOut, its SVG element, and `blendPropensity` - see
-   below). Plus `PARTS_PALETTE`, the pool random parts are drawn from.
+   below). The emoji is rendered directly at (x, y) - no separate
+   rendered-position indirection. `extraLinkTo` is a possibly-null
+   reference to another Part, rolled once at spawn time (see attnPerimeter.ts
+   below); the perimeter-removal code in inward-perspective-explorer.ts
+   nulls out any other part's `extraLinkTo` that pointed at a part being
+   removed, so a stale link can't keep the perimeter enclosing empty space
+   after that part is gone. Plus `PARTS_PALETTE`, the pool random parts are
+   drawn from.
 
-4. src/inward/regionPhysics.ts - pure boundary-placement functions,
-   consuming only `RegionPressure[]` (never drugs or parts directly).
-   - `collectRegionPressures(doses, isActive)`: turns dose/active state into
-     a flat pressure list - the one place drug data crosses into physics.
-   - `computeTargetCentroid`/`computeTargetShrinkWrap`/`computeRadius`: the
-     boundary's target position, its shrink-wrap latent (0 = loose and
-     padded, 1 = tightly hugging whatever's enclosed), and its radius,
-     each a weighted blend of the pressures plus a Self-inclusion
-     constraint (the boundary is never allowed to exclude Self entirely).
-   - `buildRegionPath`: renders the wobbling dashed SVG path from centroid/
-     radius/shrinkWrap/wobblePhase.
+4. src/inward/attnPerimeter.ts - pure attention-perimeter geometry,
+   consuming only `Circle[]`/`Capsule[]`/`Part[]` (never drug data
+   directly - drug effects into shrink-wrap are still a TODO, see below).
+   The perimeter is not a single circle at a computed centroid+radius; it's
+   a metaball isoline wrapped around one circle per "thing" (Self, each
+   part), extracted via marching squares:
+   - `buildCircles(selfEnergy, parts)`: one circle for Self, centered on the
+     Self vertex, with `selfCircleRadius(selfEnergy)` growing from a min up
+     to 2x that at full Self energy; one fixed-radius circle per part
+     (`PART_CIRCLE_RADIUS`, half the emoji's rendered font-size), scaled by
+     the part's opacity so a fading-in/out part's circle ramps smoothly
+     instead of popping to full size.
+   - `buildConnectorCapsules(selfCircle, parts, shrinkWrap)`: every part is
+     explicitly linked to Self (a star topology, so the perimeter can never
+     lose connectivity to a part however far it drifts), plus each part
+     optionally carries one extra link to another part - `Part.extraLinkTo`,
+     rolled once at spawn time with even odds when other parts already
+     exist (`InwardPerspectiveExplorer.rollExtraLink`), fixed for that
+     part's lifetime rather than re-rolled per frame. Each link becomes a
+     `Capsule` (a line segment with a radius); `connectorRadiusFor
+     (shrinkWrap)` sets that radius the same direction as the isoline
+     threshold - loose shrink-wrap gives a fat corridor, tight narrows it
+     toward a thin thread.
+   - `fieldAt(x, y, circles, capsules)`: the metaball scalar field - each
+     circle and each capsule contributes an inverse-square falloff term
+     (1 at its own edge, capsules measured from the nearest point on their
+     segment), summed with a small strictly-positive `BACKGROUND_FIELD` so
+     the isoline can never split into disconnected components even where
+     no capsule reaches.
+   - `thresholdFor(shrinkWrap)`: the isoline value the perimeter is drawn
+     at. Low (loose, shrinkWrap=0) sits far outside every circle's true
+     edge, giving one big soft padded oval; high (tight, shrinkWrap=1)
+     approaches each circle's own edge value, so the perimeter hugs the
+     circles and pinches down to just the connector corridors across any
+     gap that isn't bridged by a capsule.
+   - `buildAttnPerimeterPath(circles, parts, shrinkWrap, wobblePhase)`:
+     samples the field on a uniform grid sized to the circles'+capsules'
+     bounding box (grid density scales with box size, capped, so a
+     far-flung part's thin corridor stays resolvable), extracts the isoline
+     via marching squares, greedily chains the resulting segments into one
+     closed polygon, resamples it to N evenly-spaced-by-arclength points,
+     applies the sine wobble (perturbing each point outward along the
+     vector from the circles' centroid), and renders it as the same
+     Catmull-Rom-style dashed SVG path as before.
+   - `computeTargetShrinkWrap()`: currently a fixed constant
+     (`FIXED_TARGET_SHRINK_WRAP`); drug effects are meant to drive this
+     later but aren't wired in yet (`DrugEffect.pull` in drugData.ts is
+     dormant, unused since the region-pressure mechanism it fed was
+     removed).
+   - `approximateExtentRadius(circles)`: a "how big/diffuse does this feel"
+     scalar for the readout text (`focusPhrase`), derived from the circles'
+     bounding-box extent - there's no single radius anymore now that the
+     perimeter wraps a variable number of circles.
    - `BLEND_FORCE_SCALE`: converts the normalized 0..1 "blending force"
      scale (shared by ambient Self-energy push, blendPropensity, and
-     unblendPushMax) into actual per-frame velocity units.
+     unblendPushMax) into actual per-frame velocity units. Unchanged from
+     the prior centroid/radius model.
 
 5. src/inward/selfEnergyKnob.ts - `SelfEnergyKnob`: the rotary control at
    the Self vertex, fully self-contained (owns its own SVG ring/wedge/
    label DOM and pointer-drag handling).
    - Ambient Self energy = a drug-set baseline floor (e.g. 5-MAPB) plus the
      user's knob adjustment on top of it, via `energy` getter. Low Self
-     energy lets the boundary collapse toward blended even with no parts
-     present.
+     energy shrinks the Self circle toward `SELF_CIRCLE_MIN_RADIUS`
+     (attnPerimeter.ts), so the perimeter reads as small/collapsed even
+     with no parts present - it no longer drifts toward blended the way
+     the prior centroid-based model did.
    - The knob's `userFraction` is a 0..1 fraction *of the range above the
      current baseline* - not an absolute value. With no drug baseline the
      range is [0, 0.5]; with 5-MAPB's baseline at 0.25, the range becomes
@@ -115,9 +164,10 @@ Core architecture
    it - the dose slider, Administer button, contraindication blocking, the
    warning banner, and the applied-substances list rendered in the SVG.
    - Dosing is staged: moving the slider only updates `pendingDose` and its
-     label; nothing takes effect (region pull, cannabis part, Self-energy
-     baseline) until Administer is clicked. `doses[key]` only updates on
-     administer.
+     label; nothing takes effect (cannabis part, Self-energy baseline)
+     until Administer is clicked. `doses[key]` only updates on administer.
+     (Drug pull into the attention perimeter is currently dormant - see
+     attnPerimeter.ts's `computeTargetShrinkWrap` note above.)
    - `administeredKeys` tracks activity independently of dose value -
      needed because cannabis's 0 fraction is a real 4mg dose (its
      doseUnitRange floor), not "inactive." Cancelling (the applied list's
@@ -131,7 +181,12 @@ Core architecture
      recomputing the Self-energy baseline.
 
 7. src/inward/readoutText.ts - word banks for the "Subjective read-out"
-   text: `focusPhrase` (keyed off boundary radius), `selfQualitiesFor`
+   text: `focusPhrase(radius, selfEnergy)` (keyed off the perimeter's
+   approximate extent radius; if that puts it in the narrowest
+   "hyper-focused" bucket AND Self energy is at or below the depleted
+   threshold (0.2), returns "sleep" instead - a hyper-focused reading at
+   near-zero Self energy isn't concentration, it's the perimeter collapsing
+   for lack of any ambient energy to hold it open), `selfQualitiesFor`
    (keyed off Self energy), `blendIntensityWord` (keyed off a part's
    blendPropensity).
 
@@ -147,9 +202,18 @@ Core architecture
      tick above the floor). `HIGH_SELF_ENERGY_THRESHOLD` (0.85): above this
      (e.g. full-breakthrough 5-MeO-DMT, which floors Self energy at 0.9),
      spawning stops entirely and the "always keep >=1 part" floor lifts, so
-     the region can clear to zero parts. `spontaneousParts` (oldest-first)
+     the perimeter can clear to just Self. `spontaneousParts` (oldest-first)
      excludes the cannabis part, which tracks its own dose instead of being
-     reaped.
+     reaped. Reaping (`scheduleReap`'s high-Self-energy clear-to-zero
+     branch) runs regardless of the "let parts appear/disappear on their
+     own" toggle, so a drug that floors Self energy above
+     `HIGH_SELF_ENERGY_THRESHOLD` (e.g. full-breakthrough 5-MeO-DMT) still
+     clears existing parts even with that toggle off.
+   - `rollExtraLink()`: called at every part-spawn site (spontaneous,
+     manual, cannabis). 50% odds of picking one existing part at random to
+     be this new part's `extraLinkTo`, giving the attention perimeter an
+     occasional part-to-part connector on top of the always-present
+     part-to-Self one built in attnPerimeter.ts.
    - Part dragging (`startDrag`) and the cannabis part's lifecycle
      (`syncCannabisPart` - spawns/despawns it near the blended vertex,
      keeps its blendPropensity locked to the THC dose fraction rather than
@@ -158,24 +222,53 @@ Core architecture
      wander, push away from blended scaled by ambient Self energy through
      a sigmoid, a separate linear "unblending" push along the Self-to-part
      line, each part's own blendPropensity pulling it back toward blended,
-     mutual part repulsion), then calls into regionPhysics for the
-     boundary's centroid/shrinkWrap/radius, then re-renders.
-   - The debug overlay (`?debug=1` in the URL): shows centroid pull
-     sources, shrink-wrap latent, and whether/how far the Self-inclusion
-     constraint is currently stretching the radius.
+     mutual part repulsion) updates each part's (x, y), which the emoji is
+     rendered at directly (no separate rendered-position indirection); then
+     calls into attnPerimeter.ts (`buildCircles`/`computeTargetShrinkWrap`/
+     `buildAttnPerimeterPath`) to rebuild and re-render the wrapping
+     perimeter. `shrinkWrap` itself is still smoothed frame-to-frame via
+     lerp toward its target, same as before.
+   - Part removal (once a fading-out part's opacity drops below 0.02) also
+     walks the remaining parts and nulls any `extraLinkTo` that pointed at
+     the part being removed, so the perimeter's connector capsules can't
+     keep enclosing a part's last position after it's gone.
+   - The debug overlay (`?debug=1` in the URL): draws each Self/part
+     circle and connector capsule directly (`ipe-debug-circle`/
+     `ipe-debug-capsule`), plus a coarse sampled-field grid
+     (`ipe-debug-field-dot`, red = inside the current isoline threshold,
+     gray = outside) so the metaball field marching squares walks is
+     visible directly rather than only its end result (the perimeter
+     path). The text panel reports selfEnergy, circle count/positions,
+     shrinkWrap (current + target), the isoline threshold, and the
+     approximate extent radius.
    - Wires SelfEnergyKnob and DoseController together: DoseController's
      `onDoseChange` callback triggers `syncCannabisPart` and
      `selfEnergyKnob.setBaseline(doseController.computeSelfEnergyBaseline())`.
 
 Design notes worth knowing before touching the physics
 --------------------------------------------------------
-- Everything pushing a part or the region boundary is normalized to a
+- Everything pushing a part or the attention perimeter is normalized to a
   shared 0..1 "blending force" scale (ambient Self-energy push via
   sigmoid, a part's own blendPropensity, THH's unblendPushMax - which is
-  allowed to exceed 1). `BLEND_FORCE_SCALE` (regionPhysics.ts) is the only
+  allowed to exceed 1). `BLEND_FORCE_SCALE` (attnPerimeter.ts) is the only
   place that scale gets converted into actual velocity units, so tuning
   relative strengths means changing the 0..1 inputs, not per-force
   velocity constants scattered around.
+- The perimeter is a metaball isoline, not a parametric shape - there is no
+  single "radius" or "centroid" to read or animate directly anymore.
+  Anything that used to reach for those (readout text, debug overlay) now
+  either takes the underlying `Circle[]`/`shrinkWrap` inputs, or a derived
+  scalar like `approximateExtentRadius`. Don't reintroduce a cached
+  centroid/radius pair - it was the prior model's core assumption and the
+  isoline+marching-squares approach doesn't preserve it.
+- Connectivity (Self and every part always joined by one connected
+  perimeter, at any distance) is guaranteed structurally via explicit
+  `Capsule` corridors (`buildConnectorCapsules`), not by tuning the
+  metaball field's falloff or background bias. Don't try to fix a
+  disconnected-perimeter bug by raising `BACKGROUND_FIELD` - that keeps the
+  isoline technically connected but the connecting neck goes arbitrarily
+  thin/invisible at long range, which is exactly the bug this capsule
+  design replaced.
 - Self energy is never a single stored number - it's always derived
   (`SelfEnergyKnob.energy` = baseline + fraction*range). If you need the
   live value elsewhere, read the getter every frame; don't cache it.
@@ -190,7 +283,18 @@ Known WIP / things to watch
   design-rationale comments here; the source files now carry only short
   why-comments for non-obvious local logic. If you add a new drug mechanic
   or force, document the *shape* of the mechanic here, not just inline.
+- Drug effects on the attention perimeter are dormant: the prior
+  region-pressure mechanism (drug `pull` weights biasing the boundary's
+  centroid/radius/narrowness) was removed when the perimeter switched to
+  the metaball-circle model, since a drug pull has no obvious "circle" to
+  become. `DrugEffect.pull` in drugData.ts still exists but nothing reads
+  it. The plan is to have drugs drive `computeTargetShrinkWrap` (currently
+  a fixed constant, `FIXED_TARGET_SHRINK_WRAP`) instead - not reintroduce
+  a separate positional pull.
 - No test suite for this widget - verify changes by loading
   /docs/psychoactive/#psychological-characterization in a browser and
   exercising the Self knob, dose picker/administer flow, drug wheel, and
-  (for physics changes) the `?debug=1` overlay.
+  (for physics changes) the `?debug=1` overlay - drag a part far from Self
+  to check the connector corridor holds, and watch a part fade out to check
+  its `extraLinkTo` cleanup doesn't leave the perimeter enclosing empty
+  space.
