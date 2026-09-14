@@ -20,7 +20,7 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 
 <div id="butterfly-anchor-top"></div>
 
-1. <span class="recipe-step" data-step="0">Grind the <span class="recipe-substep" data-substep="seeds">seeds</span> to a fine powder in the coffee grinder.</span>
+1. <span class="recipe-step" data-step="0">Grind the <span class="recipe-substep" data-substep="seeds">seeds</span> to a fine powder in the {{< tooltip label="coffee grinder" >}}Stahl adds, "crush the seed fragments by hand with pestle using a twisting downwards motion<br/>for a minute until they look more like dust fragments, don't be afraid to then pound the seed dust<br/>with the pestle to get it crushed as finely as possible."{{< /tooltip >}}.</span>
 2. <span class="recipe-step" data-step="1">In a shot glass, combine the <span class="recipe-substep" data-substep="seed-powder">seed powder</span> with 30mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span> and the <span class="recipe-substep" data-substep="ethanol">ethanol</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes, as if coaxing the spirit free.</span>
 3. <span class="recipe-step" data-step="2">Refrigerate for 20 minutes, a brief incubation in the cold and dark to let the seed fragments settle out of the solution.</span>
 4. <span class="recipe-step" data-step="3">Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a fan carry the alcohol away.</span>
@@ -35,15 +35,15 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 
 **Sacraments**
 
-- {{< tooltip label="25 HBWR" >}}Increase seeds to increase the strength of the subjective effects.<br>Start low and increase with caution.{{< /tooltip >}} (*Argyreia nervosa*, Hawaiian baby woodrose) seeds
-- 40mg tartaric acid (30mg + 10mg)
+- {{< tooltip label="25 HBWR" >}}Increase seeds to increase the strength of the subjective effects.<br/>Start low and increase with caution.{{< /tooltip >}} (*Argyreia nervosa*, Hawaiian baby woodrose) seeds
+- 40mg {{< tooltip label="tartaric acid" >}}Do not substitute another acid. According to Stahl,<br/>"Tartaric acid participates in hydrogen bonding to LSA and<br/>is an important chemical catalyst in the aldehyde condensation."{{< /tooltip >}} (30mg + 10mg)
 - 30ml of 95% ethanol (or purer)
 - 3g young barley grass powder (<span class="must-be-fresh">**must** be fresh</span>; each serving should be in an individually sealed packet)
 - 60ml holy water
 
 **Tools of the Rite**
 
-- Coffee grinder
+- Coffee grinder (the burr type produce more uniformly tiny particles than the blade type)
 - Shot glass
 - Refrigerator
 - Small glass baking dish
