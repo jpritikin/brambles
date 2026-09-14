@@ -4,9 +4,6 @@ export interface DrugEffect {
     key: string;
     name: string;
     emoji: string;
-    // Omit for a drug with no direct opinion on region location (e.g. THH: acts on
-    // parts via unblendPushMax instead).
-    pull?: { self: number; blended: number; unblended: number };
     // Dose fractions the slider snaps to. Omit for a free continuous 0-100 slider.
     doseSteps?: number[];
     doseStepLabels?: string[]; // parallel to doseSteps
@@ -27,14 +24,23 @@ export interface DrugEffect {
     blendPushMax?: number;
     // Renders as a standalone drifting part near a vertex instead of pulling the region.
     rendersAsPart?: Vertex["name"];
+    // Divides every part's blend urgency by this factor while active (5-MAPB: quiets
+    // the pull toward blended, independent of unblendPushMax/blendPushMax).
+    blendUrgencyDivisor?: number;
+    // Divides only the cannabis part's blend urgency by this factor while active (THH:
+    // quiets cannabis's blend pull specifically, on top of THH's general unblendPushMax).
+    cannabisBlendUrgencyDivisor?: number;
+    // Non-monotonic alternative to selfEnergyBoostMax/blendPushMax: a piecewise-linear curve
+    // over dose fraction (0..1), each point {frac, selfEnergyBoost, blendPush}. Used instead
+    // of the flat *Max fields when a drug's effect doesn't just ramp linearly to a single peak
+    // (psilomethoxin: blendPush rises then falls back down as dose keeps climbing).
+    doseCurve?: { frac: number; selfEnergyBoost: number; blendPush: number }[];
 }
 
-export type InteractionSeverity = "contraindicated" | "caution";
-
+// Every entry is a hard block - there's no separate "caution" tier, just allowed or not.
 export interface Interaction {
     a: string;
     b: string;
-    severity: InteractionSeverity;
     note: string;
 }
 
@@ -43,11 +49,11 @@ export const DRUGS: DrugEffect[] = [
         key: "mapb",
         name: "5-MAPB",
         emoji: "💗",
-        pull: { self: 0.15, blended: 0, unblended: 0.85 },
         // Binary dosing: 80mg or 100mg, no inactive/0 step.
         doseSteps: [0.8, 1],
         doseStepLabels: ["80mg", "100mg"],
         selfEnergyBoostSteps: [0.25, 0.3],
+        blendUrgencyDivisor: 2,
     },
     {
         key: "thh",
@@ -58,12 +64,12 @@ export const DRUGS: DrugEffect[] = [
         doseUnitLogRange: { min: 1, max: 1000, unit: "mg" },
         selfEnergyBoostMax: 0.15,
         unblendPushMax: 0.9,
+        cannabisBlendUrgencyDivisor: 2,
     },
     {
         key: "dmt",
         name: "5-MeO-DMT",
         emoji: "🌀",
-        pull: { self: 0.9, blended: 0.05, unblended: 0.05 },
         // Threshold-or-breakthrough, no inactive/0 step.
         doseSteps: [0.3, 1],
         doseStepLabels: ["3mg", "10mg"],
@@ -85,19 +91,30 @@ export const DRUGS: DrugEffect[] = [
         key: "psilocybin",
         name: "Psilocybin",
         emoji: "🍄",
-        pull: { self: 0.1, blended: 0.75, unblended: 0.15 },
+        // 5-40mg linear range; combinable (no INTERACTIONS entry).
+        doseUnitRange: { min: 5, max: 40, unit: "mg" },
+        selfEnergyBoostMax: 0.3,
+        blendPushMax: 0.6,
     },
     {
         key: "psilomethoxin",
         name: "Psilo­methoxin",
         emoji: "✨",
-        pull: { self: 0.5, blended: 0, unblended: 0.5 },
+        // 0-3g linear range: 0-1g ramps blendPush up toward 0.2 alongside +0.2 Self energy,
+        // then 1-3g ramps blendPush back down toward 0 while Self energy keeps climbing
+        // toward +0.5 - a non-monotonic curve, so doseCurve is used instead of the flat
+        // selfEnergyBoostMax/blendPushMax fields.
+        doseUnitRange: { min: 0, max: 3, unit: "g" },
+        doseCurve: [
+            { frac: 0, selfEnergyBoost: 0, blendPush: 0 },
+            { frac: 1 / 3, selfEnergyBoost: 0.2, blendPush: 0.2 },
+            { frac: 1, selfEnergyBoost: 0.5, blendPush: 0 },
+        ],
     },
     {
         key: "cannabis",
         name: "Cannabis",
         emoji: "🌿",
-        pull: { self: 0, blended: 1, unblended: 0 },
         rendersAsPart: "blended",
         doseUnitRange: { min: 4, max: 12, unit: "mg" },
     },
@@ -105,25 +122,53 @@ export const DRUGS: DrugEffect[] = [
 
 export const DRUG_BY_KEY = Object.fromEntries(DRUGS.map((d) => [d.key, d]));
 
+// Piecewise-linear interpolation of a drug's doseCurve at a given dose fraction (0..1),
+// for drugs whose effect isn't a straight ramp to a single peak (see doseCurve above).
+export function sampleDoseCurve(
+    curve: { frac: number; selfEnergyBoost: number; blendPush: number }[],
+    fraction: number,
+): { selfEnergyBoost: number; blendPush: number } {
+    if (fraction <= curve[0].frac) return curve[0];
+    for (let i = 1; i < curve.length; i++) {
+        const prev = curve[i - 1];
+        const cur = curve[i];
+        if (fraction <= cur.frac) {
+            const t = (fraction - prev.frac) / (cur.frac - prev.frac);
+            return {
+                selfEnergyBoost: prev.selfEnergyBoost + (cur.selfEnergyBoost - prev.selfEnergyBoost) * t,
+                blendPush: prev.blendPush + (cur.blendPush - prev.blendPush) * t,
+            };
+        }
+    }
+    return curve[curve.length - 1];
+}
+
 // Explicit named pairs only — no substance is assumed risky with "anything else."
-// A pair absent from this table (e.g. dmt + thh, the Daime combination) gets no warning.
+// A pair absent from this table (e.g. dmt + thh, the Daime combination) is allowed.
 export const INTERACTIONS: Interaction[] = [
     {
         a: "mapb",
         b: "dmt",
-        severity: "contraindicated",
         note: "don't combine, serotonin syndrome risk",
     },
     {
         a: "mapb",
         b: "nndmt",
-        severity: "contraindicated",
         note: "don't combine, serotonin syndrome risk",
     },
     {
-        a: "psilomethoxin",
-        b: "mapb",
-        severity: "caution",
-        note: "both push hard toward unblended; stacking can be more than the sum of parts",
+        a: "dmt",
+        b: "nndmt",
+        note: "don't stack two potent tryptamines, serotonin syndrome risk",
+    },
+    {
+        a: "dmt",
+        b: "psilocybin",
+        note: "don't stack two potent psychedelics",
+    },
+    {
+        a: "dmt",
+        b: "psilomethoxin",
+        note: "don't stack two potent psychedelics",
     },
 ];

@@ -13,7 +13,7 @@ export interface PartForce {
 export interface Part {
     emoji: string;
     feeling: string;
-    // Force-driven center: every psychological force (Self-energy push, blend propensity,
+    // Force-driven center: every psychological force (Self-energy push, blend urgency,
     // part repulsion, etc.) acts on this point, not on the rendered emoji directly.
     x: number;
     y: number;
@@ -22,10 +22,13 @@ export interface Part {
     opacity: number;
     fadingOut: boolean;
     el: SVGTextElement;
-    // Sampled once at creation from uniform [0, 1): this part's own propensity to blend,
-    // independent of ambient Self energy. Drives a steady pull toward the blended corner
-    // and the intensity word ("slightly"/"very"/etc.) shown before its feeling in the readout.
-    blendPropensity: number;
+    // Sampled once at creation from uniform [0, 1): this part's own baseline urgency to
+    // blend, independent of ambient Self energy. Drug effects (e.g. 5-MAPB's
+    // blendUrgencyDivisor) quiet this at read time rather than mutating it - see
+    // InwardPerspectiveExplorer.effectiveBlendUrgency. Drives a steady pull toward the
+    // blended corner and the intensity word ("slightly"/"very"/etc.) shown before its
+    // feeling in the readout.
+    blendUrgency: number;
     // Last frame's named forces, for the hover/click force-breakdown popup. Excludes the
     // random-wander jitter, which isn't a meaningful psychological force.
     forces: PartForce[];
@@ -47,4 +50,7 @@ export const PARTS_PALETTE: { emoji: string; feeling: string }[] = [
     { emoji: "😳", feeling: "ashamed" },
     { emoji: "💭", feeling: "pensive" },
     { emoji: "🧐", feeling: "critical" },
+    { emoji: "🥺", feeling: "pleading" },
+    { emoji: "🥱", feeling: "bored" },
+    { emoji: "🙄", feeling: "dismissive" },
 ];

@@ -134,12 +134,18 @@ export class DrugWheel {
         // whether or not the ring is open.
         this.btn = svgEl("g");
         this.btn.classList.add("ipe-drug-wheel-btn");
-        const btnRing = svgEl("circle");
-        btnRing.classList.add("ipe-drug-wheel-btn-ring");
-        btnRing.setAttribute("cx", String(cx));
-        btnRing.setAttribute("cy", String(cy));
-        btnRing.setAttribute("r", String(BTN_R));
-        this.btn.appendChild(btnRing);
+        // A rect rather than the ring's inner circle, so there's more width for the
+        // selected drug's name - no need to match the popped-open ring's inner circle.
+        const BTN_W = BTN_R * 3.2;
+        const BTN_H = BTN_R * 2;
+        const btnRect = svgEl("rect");
+        btnRect.classList.add("ipe-drug-wheel-btn-ring");
+        btnRect.setAttribute("x", String(cx - BTN_W / 2));
+        btnRect.setAttribute("y", String(cy - BTN_H / 2));
+        btnRect.setAttribute("width", String(BTN_W));
+        btnRect.setAttribute("height", String(BTN_H));
+        btnRect.setAttribute("rx", "10");
+        this.btn.appendChild(btnRect);
 
         this.btnLabel = svgEl("text");
         this.btnLabel.classList.add("ipe-drug-wheel-btn-label");

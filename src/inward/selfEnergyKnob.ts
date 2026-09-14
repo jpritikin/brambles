@@ -13,9 +13,9 @@ export class SelfEnergyKnob {
     private valueBg: SVGRectElement;
     private valueLabel: SVGTextElement;
 
-    // Raw, unwrapped drag angle (degrees) since the current drag started.
+    // Current drag travel (degrees) for the energy side of the wedge, clamped
+    // to the knob's 270° range.
     private dragAngle = 0;
-    private lastRawAngle = 0;
 
     constructor(
         private svg: SVGSVGElement,
@@ -24,23 +24,27 @@ export class SelfEnergyKnob {
         const v = VERTEX_BY_NAME.self;
         const KNOB_R = SelfEnergyKnob.KNOB_R;
 
+        const group = svgEl("g");
+        group.classList.add("ipe-self-knob-group");
+        svg.appendChild(group);
+
         const ringTrack = svgEl("circle");
         ringTrack.classList.add("ipe-self-knob-ring");
         ringTrack.setAttribute("cx", String(v.x));
         ringTrack.setAttribute("cy", String(v.y));
         ringTrack.setAttribute("r", String(KNOB_R));
-        svg.appendChild(ringTrack);
+        group.appendChild(ringTrack);
 
         this.ring = svgEl("circle");
         this.ring.classList.add("ipe-self-knob-ring-fill");
         this.ring.setAttribute("cx", String(v.x));
         this.ring.setAttribute("cy", String(v.y));
         this.ring.setAttribute("r", String(KNOB_R));
-        svg.appendChild(this.ring);
+        group.appendChild(this.ring);
 
         this.wedge = svgEl("path");
         this.wedge.classList.add("ipe-self-knob-wedge");
-        svg.appendChild(this.wedge);
+        group.appendChild(this.wedge);
 
         this.valueBg = svgEl("rect");
         this.valueBg.classList.add("ipe-self-knob-value-bg");
@@ -49,13 +53,13 @@ export class SelfEnergyKnob {
         this.valueBg.setAttribute("width", "44");
         this.valueBg.setAttribute("height", "20");
         this.valueBg.setAttribute("rx", "10");
-        svg.appendChild(this.valueBg);
+        group.appendChild(this.valueBg);
 
         this.valueLabel = svgEl("text");
         this.valueLabel.classList.add("ipe-self-knob-value");
         this.valueLabel.setAttribute("x", String(v.x));
         this.valueLabel.setAttribute("y", String(v.y - KNOB_R - 19));
-        svg.appendChild(this.valueLabel);
+        group.appendChild(this.valueLabel);
 
         // Invisible hit area covering the whole knob disc.
         const hitArea = svgEl("circle");
@@ -64,7 +68,7 @@ export class SelfEnergyKnob {
         hitArea.setAttribute("cy", String(v.y));
         hitArea.setAttribute("r", String(KNOB_R + 6));
         hitArea.addEventListener("pointerdown", (e) => this.startDrag(e));
-        svg.appendChild(hitArea);
+        group.appendChild(hitArea);
 
         this.updateRing();
     }
@@ -99,20 +103,23 @@ export class SelfEnergyKnob {
         this.valueBg.style.display = "block";
         this.valueLabel.style.display = "block";
 
-        // atan2 in [-180, 180], 0 = up, positive = clockwise; tracked as relative
-        // rotation to avoid a jump at the +-180 wrap point (see primer).
+        // atan2 in [-180, 180], 0 = up, positive = clockwise. The knob's travel
+        // starts at -135° (angleAt = -135 -> dragAngle = 0). dragAngle tracks
+        // the energy (displayed) side of the wedge, so it points straight at
+        // the mouse; userFraction is then derived by inverting `energy`.
         const angleAt = (ev: PointerEvent): number => {
             const ex = (ev.clientX - rect.left) * scale;
             const ey = (ev.clientY - rect.top) * scale;
             return (Math.atan2(ex - selfV.x, -(ey - selfV.y)) * 180) / Math.PI;
         };
 
-        this.lastRawAngle = angleAt(e);
-        this.dragAngle = this.userFraction * 270;
+        this.dragAngle = angleAt(e) + 135;
 
         const render = () => {
             const travel = Math.max(0, Math.min(270, this.dragAngle));
-            this.userFraction = travel / 270;
+            const targetEnergy = travel / 270;
+            const range = Math.min(SelfEnergyKnob.USER_RANGE, 1 - this.baseline);
+            this.userFraction = range > 0 ? Math.min(1, Math.max(0, (targetEnergy - this.baseline) / range)) : 0;
             this.updateRing();
 
             const wedgeR = KNOB_R + 40;
@@ -133,12 +140,7 @@ export class SelfEnergyKnob {
         };
 
         const move = (ev: PointerEvent) => {
-            const raw = angleAt(ev);
-            let delta = raw - this.lastRawAngle;
-            if (delta > 180) delta -= 360;
-            if (delta < -180) delta += 360;
-            this.lastRawAngle = raw;
-            this.dragAngle += delta;
+            this.dragAngle = angleAt(ev) + 135;
             render();
         };
         const up = () => {

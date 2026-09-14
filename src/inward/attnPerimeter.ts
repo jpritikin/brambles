@@ -1,7 +1,7 @@
 import { VERTEX_BY_NAME, lerp } from "./geometry";
 import type { Part } from "./part";
 
-// Converts the normalized [0,1] blending-force scale (blendPropensity, selfPushFactor)
+// Converts the normalized [0,1] blending-force scale (blendUrgency, selfPushFactor)
 // to actual velocity units, preserving prior motion scale (was 10-14 unnormalized).
 export const BLEND_FORCE_SCALE = 12;
 
@@ -11,7 +11,7 @@ export interface Circle {
     r: number;
 }
 
-const PART_CIRCLE_RADIUS = 13; // half of .ipe-part's 26px font-size
+const PART_CIRCLE_RADIUS = 15.6; // half of .ipe-part's 26px font-size, +20% so tight shrinkWrap doesn't clip the glyph
 const SELF_CIRCLE_MIN_RADIUS = 24;
 const SELF_CIRCLE_MAX_RADIUS = SELF_CIRCLE_MIN_RADIUS * 2;
 
@@ -53,9 +53,9 @@ export function buildCircles(selfEnergy: number, parts: Part[], focusedParts: Pa
 // ordinary (non-focus-locked) case.
 const BASELINE_TARGET_SHRINK_WRAP_MAX = 0.3;
 
-export function computeTargetShrinkWrap(selfEnergy: number, blendPressure: number): number {
+export function computeTargetShrinkWrap(selfEnergy: number, blendPressure: number, thhShrinkWrapEffect: number = 0): number {
     const baseline = BASELINE_TARGET_SHRINK_WRAP_MAX * (1 - selfEnergy);
-    return Math.min(1, baseline + 0.5 * blendPressure);
+    return Math.min(1, baseline + 0.5 * blendPressure + thhShrinkWrapEffect);
 }
 
 // --- Connectivity: explicit capsule corridors -------------------------------
@@ -184,7 +184,7 @@ interface GridPoint {
 // Marching squares over a uniform grid spanning the circles' (and connector capsules')
 // bounding box (plus margin for the loose/padded case), producing an ordered polygon
 // approximating the isoline.
-function marchingSquaresContour(circles: Circle[], capsules: Capsule[], threshold: number): { x: number; y: number }[] {
+export function marchingSquaresContour(circles: Circle[], capsules: Capsule[], threshold: number): { x: number; y: number }[] {
     // The isoline around a lone circle of radius r sits at distance r/sqrt(threshold -
     // BACKGROUND_FIELD) from its center (solving fieldAt's inverse-square term for where it
     // crosses threshold) - a fixed margin big enough for a tight threshold clips the isoline
@@ -192,9 +192,33 @@ function marchingSquaresContour(circles: Circle[], capsules: Capsule[], threshol
     // boundary cutting through the true contour and the marching-squares/greedy-chaining step
     // stitching the resulting fragments into a malformed path. Deriving margin from the actual
     // threshold and the largest circle present keeps the isoline inside the grid at any
-    // shrinkWrap setting.
+    // shrinkWrap setting - but every OTHER circle/capsule also contributes a small amount of
+    // field at that distance (fieldAt sums them all), so with many circles present (e.g. 7+
+    // parts) their combined leftover pushes the true isoline slightly farther out than the
+    // single-largest-circle estimate accounts for, clipping the tip and leaving the
+    // marching-squares walk to stitch a small spurious loop out of the severed fragment
+    // instead of the one true contour. Approximating every other circle's contribution at its
+    // own edge value (its maximum possible, since fieldAt only decreases with distance) as an
+    // inflated effective background corrects for this without having to solve the summed
+    // field exactly.
     const maxRadius = Math.max(0, ...circles.map((c) => c.r), ...capsules.map((c) => c.r));
-    const fieldAboveBackground = Math.max(0.005, threshold - BACKGROUND_FIELD);
+    const maxCircle = circles.reduce((best, c) => (c.r > best.r ? c : best), circles[0] ?? { x: 0, y: 0, r: 0 });
+    const naiveFieldAboveBackground = Math.max(0.005, threshold - BACKGROUND_FIELD);
+    const naiveIsolineDistance = maxRadius / Math.sqrt(naiveFieldAboveBackground);
+    // Every other circle also contributes field at the largest circle's isoline tip -
+    // approximated here (a safe upper bound, since fieldAt only decreases with distance) by
+    // evaluating each other circle at that same distance from its own center, then folding
+    // that combined leftover into the effective background before re-solving for the margin.
+    // Without this, many circles' small individual contributions stack up beyond what any
+    // single circle's isolated isoline estimate accounts for, clipping the true contour's tip
+    // at the grid boundary and leaving the marching-squares walk to stitch a small spurious
+    // loop out of the severed fragment instead of tracing the one true contour (see the
+    // ?debug=1 7+-part disappearing/glitchy perimeter this was fixed for).
+    const othersFieldAtTip = circles
+        .filter((c) => c !== maxCircle)
+        .reduce((sum, c) => sum + (c.r * c.r) / Math.max(naiveIsolineDistance * naiveIsolineDistance, 1), 0);
+    const effectiveBackground = BACKGROUND_FIELD + othersFieldAtTip;
+    const fieldAboveBackground = Math.max(0.005, threshold - effectiveBackground);
     const isolineDistance = maxRadius / Math.sqrt(fieldAboveBackground);
     const margin = Math.max(60, isolineDistance - maxRadius + 20);
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -250,17 +274,27 @@ function marchingSquaresContour(circles: Circle[], capsules: Capsule[], threshol
         return { x: lerp(pA.x, pB.x, ct), y: lerp(pA.y, pB.y, ct) };
     }
 
-    const segments: [{ x: number; y: number }, { x: number; y: number }][] = [];
+    // Each endpoint is tagged with the grid edge it was interpolated on ("h:i,j" for the
+    // horizontal edge between column i/i+1 at row j, "v:i,j" for the vertical edge between
+    // row j/j+1 at column i) so segments from neighboring cells that share a crossing point
+    // carry an identical key, letting the walk below chain them by exact edge identity
+    // instead of nearest-distance search.
+    interface TaggedPoint {
+        x: number;
+        y: number;
+        edgeKey: string;
+    }
+    const segments: [TaggedPoint, TaggedPoint][] = [];
     for (let j = 0; j < rows; j++) {
         for (let i = 0; i < cols; i++) {
             const tl = grid[j][i], tr = grid[j][i + 1], br = grid[j + 1][i + 1], bl = grid[j + 1][i];
             const idx = (tl.inside ? 8 : 0) | (tr.inside ? 4 : 0) | (br.inside ? 2 : 0) | (bl.inside ? 1 : 0);
             if (idx === 0 || idx === 15) continue;
 
-            const top = () => interp(tl, tr);
-            const right = () => interp(tr, br);
-            const bottom = () => interp(bl, br);
-            const left = () => interp(tl, bl);
+            const top = (): TaggedPoint => ({ ...interp(tl, tr), edgeKey: `h:${i},${j}` });
+            const right = (): TaggedPoint => ({ ...interp(tr, br), edgeKey: `v:${i + 1},${j}` });
+            const bottom = (): TaggedPoint => ({ ...interp(bl, br), edgeKey: `h:${i},${j + 1}` });
+            const left = (): TaggedPoint => ({ ...interp(tl, bl), edgeKey: `v:${i},${j}` });
 
             // Each case lists edge-to-edge segments walking with "inside" on the left,
             // so segments chain head-to-tail consistently around the contour.
@@ -285,39 +319,63 @@ function marchingSquaresContour(circles: Circle[], capsules: Capsule[], threshol
 
     if (segments.length === 0) return [];
 
-    // Chain segments into a single closed loop by nearest-endpoint matching. The field is
-    // built so its isoline is always one connected component (BACKGROUND_FIELD keeps it
-    // from ever splitting), so a greedy walk suffices.
+    // Chain segments into a single closed loop. Primary match is exact edgeKey identity
+    // (the true adjacency guaranteed by marching squares - two segments from neighboring
+    // cells that cross the same grid edge always interpolate to the same point). Nearest-
+    // distance matching is only a fallback for the rare case with no exact match (e.g. a
+    // case-5/10 saddle split ambiguity resolved differently by the two involved cells).
+    // Falling back to nearest-distance as the *primary* strategy (as this used to) lets the
+    // walk jump onto a closer-but-unrelated segment in a dense/branchy region (many
+    // overlapping circles), prematurely closing a small spurious loop instead of tracing the
+    // one true contour around every circle - see the "?debug=1" 7+-part disappearing/glitchy
+    // perimeter this was fixed for.
+    const edgeKeyToSegments = new Map<string, number[]>();
+    segments.forEach(([a, b], k) => {
+        for (const key of [a.edgeKey, b.edgeKey]) {
+            const list = edgeKeyToSegments.get(key);
+            if (list) list.push(k);
+            else edgeKeyToSegments.set(key, [k]);
+        }
+    });
+
     const used = new Array(segments.length).fill(false);
     const loop: { x: number; y: number }[] = [];
-    let current = segments[0][0];
+    let current: TaggedPoint = segments[0][0];
     loop.push(current);
-    let currentSegIdx = 0;
     used[0] = true;
-    let next = segments[0][1];
+    let next: TaggedPoint = segments[0][1];
     loop.push(next);
     current = next;
 
     const snapDist = Math.max(cellW, cellH) * 1.5;
     for (let iter = 0; iter < segments.length * 2; iter++) {
-        let bestIdx = -1;
-        let bestDist = Infinity;
-        let bestEnd: { x: number; y: number } | null = null;
-        for (let k = 0; k < segments.length; k++) {
+        // Exact edge-identity match first.
+        let foundIdx = -1;
+        let foundEnd: TaggedPoint | null = null;
+        for (const k of edgeKeyToSegments.get(current.edgeKey) ?? []) {
             if (used[k]) continue;
             const [a, b] = segments[k];
-            const dA = Math.hypot(a.x - current.x, a.y - current.y);
-            const dB = Math.hypot(b.x - current.x, b.y - current.y);
-            if (dA < bestDist) { bestDist = dA; bestIdx = k; bestEnd = b; }
-            if (dB < bestDist) { bestDist = dB; bestIdx = k; bestEnd = a; }
+            foundIdx = k;
+            foundEnd = a.edgeKey === current.edgeKey ? b : a;
+            break;
         }
-        if (bestIdx === -1 || bestDist > snapDist) break;
-        used[bestIdx] = true;
-        loop.push(bestEnd!);
-        current = bestEnd!;
-        currentSegIdx = bestIdx;
+        // Fallback: nearest unused endpoint within snapDist.
+        if (foundIdx === -1) {
+            let bestDist = Infinity;
+            for (let k = 0; k < segments.length; k++) {
+                if (used[k]) continue;
+                const [a, b] = segments[k];
+                const dA = Math.hypot(a.x - current.x, a.y - current.y);
+                const dB = Math.hypot(b.x - current.x, b.y - current.y);
+                if (dA < bestDist) { bestDist = dA; foundIdx = k; foundEnd = b; }
+                if (dB < bestDist) { bestDist = dB; foundIdx = k; foundEnd = a; }
+            }
+            if (foundIdx === -1 || bestDist > snapDist) break;
+        }
+        used[foundIdx] = true;
+        loop.push(foundEnd!);
+        current = foundEnd!;
     }
-    void currentSegIdx;
 
     return loop;
 }
