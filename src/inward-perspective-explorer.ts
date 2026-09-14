@@ -616,12 +616,12 @@ class InwardPerspectiveExplorer {
             // force-breakdown popup's legend/vectors stay stable frame to frame instead of
             // rows appearing and disappearing as a part sits at a boundary or between others.
             const forces: PartForce[] = [
-                { name: "Self-energy unblend", color: FORCE_COLORS.selfUnblend, x: 0, y: 0 },
                 { name: "Self differentiation", color: FORCE_COLORS.selfProximity, x: 0, y: 0 },
+                { name: "Self-energy unblend", color: FORCE_COLORS.selfUnblend, x: 0, y: 0 },
                 { name: "Blend urgency", color: FORCE_COLORS.blendUrgency, x: 0, y: 0 },
                 { name: "Part repulsion", color: FORCE_COLORS.partRepulsion, x: 0, y: 0 },
             ];
-            const [fSelfUnblend, fSelfProximity, fBlendUrgency, fPartRepulsion] = forces;
+            const [fSelfProximity, fSelfUnblend, fBlendUrgency, fPartRepulsion] = forces;
 
             // Ambient Self energy pushes parts away from blended, linearly.
             const selfPushFactor = this.selfEnergy;
