@@ -429,14 +429,14 @@ class InwardPerspectiveExplorer {
     // Builds a Part's SVG element, drag wiring, and force-popup wiring at a given spawn
     // position - shared by every part-creation path (spontaneous, manual, cannabis) so
     // that wiring can't drift out of sync between them.
-    private spawnPartAt(emoji: string, feeling: string, blendUrgency: number, x: number, y: number): Part {
+    private spawnPartAt(emoji: string, feeling: string, blendUrgency: number, x: number, y: number, isDrugRendered = false): Part {
         const el = svgEl("text");
         el.classList.add("ipe-part");
         el.setAttribute("x", String(x));
         el.setAttribute("y", String(y));
         el.style.opacity = "0";
         el.textContent = emoji;
-        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendUrgency, forces: [], extraLinkTo: this.rollExtraLink(), hyperFocused: false };
+        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendUrgency, forces: [], extraLinkTo: this.rollExtraLink(), hyperFocused: false, isDrugRendered };
         el.addEventListener("pointerdown", (e) => {
             e.stopPropagation();
             this.startDrag(part, e);
@@ -545,7 +545,7 @@ class InwardPerspectiveExplorer {
         const target = VERTEX_BY_NAME.blended;
         if (!this.cannabisPart) {
             // Tracks THC dose fraction rather than being randomly sampled.
-            const part = this.spawnPartAt("🌿", "mellow", this.doseController.doses.cannabis, target.x, target.y - 40);
+            const part = this.spawnPartAt("🌿", "mellow", this.doseController.doses.cannabis, target.x, target.y - 40, true);
             this.cannabisPart = part;
             this.parts.push(part);
         } else {
@@ -602,7 +602,7 @@ class InwardPerspectiveExplorer {
             // event, not a rate) rather than smoothed-out jitter that reads as nervous. Doubled
             // when the part is currently conflicted (last frame's forces, since this frame's
             // haven't been computed yet), reading as restlessness under the pull both ways.
-            const conflicted = !p.hyperFocused && computeConflict(p.forces) > 0.75;
+            const conflicted = !p.hyperFocused && !p.isDrugRendered && computeConflict(p.forces) > 0.75;
             const wanderChance = conflicted
                 ? InwardPerspectiveExplorer.WANDER_KICK_CHANCE_PER_SEC_CONFLICTED
                 : InwardPerspectiveExplorer.WANDER_KICK_CHANCE_PER_SEC;

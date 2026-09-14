@@ -41,6 +41,10 @@ export interface Part {
     // (Self excluded) - see InwardPerspectiveExplorer's focus-lock hysteresis. Exempt from
     // spontaneous reaping while true, since it's currently the entire focus of attention.
     hyperFocused: boolean;
+    // True for a part rendered by a drug's rendersAsPart (currently only cannabis): a visual
+    // stand-in for a drug effect, not a psychological part with a stake in Self vs. blended -
+    // so it never shows a conflict ring even when its underlying forces read as opposed.
+    isDrugRendered: boolean;
 }
 
 // Self-unblend and blend-urgency are the only two forces on the shared 0-1 psychological

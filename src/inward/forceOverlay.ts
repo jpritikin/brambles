@@ -133,8 +133,9 @@ export class ForceOverlay {
             // Private reverie's target/group (hyperFocused) is, by definition, no longer torn
             // between Self and blended - it's the sole object of a Self-excluding perimeter,
             // fully blended rather than in conflict - so the ring never shows for it even if
-            // its underlying forces still read as opposed.
-            const conflict = part.hyperFocused ? 0 : computeConflict(part.forces);
+            // its underlying forces still read as opposed. Drug-rendered parts (cannabis)
+            // aren't psychological parts with a stake in that conflict either.
+            const conflict = part.hyperFocused || part.isDrugRendered ? 0 : computeConflict(part.forces);
             ring.setAttribute("cx", String(part.x));
             ring.setAttribute("cy", String(part.y - EMOJI_VERTICAL_CENTER_OFFSET));
             ring.setAttribute("r", "17");
