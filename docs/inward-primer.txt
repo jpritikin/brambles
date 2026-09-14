@@ -116,14 +116,48 @@ File map
 
 - src/inward/drugWheel.ts - `DrugWheel`: pie-menu substance picker UI.
 
+- src/inward/forceOverlay.ts - `ForceOverlay`: per-part hover/click
+  force-breakdown popup, conflict ring, and conflict pain-emoji bursts.
+  `wirePart`/`removePart` hook a part in/out; `update(part)` is called once
+  per part per tick. `FORCE_COLORS` is the legend color table, keyed by
+  `PartForce.name`. `maybeSpawnConflictEmoji` throttles a small drifting
+  pain-emoji burst (dagger/impact/chains/blood-drop - deliberately
+  non-face, since part emoji are already pained faces) per conflicted part.
+
+- src/inward/part.ts also exports `computeConflict(forces)` -
+  `min(selfUnblend, blendUrgency)`, the shared pure function behind both
+  the conflict ring (ForceOverlay) and the wander-kick-rate check in the
+  top-level tick loop - and `pickUnusedPalette(palette, taken)`, used by
+  both spontaneous spawn and the manual-add picker so neither repeats an
+  emoji already on screen if an unused one is available.
+
+- src/inward/manualPartPanel.ts - `ManualPartPanel`: the Add/Remove-part
+  HTML panel below the SVG, plus the spontaneous-spawn on/off toggle. Owns
+  its own emoji-picker/urgency-slider/transient-message state; part
+  lifecycle stays with the host via its callbacks interface.
+
+- src/inward/contraindicatedModal.ts - `ContraindicatedModal`: the "these
+  two drugs don't mix" modal, fed by `DoseController`'s `onContraindicated`
+  callback. Picks a random playful template naming both drugs and
+  suggesting the other be removed first.
+
+- src/inward/debugOverlay.ts - `DebugOverlay`: everything behind `?debug=1`
+  - circle/capsule outlines, the sampled metaball field grid, the text
+  readout, and the shrinkWrap override slider (exposed via
+  `targetShrinkWrapOverride`, which the host substitutes for
+  `computeTargetShrinkWrap()`'s result when non-null). `update()` takes a
+  plain state snapshot each tick rather than reading the host's fields
+  directly.
+
 - src/inward-perspective-explorer.ts - the top-level class. Owns:
-  - SVG scaffold + injected CSS, debug overlay (`?debug=1`), manual-part
-    panel (Add/Remove part).
-  - Contraindicated-combo modal (HTML overlay in `this.root`, not SVG):
-    `showContraindicatedModal`/`hideContraindicatedModal`, fed by
-    `DoseController`'s `onContraindicated` callback. Picks a random
-    playful template from `CONTRAINDICATED_MESSAGES` naming both drugs
-    and suggesting the other be removed first.
+  - SVG scaffold; wires up DoseController/DrugWheel/SelfEnergyKnob/
+    ManualPartPanel/ContraindicatedModal/ForceOverlay/DebugOverlay
+    (the last only when `?debug=1`). CSS lives in static/css/inward.css,
+    linked from the page markdown rather than injected at runtime.
+  - `spawnPartAt`/`createPart` - shared part-creation helper (SVG element,
+    drag wiring, ForceOverlay wiring) used by every part-creation path
+    (spontaneous, manual, cannabis) so wiring can't drift out of sync
+    between them.
   - Spontaneous part spawn/reap scheduling, gated by a sigmoid on Self
     energy so very-high Self energy suppresses spawning and forces reaping.
   - `rollExtraLink()` - 50% odds a new part links to an existing one.
@@ -145,17 +179,11 @@ File map
   - The tick loop: per-part physics (wander impulses, push from blended
     scaled by Self energy, THH/N,N-DMT direct pushes, mutual repulsion),
     then rebuilds the perimeter via attnPerimeter.ts. Records a
-    `PartForce[]` per part (for the hover/click force-breakdown popup) with
-    `displayMag` on the pre-BLEND_FORCE_SCALE 0..1 scale.
-  - `computeConflict(forces)` - `min(selfUnblend, blendUrgency)` drives the
-    per-part conflict ring's opacity. Forced to 0 for `hyperFocused` parts
-    (Private reverie's target is fully blended, not conflicted, regardless
-    of underlying force values). `maybeSpawnConflictEmoji` throttles a
-    small drifting pain-emoji burst (dagger/impact/chains/blood-drop -
-    deliberately non-face, since part emoji are already pained faces) per
-    conflicted part.
+    `PartForce[]` per part (for ForceOverlay) with `displayMag` on the
+    pre-BLEND_FORCE_SCALE 0..1 scale.
   - Part removal cleanup: nulls dangling `extraLinkTo` references, drops
-    the reverie group if its target is removed.
+    the reverie group if its target is removed, tells `forceOverlay` to
+    drop the part's ring/popup state.
 
 Design invariants (don't break these)
 --------------------------------------

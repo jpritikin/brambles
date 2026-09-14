@@ -43,6 +43,20 @@ export interface Part {
     hyperFocused: boolean;
 }
 
+// Self-unblend and blend-urgency are the only two forces on the shared 0-1 psychological
+// blending-force scale (PartForce.displayMag), and always point exactly opposite along the
+// fixed blended<->unblended axis - so unlike the general force list (which also mixes in
+// Self differentiation and part repulsion, neither on that scale, the latter with no
+// psychological meaning at all), their conflict is just how much they overlap as opposing
+// scalars: min(a, b). Un-normalized deliberately - two strongly opposed forces (e.g. 0.8
+// vs 0.9) read as more conflicted than two weakly opposed ones (0.1 vs 0.2), unlike a
+// sum-of-magnitudes ratio which would call both "fully conflicted."
+export function computeConflict(forces: PartForce[]): number {
+    const selfUnblend = forces.find((f) => f.name === "Self-energy unblend")?.displayMag ?? 0;
+    const blendUrgency = forces.find((f) => f.name === "Blend urgency")?.displayMag ?? 0;
+    return Math.min(selfUnblend, blendUrgency);
+}
+
 export const PARTS_PALETTE: { emoji: string; feeling: string }[] = [
     { emoji: "😠", feeling: "angry" },
     { emoji: "😢", feeling: "sad" },
@@ -54,3 +68,15 @@ export const PARTS_PALETTE: { emoji: string; feeling: string }[] = [
     { emoji: "🥱", feeling: "bored" },
     { emoji: "🙄", feeling: "dismissive" },
 ];
+
+// Picks a random {emoji, feeling} from a palette, preferring one not already in `taken` -
+// falls back to the full palette if every choice is taken, so spawning never blocks (e.g.
+// with a small palette and many parts already on screen).
+export function pickUnusedPalette(
+    palette: { emoji: string; feeling: string }[],
+    taken: Set<string>,
+): { emoji: string; feeling: string } {
+    const available = palette.filter((p) => !taken.has(p.emoji));
+    const pool = available.length > 0 ? available : palette;
+    return pool[Math.floor(Math.random() * pool.length)];
+}

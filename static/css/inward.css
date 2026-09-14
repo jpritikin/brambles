@@ -1,0 +1,88 @@
+.ipe-root { max-width: 560px; margin: 1.5em auto; font-family: inherit; position: relative; border: 1px solid rgba(128,128,128,0.35); border-radius: 10px; padding: 1em; }
+.ipe-svg { width: 100%; height: auto; touch-action: none; display: block; position: relative; z-index: 1; user-select: none; }
+.ipe-vertex-label { font-size: 13px; fill: currentColor; opacity: 0.75; text-anchor: middle; user-select: none; }
+.ipe-vertex-emoji { font-size: 22px; text-anchor: middle; cursor: default; user-select: none; }
+.ipe-vertex-emoji.ipe-self-knob { cursor: grab; touch-action: none; pointer-events: none; }
+.ipe-self-knob-hit { fill: transparent; cursor: grab; touch-action: none; }
+.ipe-self-knob-hit:active { cursor: grabbing; }
+.ipe-self-knob-ring { fill: none; stroke: currentColor; stroke-opacity: 0.35; stroke-width: 3; }
+.ipe-self-knob-ring-fill { fill: none; stroke: #f400d7; stroke-width: 3; stroke-linecap: round; }
+.ipe-self-knob-group:hover .ipe-self-knob-ring { stroke-opacity: 0.6; }
+.ipe-self-knob-group:hover .ipe-self-knob-ring-fill { stroke-width: 4; }
+/* Filled wedge swept from the knob center out to the cursor, the main drag feedback. */
+.ipe-self-knob-wedge { fill: #ffe600; fill-opacity: 0.9; stroke: #000; stroke-width: 2; display: none; pointer-events: none; }
+.ipe-self-knob-value-bg { fill: #f400d7; display: none; pointer-events: none; }
+.ipe-self-knob-value { font-size: 14px; font-weight: 700; fill: #fff; text-anchor: middle; display: none; user-select: none; pointer-events: none; }
+.ipe-attn-perimeter { fill: #f400d7; fill-opacity: 0.08; stroke: #f400d7; stroke-width: 1.5; stroke-dasharray: 4,3; pointer-events: none; }
+.ipe-part { font-size: 26px; text-anchor: middle; cursor: grab; user-select: none; }
+.ipe-part:active { cursor: grabbing; }
+.ipe-control-group { fill: none; stroke: rgba(128,128,128,0.35); stroke-width: 1; }
+.ipe-dose-value { font-size: 11px; fill: currentColor; opacity: 0.75; text-anchor: middle; user-select: none; }
+.ipe-dose-track { stroke: rgba(128,128,128,0.5); stroke-width: 8; stroke-linecap: round; cursor: pointer; touch-action: none; user-select: none; }
+.ipe-dose-handle { fill: #f400d7; stroke: #fff; stroke-width: 1.5; cursor: grab; touch-action: none; user-select: none; }
+.ipe-dose-handle:active { cursor: grabbing; }
+.ipe-drug-wheel-btn { cursor: pointer; touch-action: none; }
+.ipe-drug-wheel-btn-ring { fill: rgba(244,0,215,0.08); stroke: #f400d7; stroke-width: 1.5; }
+.ipe-drug-wheel-btn:hover .ipe-drug-wheel-btn-ring { fill: rgba(244,0,215,0.18); stroke-width: 2; }
+.ipe-drug-wheel-btn-label { font-size: 9px; text-anchor: middle; dominant-baseline: central; pointer-events: none; user-select: none; }
+.ipe-drug-wheel { pointer-events: none; opacity: 0; transition: opacity 0.12s ease; }
+.ipe-drug-wheel.ipe-open { pointer-events: auto; opacity: 1; }
+.ipe-drug-wheel-backdrop { fill: var(--body-background, #fff); }
+.ipe-drug-wheel-slice { cursor: pointer; }
+.ipe-drug-wheel-slice-bg { fill: var(--body-background, #fff); stroke: #f400d7; stroke-opacity: 0.6; stroke-width: 1.5; }
+.ipe-drug-wheel-slice:hover .ipe-drug-wheel-slice-bg, .ipe-drug-wheel-slice.ipe-selected .ipe-drug-wheel-slice-bg { fill: rgba(244,0,215,0.2); stroke-opacity: 1; stroke-width: 2; }
+.ipe-drug-wheel-slice-label { font-size: 9px; text-anchor: middle; dominant-baseline: central; pointer-events: none; user-select: none; }
+.ipe-drug-wheel-center { fill: rgba(255,255,255,0.95); stroke: #f400d7; stroke-width: 2; cursor: pointer; }
+.ipe-drug-wheel-close { font-size: 13px; fill: #f400d7; text-anchor: middle; dominant-baseline: central; pointer-events: none; user-select: none; }
+.ipe-administer-btn { cursor: pointer; touch-action: none; }
+.ipe-administer-btn circle { fill: rgba(244,0,215,0.08); stroke: #f400d7; stroke-width: 1.5; }
+.ipe-administer-btn:hover circle { fill: rgba(244,0,215,0.2); }
+.ipe-administer-btn-label { font-size: 15px; text-anchor: middle; dominant-baseline: central; pointer-events: none; user-select: none; }
+.ipe-applied-x { font-size: 11px; fill: currentColor; opacity: 0.5; cursor: pointer; }
+.ipe-applied-x:hover { opacity: 1; }
+.ipe-applied-list { font-size: 11px; fill: currentColor; }
+.ipe-applied-list .ipe-applied-title { opacity: 0.6; }
+.ipe-readout { font-size: 11px; fill: currentColor; text-anchor: middle; }
+.ipe-readout-heading { font-size: 12px; opacity: 0.55; letter-spacing: 0.03em; text-transform: uppercase; }
+.ipe-readout-feelings { opacity: 0.85; }
+.ipe-debug-panel { margin-top: 0.75em; padding: 0.6em 0.8em; border: 1px dashed #f400d7; border-radius: 6px; font: 11px/1.5 ui-monospace, monospace; white-space: pre-wrap; background: rgba(244,0,215,0.05); }
+.ipe-debug-shrinkwrap-row { margin-top: 0.4em; display: flex; align-items: center; gap: 0.5em; font: 11px/1.5 ui-monospace, monospace; }
+.ipe-debug-shrinkwrap-row input[type=range] { flex: 1; }
+.ipe-debug-circle { fill: none; stroke: #00b894; stroke-width: 1; stroke-dasharray: 2,2; opacity: 0.7; }
+.ipe-debug-capsule { stroke: #0984e3; stroke-width: 1; stroke-dasharray: 3,2; opacity: 0.6; }
+.ipe-debug-field-dot { opacity: 0.55; }
+.ipe-conflict-ring { fill: none; stroke-width: 2.5; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
+.ipe-conflict-emoji { font-size: 12px; pointer-events: none; text-anchor: middle; }
+.ipe-force-popup { pointer-events: auto; }
+.ipe-force-popup-bg { fill: var(--body-background, #fff); stroke: #888; stroke-width: 1; opacity: 0.95; }
+.ipe-force-popup-row { font-size: 9.5px; fill: currentColor; }
+.ipe-force-popup-title { font-size: 10px; font-weight: 600; fill: currentColor; opacity: 0.7; }
+.ipe-force-popup-bar-bg { fill: currentColor; fill-opacity: 0.08; }
+.ipe-force-popup-pin { pointer-events: auto; cursor: pointer; }
+.ipe-force-popup-pin-bg { fill: transparent; stroke: currentColor; stroke-opacity: 0.3; }
+.ipe-force-popup-pin:hover .ipe-force-popup-pin-bg { fill: #2ecc71; fill-opacity: 0.5; stroke-opacity: 0; }
+.ipe-force-popup-pin.ipe-pinned .ipe-force-popup-pin-bg { fill: #f4d000; fill-opacity: 0.9; stroke-opacity: 0; }
+.ipe-force-popup-pin.ipe-pinned:hover .ipe-force-popup-pin-bg { fill: #2ecc71; fill-opacity: 0.9; }
+.ipe-force-popup-pin-glyph { font-size: 11px; opacity: 0.55; }
+.ipe-force-popup-pin:hover .ipe-force-popup-pin-glyph { opacity: 1; }
+.ipe-force-popup-pin.ipe-pinned .ipe-force-popup-pin-glyph { opacity: 1; }
+.ipe-manual-part-panel { margin-top: 0.75em; display: flex; flex-direction: column; gap: 0.5em; font-size: 0.85em; border: 1px solid rgba(128,128,128,0.35); border-radius: 8px; padding: 0.75em; }
+.ipe-manual-part-panel label.ipe-sim-toggle { display: flex; align-items: center; gap: 0.4em; cursor: pointer; }
+.ipe-manual-part-row { display: flex; align-items: center; gap: 0.6em; flex-wrap: wrap; }
+.ipe-manual-part-row.ipe-disabled { opacity: 0.4; pointer-events: none; }
+.ipe-manual-part-row input[type=range] { width: 8em; }
+.ipe-manual-part-btn { border: 1px solid currentColor; background: transparent; border-radius: 999px; padding: 0.2em 0.8em; font-size: 0.9em; cursor: pointer; }
+.ipe-manual-emoji-picker-wrap { position: relative; }
+.ipe-manual-emoji-trigger { border: 1px solid currentColor; background: transparent; border-radius: 6px; font-size: 1.3em; line-height: 1; padding: 0.15em 0.4em; cursor: pointer; }
+.ipe-manual-emoji-popup { display: none; position: absolute; z-index: 10; bottom: calc(100% + 4px); left: 0; grid-template-columns: repeat(6, 2.2em); gap: 0.1em; padding: 0.4em; background: var(--body-background, #fff); border: 1px solid rgba(128,128,128,0.4); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+.ipe-manual-emoji-popup.ipe-open { display: grid; }
+.ipe-manual-emoji-btn { border: 1px solid transparent; background: transparent; border-radius: 6px; font-size: 1.7em; line-height: 2.2em; padding: 0; cursor: pointer; text-align: center; }
+.ipe-manual-emoji-btn:hover { background: rgba(128,128,128,0.2); }
+.ipe-manual-urgency-value { font-variant-numeric: tabular-nums; opacity: 0.75; min-width: 2.5em; }
+.ipe-manual-part-msg { font-size: 0.9em; opacity: 0.8; font-style: italic; }
+.ipe-contraindicated-modal-backdrop { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+.ipe-contraindicated-modal-backdrop.ipe-open { display: flex; }
+.ipe-contraindicated-modal { max-width: 22em; background: var(--body-background, #fff); border-radius: 12px; padding: 1.2em 1.4em; box-shadow: 0 8px 32px rgba(0,0,0,0.35); text-align: center; }
+.ipe-contraindicated-modal-emoji { font-size: 2.2em; line-height: 1; }
+.ipe-contraindicated-modal-text { margin: 0.6em 0 1em; font-size: 0.95em; line-height: 1.4; }
+.ipe-contraindicated-modal-btn { border: 1px solid currentColor; background: transparent; border-radius: 999px; padding: 0.4em 1.2em; font-size: 0.9em; cursor: pointer; }
