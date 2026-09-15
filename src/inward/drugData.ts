@@ -30,6 +30,10 @@ export interface DrugEffect {
     // Divides only the cannabis part's blend urgency by this factor while active (THH:
     // quiets cannabis's blend pull specifically, on top of THH's general unblendPushMax).
     cannabisBlendUrgencyDivisor?: number;
+    // Attention-perimeter shrinkWrap contribution at full dose, scaled linearly by dose
+    // fraction (cannabis). Distinct from THH's dose-gated thhShrinkWrapEffect, which ramps
+    // in via a sigmoid rather than linearly.
+    shrinkWrapBoostMax?: number;
     // Non-monotonic alternative to selfEnergyBoostMax/blendPushMax: a piecewise-linear curve
     // over dose fraction (0..1), each point {frac, selfEnergyBoost, blendPush}. Used instead
     // of the flat *Max fields when a drug's effect doesn't just ramp linearly to a single peak
@@ -67,7 +71,7 @@ export const DRUGS: DrugEffect[] = [
         cannabisBlendUrgencyDivisor: 2,
     },
     {
-        key: "dmt",
+        key: "meodmt",
         name: "5-MeO-DMT",
         emoji: "🌀",
         // Threshold-or-breakthrough, no inactive/0 step.
@@ -76,7 +80,7 @@ export const DRUGS: DrugEffect[] = [
         selfEnergyBoostSteps: [0.15, 0.9],
     },
     {
-        key: "nndmt",
+        key: "dmt",
         name: "N,N-DMT",
         emoji: "🌪️",
         // 1mg-60mg linear range; combinable (no INTERACTIONS entry).
@@ -117,6 +121,8 @@ export const DRUGS: DrugEffect[] = [
         emoji: "🌿",
         rendersAsPart: "blended",
         doseUnitRange: { min: 4, max: 12, unit: "mg" },
+        selfEnergyBoostMax: 0.1,
+        shrinkWrapBoostMax: 0.3,
     },
 ];
 
@@ -148,26 +154,26 @@ export function sampleDoseCurve(
 export const INTERACTIONS: Interaction[] = [
     {
         a: "mapb",
-        b: "dmt",
+        b: "meodmt",
         note: "don't combine, serotonin syndrome risk",
     },
     {
         a: "mapb",
-        b: "nndmt",
+        b: "dmt",
         note: "don't combine, serotonin syndrome risk",
     },
     {
-        a: "dmt",
-        b: "nndmt",
+        a: "meodmt",
+        b: "dmt",
         note: "don't stack two potent tryptamines, serotonin syndrome risk",
     },
     {
-        a: "dmt",
+        a: "meodmt",
         b: "psilocybin",
         note: "don't stack two potent psychedelics",
     },
     {
-        a: "dmt",
+        a: "meodmt",
         b: "psilomethoxin",
         note: "don't stack two potent psychedelics",
     },

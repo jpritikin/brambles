@@ -7,6 +7,9 @@ export class SelfEnergyKnob {
 
     private userFraction = 0.6;
     private baseline = 0;
+    // Hard ceiling on `energy` (e.g. THH), independent of `baseline`/`userFraction` - see
+    // setCap(). 1 means uncapped.
+    private cap = 1;
 
     private ring: SVGCircleElement;
     private wedge: SVGPathElement;
@@ -74,12 +77,22 @@ export class SelfEnergyKnob {
     }
 
     get energy(): number {
-        const range = Math.min(SelfEnergyKnob.USER_RANGE, 1 - this.baseline);
-        return Math.min(1, Math.max(0, this.baseline + this.userFraction * range));
+        const baseline = this.displayBaseline;
+        const range = Math.min(SelfEnergyKnob.USER_RANGE, this.cap - baseline);
+        const raw = baseline + this.userFraction * range;
+        return Math.min(1, Math.max(0, raw));
     }
 
     get currentBaseline(): number {
         return this.baseline;
+    }
+
+    // Baseline clamped to the cap. Drugs push `baseline` up independently of `cap` (e.g.
+    // 5-MeO-DMT's 0.9 boost vs. THH's 0.75 cap), so the raw sum can exceed cap - clamp it
+    // here so the user-fraction range (cap - baseline, see `energy`) stays non-negative
+    // instead of collapsing to zero real range while still re-clamping to the same cap.
+    private get displayBaseline(): number {
+        return Math.min(this.baseline, this.cap);
     }
 
     get currentUserFraction(): number {
@@ -88,6 +101,11 @@ export class SelfEnergyKnob {
 
     setBaseline(baseline: number): void {
         this.baseline = baseline;
+        this.updateRing();
+    }
+
+    setCap(cap: number): void {
+        this.cap = cap;
         this.updateRing();
     }
 
@@ -118,15 +136,16 @@ export class SelfEnergyKnob {
         const render = () => {
             const travel = Math.max(0, Math.min(270, this.dragAngle));
             const targetEnergy = travel / 270;
-            const range = Math.min(SelfEnergyKnob.USER_RANGE, 1 - this.baseline);
-            this.userFraction = range > 0 ? Math.min(1, Math.max(0, (targetEnergy - this.baseline) / range)) : 0;
+            const baseline = this.displayBaseline;
+            const range = Math.min(SelfEnergyKnob.USER_RANGE, this.cap - baseline);
+            this.userFraction = range > 0 ? Math.min(1, Math.max(0, (targetEnergy - baseline) / range)) : 0;
             this.updateRing();
 
             const wedgeR = KNOB_R + 40;
             const angleForEnergy = (energy: number) => ((energy * 270 - 135) * Math.PI) / 180;
-            const startRad = angleForEnergy(this.baseline);
+            const startRad = angleForEnergy(this.displayBaseline);
             const rad = angleForEnergy(this.energy);
-            const sweepDeg = (this.energy - this.baseline) * 270;
+            const sweepDeg = (this.energy - this.displayBaseline) * 270;
             const large = sweepDeg > 180 ? 1 : 0; // SVG large-arc-flag: sweep exceeds 180°
             const sx = selfV.x + Math.sin(startRad) * wedgeR;
             const sy = selfV.y - Math.cos(startRad) * wedgeR;

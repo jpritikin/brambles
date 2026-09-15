@@ -381,13 +381,13 @@ class InwardPerspectiveExplorer {
         return pressure;
     }
 
-    // Midpoint (mg) of the sigmoid gating THH's dose-dependent effects (cannabis-quieting,
-    // shrinkWrap tightening) - below this, mostly absent; above it, mostly full strength.
+    // Midpoint (mg) of the sigmoid gating THH's cannabis-quieting effect - below this,
+    // mostly absent; above it, mostly full strength.
     private static readonly THH_DOSE_GATE_MIDPOINT_MG = 5;
 
     // 0..1 dose-fraction to mg (via a drug's doseUnitLogRange), then through a sigmoid
-    // centered at THH_DOSE_GATE_MIDPOINT_MG - shared by every THH effect that should ramp
-    // in with dose rather than flip on/off with `isActive`.
+    // centered at THH_DOSE_GATE_MIDPOINT_MG - used for cannabisBlendUrgencyDivisor, so a
+    // trace THH dose doesn't fully quiet cannabis.
     private doseGate(drug: DrugEffect): number {
         if (!drug.doseUnitLogRange) return 0;
         const fraction = this.doseController.doses[drug.key];
@@ -415,15 +415,27 @@ class InwardPerspectiveExplorer {
         return part.blendUrgency / divisor;
     }
 
-    // Max shrinkWrap contribution from THH at full dose-gate - THH tightens the perimeter
-    // a bit on its own on top of N,N-DMT's blendPressure-driven tightening, gated by the
-    // same dose sigmoid as cannabisBlendUrgencyDivisor rather than flat on/off.
+    // Max shrinkWrap contribution from THH at full dose - THH tightens the perimeter a bit
+    // on its own on top of N,N-DMT's blendPressure-driven tightening, scaled log-linearly
+    // with THH's mg dose (its doseUnitLogRange fraction) rather than gated by the sigmoid
+    // used for cannabisBlendUrgencyDivisor.
     private static readonly THH_SHRINK_WRAP_MAX = 0.2;
 
     private thhShrinkWrapEffect(): number {
         const thh = DRUG_BY_KEY.thh;
         if (!this.doseController.isActive(thh.key)) return 0;
-        return InwardPerspectiveExplorer.THH_SHRINK_WRAP_MAX * this.doseGate(thh);
+        return InwardPerspectiveExplorer.THH_SHRINK_WRAP_MAX * this.doseController.doses[thh.key];
+    }
+
+    // Sum of every active drug's linear shrinkWrapBoostMax (cannabis: ramps with dose
+    // fraction directly, unlike THH's sigmoid-gated thhShrinkWrapEffect above).
+    private linearShrinkWrapEffect(): number {
+        let effect = 0;
+        for (const drug of DRUGS) {
+            if (drug.shrinkWrapBoostMax === undefined || !this.doseController.isActive(drug.key)) continue;
+            effect += drug.shrinkWrapBoostMax * this.doseController.doses[drug.key];
+        }
+        return effect;
     }
 
     // Builds a Part's SVG element, drag wiring, and force-popup wiring at a given spawn
@@ -532,6 +544,25 @@ class InwardPerspectiveExplorer {
             this.syncCannabisPart(drug);
         }
         this.selfEnergyKnob.setBaseline(this.doseController.computeSelfEnergyBaseline());
+        this.selfEnergyKnob.setCap(this.computeSelfEnergyCap());
+    }
+
+    // THH caps accumulated Self energy - full dose caps at THH_SELF_ENERGY_CAP_MIN, linear
+    // (not log-linear, unlike doseGate) down to uncapped at zero dose. Distinct from THH's
+    // selfEnergyBoostMax: the boost raises the ambient baseline, this ceilings the total.
+    private static readonly THH_SELF_ENERGY_CAP_MIN = 0.75;
+
+    private computeSelfEnergyCap(): number {
+        const thh = DRUG_BY_KEY.thh;
+        if (!this.doseController.isActive(thh.key)) return 1;
+        // The 0..1 dose slider is log-spaced (doseUnitLogRange) - convert to mg, then to a
+        // linear 0..1 position in the mg range, so the cap is linear in dose, not slider
+        // fraction (which would be log-linear in mg).
+        const fraction = this.doseController.doses[thh.key];
+        const { min, max } = thh.doseUnitLogRange!;
+        const mg = min * Math.pow(max / min, fraction);
+        const linearFraction = (mg - min) / (max - min);
+        return lerp(1, InwardPerspectiveExplorer.THH_SELF_ENERGY_CAP_MIN, linearFraction);
     }
 
     private syncCannabisPart(drug: DrugEffect): void {
@@ -720,7 +751,7 @@ class InwardPerspectiveExplorer {
 
         const circles = buildCircles(this.selfEnergy, this.parts, this.focusedParts);
 
-        this.targetShrinkWrap = this.debugOverlay?.targetShrinkWrapOverride ?? computeTargetShrinkWrap(this.selfEnergy, this.blendPressure(), this.thhShrinkWrapEffect());
+        this.targetShrinkWrap = this.debugOverlay?.targetShrinkWrapOverride ?? computeTargetShrinkWrap(this.selfEnergy, this.blendPressure(), this.thhShrinkWrapEffect() + this.linearShrinkWrapEffect());
         this.shrinkWrap = lerp(this.shrinkWrap, this.targetShrinkWrap, 1 - Math.exp(-1.5 * dt));
 
         this.currentCircleCount = circles.length;
@@ -743,7 +774,7 @@ class InwardPerspectiveExplorer {
                 targetShrinkWrap: this.targetShrinkWrap,
                 blendPressure: this.blendPressure(),
                 unblendPressure: this.unblendPressure(),
-                thhShrinkWrapEffect: this.thhShrinkWrapEffect(),
+                thhShrinkWrapEffect: this.thhShrinkWrapEffect() + this.linearShrinkWrapEffect(),
             });
         }
 

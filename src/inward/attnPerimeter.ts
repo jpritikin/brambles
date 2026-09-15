@@ -53,9 +53,11 @@ export function buildCircles(selfEnergy: number, parts: Part[], focusedParts: Pa
 // ordinary (non-focus-locked) case.
 const BASELINE_TARGET_SHRINK_WRAP_MAX = 0.3;
 
-export function computeTargetShrinkWrap(selfEnergy: number, blendPressure: number, thhShrinkWrapEffect: number = 0): number {
+// extraShrinkWrapEffect sums every other drug's direct shrinkWrap contribution - THH's
+// dose-gated sigmoid effect plus any drug's linear shrinkWrapBoostMax (cannabis).
+export function computeTargetShrinkWrap(selfEnergy: number, blendPressure: number, extraShrinkWrapEffect: number = 0): number {
     const baseline = BASELINE_TARGET_SHRINK_WRAP_MAX * (1 - selfEnergy);
-    return Math.min(1, baseline + 0.5 * blendPressure + thhShrinkWrapEffect);
+    return Math.min(1, baseline + 0.5 * blendPressure + extraShrinkWrapEffect);
 }
 
 // --- Connectivity: explicit capsule corridors -------------------------------
