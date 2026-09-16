@@ -89,10 +89,14 @@ Option: Peanut butter and goji berries on a bagel.
 
 | Ingredient | Helps |
 | ---- | :--------: |
-| food-grade rosemary essential oil | 👍 |
-| food-grade peppermint (Mentha piperita) essential oil | 👍 |
+| peppermint (Mentha piperita) essential oil | 👍 |
 | white vinegar (5% acetic acid) | 👍 |
-| food-grade Ho wood essential oil | 🤷 |
+| copaiba essential oil | 👍 |
+| rosemary essential oil | 👍 |
+| Ho wood essential oil | 🤷 |
+| lemon grass essential oil | 🤷 |
+| pine essential oil | 🤷 |
+| sweet orange essential oil | 🤷 |
 
 Best tested: Combine 700 mL of water, quarter cup of white vinegar, two drops of peppermint oil, and five drops of rosemary oil. Sip during ceremony.
 
