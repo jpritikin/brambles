@@ -10,22 +10,28 @@ layout: shrine-page
 
 {{< shrine image="cover.jpg" alt="Cover of LSI: Ancient LSD, Secret of the Eleusis Kykeon and Vedic Soma by Matthew Ray Stahl" link="https://mckenna.academy/mka-podcast/decoding-the-divine-the-shared-lsi-secret-of-the-greek-kykeon-and-vedic-soma/" >}}
 
+## Orientation
+
+Anonymous whispered advice points to three key factors for success:
+
+1. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting 12 hours before administration.
+2. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind.
+3. Do not deviate from the kykeon recipe.
+
 ## Recipe
 
 For millennia, what the ancients were brewing for their kykeon and soma rites has stumped alchemists, chemists, and scholars alike. Stahl's case is laid out with loving care. Go buy the book—this is the cliff notes version.
-
-**Note:** I suspect that to really appreciate kykeon, it would help to have some prior familiarity with THH (tetrahydroharmine). Stahl's book offers coverage of THH.
 
 What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof. Kykeon is similar in effect to mescaline. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
 
 <div id="butterfly-anchor-top"></div>
 
-1. <span class="recipe-step" data-step="0">Grind the <span class="recipe-substep" data-substep="seeds">seeds</span> to a fine powder in the {{< tooltip label="coffee grinder" >}}Stahl adds, "crush the seed fragments by hand with pestle using a twisting downwards motion<br/>for a minute until they look more like dust fragments, don't be afraid to then pound the seed dust<br/>with the pestle to get it crushed as finely as possible."{{< /tooltip >}}.</span>
+1. <span class="recipe-step" data-step="0">Grind the <span class="recipe-substep" data-substep="seeds">seeds</span> to a fine powder in the {{< tooltip label="grinder" >}}Stahl adds, "crush the seed fragments by hand with pestle using a twisting downwards motion<br/>for a minute until they look more like dust fragments, don't be afraid to then pound the seed dust<br/>with the pestle to get it crushed as finely as possible."{{< /tooltip >}}.</span>
 2. <span class="recipe-step" data-step="1">In a shot glass, combine the <span class="recipe-substep" data-substep="seed-powder">seed powder</span> with 30mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span> and the <span class="recipe-substep" data-substep="ethanol">ethanol</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes, as if coaxing the spirit free.</span>
 3. <span class="recipe-step" data-step="2">Refrigerate for 20 minutes, a brief incubation in the cold and dark to let the seed fragments settle out of the solution.</span>
 4. <span class="recipe-step" data-step="3">Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a fan carry the alcohol away.</span>
 5. <span class="recipe-step" data-step="4">Scrape the remaining <span class="recipe-substep" data-substep="residue">residue</span> into a fresh shot glass with 10mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span>, <span class="recipe-substep" data-substep="barley-grass">barley grass powder</span>, and <span class="recipe-substep" data-substep="water">water</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes.</span>
-6. <span class="recipe-step" data-step="5">With God's grace, you have created LSI, LSV, and LSCr. Drink with reverence.</span>
+6. <span class="recipe-step" data-step="5">With God's grace, you have created LSI, LSV, and LSCr. Refrigerate for up to a day. Drink with reverence.</span>
 
 <div id="butterfly-anchor-bottom"></div>
 
@@ -43,7 +49,7 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 
 **Tools of the Rite**
 
-- Coffee grinder (the burr type produce more uniformly tiny particles than the blade type)
+- Spice/coffee {{< tooltip label="grinder" >}}A blade type grinder may not produce small enough particles.<br/>Use a burr type grinder or heavy mortar and pestle.{{< /tooltip >}}
 - Shot glass
 - Refrigerator
 - Small glass baking dish
@@ -130,7 +136,7 @@ Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats
 
 <div class="rite-detail" data-rite-detail="shared-kykeon" hidden>
 
-Mix the [recipe](#recipe) above with 2-4 drops of <span class="rite-ingredient" data-ingredient="peppermint">peppermint</span> essential oil and ¼ tsp of <span class="rite-ingredient" data-ingredient="pepper">pepper</span>. Chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="pineapple">pineapple</span>, <span class="rite-ingredient" data-ingredient="papaya">papaya</span>, and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
+Mix the [recipe](#recipe) above with 1-2 tsp of <span class="rite-ingredient" data-ingredient="peanuts">peanut butter</span> and a dash of salt. Chill in the refrigerator for at least ½ hour. Optionally, chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="papaya">papaya</span> and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
 
 </div>
 
@@ -147,7 +153,10 @@ Choose wisely. Choose with your whole heart.
 <div class="grain-oracle-choices">
   <button type="button" class="grain-oracle-btn" data-grain-choice="millet">🌾 Millet</button>
   <button type="button" class="grain-oracle-btn" data-grain-choice="sorghum">🌾 Sorghum</button>
+  <button type="button" class="grain-oracle-btn" data-grain-choice="both">🌾🌾 Both</button>
 </div>
+
+<p class="grain-oracle-scold" hidden>The ancients did not end empires and friendships over this question just for you to dodge it now. Choose.</p>
 
 </div>
 
@@ -206,7 +215,7 @@ Finish the portion from the one-pot dish that you set aside.
 
 Prepare a Thai peanut sauce flavored entrée:
 
-1. Blend ½ cup water, ½ tbsp vinegar, 2 tsp soy sauce, 1 table date sugar (or 3 dates), 25g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, 160g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
+1. Blend ½ cup water, ½ tbsp vinegar, 2 tsp soy sauce, 1 table date sugar (or 3 dates), 25g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, 70g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
 2. Pressure cook 1/3 cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span> with 1/3 cup dry lentils for 12 minutes.
 3. Mix in ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
 

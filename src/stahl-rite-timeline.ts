@@ -29,6 +29,65 @@ function relocateSharedDetails(panel: HTMLElement): void {
 // blocks above), relocated into whichever panel needs it via a
 // grain-oracle-slot placeholder.
 let chosenGrain: string | null = null;
+let selectRiteVariant: ((name: string) => void) | null = null;
+let resetBothAttempts: (() => void) | null = null;
+
+// One crack of thunder: filtered noise for the crack, plus a low rumbling
+// tail, both randomized so no two hits sound alike.
+function scheduleThunderCrack(ctx: AudioContext, startAt: number): number {
+  const noiseDuration = 1.8 + Math.random() * 1.2;
+  const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * noiseDuration, ctx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuffer;
+
+  const crackFilter = ctx.createBiquadFilter();
+  crackFilter.type = "bandpass";
+  crackFilter.frequency.value = 800 + Math.random() * 600;
+  crackFilter.Q.value = 0.6 + Math.random() * 0.5;
+
+  const rumbleFilter = ctx.createBiquadFilter();
+  rumbleFilter.type = "lowpass";
+  rumbleFilter.frequency.setValueAtTime(400 + Math.random() * 200, startAt);
+  rumbleFilter.frequency.exponentialRampToValueAtTime(40, startAt + noiseDuration);
+
+  const gain = ctx.createGain();
+  const peak = 0.6 + Math.random() * 0.3;
+  gain.gain.setValueAtTime(0, startAt);
+  gain.gain.linearRampToValueAtTime(peak, startAt + 0.02 + Math.random() * 0.03);
+  gain.gain.exponentialRampToValueAtTime(0.001, startAt + noiseDuration);
+
+  noise.connect(crackFilter);
+  crackFilter.connect(rumbleFilter);
+  rumbleFilter.connect(gain);
+  gain.connect(ctx.destination);
+
+  noise.start(startAt);
+  noise.stop(startAt + noiseDuration);
+  return startAt + noiseDuration;
+}
+
+// An angry burst of thunder: a random number of cracks in quick succession,
+// each separated by a brief random pause, so the oracle's outburst never
+// plays quite the same way twice.
+function playThunderclap(): void {
+  const AudioCtx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtx) return;
+  const ctx = new AudioCtx();
+
+  const hitCount = 2 + Math.floor(Math.random() * 3);
+  let t = ctx.currentTime;
+  let latestEnd = t;
+  for (let i = 0; i < hitCount; i++) {
+    latestEnd = Math.max(latestEnd, scheduleThunderCrack(ctx, t));
+    t += 0.08 + Math.random() * 0.18;
+  }
+
+  const closeAt = (latestEnd - ctx.currentTime) * 1000;
+  setTimeout(() => ctx.close(), closeAt + 100);
+}
 
 function applyGrainChoice(grain: string, panel: HTMLElement): void {
   chosenGrain = grain;
@@ -50,6 +109,7 @@ function relocateGrainOracleGate(panel: HTMLElement): void {
 
   if (gate.parentElement !== slot) slot.appendChild(gate);
   gate.hidden = chosenGrain !== null;
+  if (chosenGrain === null) resetBothAttempts?.();
 
   const gated = panel.querySelector<HTMLElement>(".grain-gated-content");
   if (gated) gated.hidden = chosenGrain === null;
@@ -60,9 +120,35 @@ function initGrainOracle(): void {
   const gate = document.querySelector<HTMLElement>(".grain-oracle-gate");
   if (!gate) return;
 
+  const scold = gate.querySelector<HTMLElement>(".grain-oracle-scold");
+  const scoldLines = [
+    "The ancients did not end empires and friendships over this question just for you to dodge it now. Choose.",
+    "This is your second and last chance. Test the oracle's patience once more, and see what happens.",
+  ];
+  let bothAttempts = 0;
+  resetBothAttempts = () => {
+    bothAttempts = 0;
+    if (scold) scold.hidden = true;
+  };
+
   gate.querySelectorAll<HTMLElement>(".grain-oracle-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const grain = btn.dataset.grainChoice;
+      if (grain === "both") {
+        bothAttempts++;
+        if (bothAttempts >= scoldLines.length + 1) {
+          if (scold) scold.hidden = true;
+          bothAttempts = 0;
+          playThunderclap();
+          selectRiteVariant?.("none");
+          return;
+        }
+        if (scold) {
+          scold.textContent = scoldLines[bothAttempts - 1];
+          scold.hidden = false;
+        }
+        return;
+      }
       const panel = gate.closest<HTMLElement>(".rite-variant");
       if (grain && panel) applyGrainChoice(grain, panel);
     });
@@ -119,6 +205,8 @@ function initVariantToggle(): void {
   const stops = document.querySelectorAll<HTMLElement>(".rite-stop");
   const details = document.querySelectorAll<HTMLElement>(".rite-detail");
   if (buttons.length === 0) return;
+
+  selectRiteVariant = (name) => selectVariant(name, buttons, panels, stops, details);
 
   buttons.forEach((el) => {
     el.addEventListener("click", () => {

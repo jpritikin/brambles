@@ -380,6 +380,12 @@ details summary:hover {
 .grain-oracle-btn:hover {
   background-color: rgba(212, 175, 55, 0.14);
 }
+.grain-oracle-scold {
+  margin-top: 1rem;
+  margin-bottom: 0;
+  font-style: italic;
+  color: #8a7a55;
+}
 
 .must-be-fresh {
   display: inline-block;
