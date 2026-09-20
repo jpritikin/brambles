@@ -2,7 +2,7 @@
 title = "Incorruptible Institutions Need Incorruptible People First"
 tags = ["politics","psychology"]
 date = "2026-09-20"
-categories = ["opinion"]
+categories = ["opinion","book"]
 menu = "main"
 bookToc = false
 +++
@@ -15,11 +15,11 @@ It's a good diagnosis. But look at the last few years of American governance. Th
 
 Corporate governance, no matter how cleverly designed, is downstream of law. Bylaws, board structures, dual-class shares, mission locks: all of it exists inside a legal system. A legal system is only as strong as the willingness of the people running it to follow the rules.
 
-That willingness has been failing nationally for a long time. A recent example is the For the People Act of 2019, an anti-corruption bill, but for democracy instead of companies. It died in the Senate. Mitch McConnell blocked it, and later Joe Manchin and Kyrsten Sinema blocked the rules changes that could have gotten it past him. And more recently we've watched Trump treat the law itself as optional, betting correctly that the usual checks can't reach him.
+That willingness has been failing nationally for a long time. A recent example is the For the People Act of 2019 (an anti-corruption bill, but for democracy instead of companies). It died in the Senate. Mitch McConnell blocked it, and later Joe Manchin and Kyrsten Sinema blocked the rules changes that could have gotten it past him. And more recently we've watched Trump treat the law itself as optional, betting correctly that the usual checks can't reach him (so far).
 
 This is the same failure mode Ries is writing about, but one level up. Incorruptible institutions can't be built only out of governance design, because law is itself an institution. Someone still has to choose to honor it. The statutes that make a mission lock enforceable, that let a board fend off a hostile takeover, that give Patagonia's ownership structure any teeth, all exist because Congress and the courts uphold them. Congress could rewrite corporate law to strip that protection away, or simply decline to enforce it when a well-connected shareholder tests the limits. Costco's mission lock survives only because the people who could hollow it out choose not to.
 
-The people holding power are the real leverage point. What matters is whether they can feel the pull toward self-interest and not go under. Manchin is a case worth keeping in mind: he had every reason to vote for reform and folded anyway. Whatever screens got him into the Senate, they weren't enough.
+The people holding power are the real leverage point. What matters is whether they can feel the pull toward self-interest and not go under. Manchin is a case worth keeping in mind: he had every reason to vote for reform and folded anyway. Whatever vetting he survived to reach the Senate, it wasn't enough.
 
 ## How would you even test for that?
 
