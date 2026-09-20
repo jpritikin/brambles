@@ -19,17 +19,17 @@ That willingness has been failing nationally for a long time. A recent example i
 
 This is the same failure mode Ries is writing about, but one level up. Incorruptible institutions can't be built only out of governance design, because law is itself an institution. Someone still has to choose to honor it. The statutes that make a mission lock enforceable, that let a board fend off a hostile takeover, that give Patagonia's ownership structure any teeth, all exist because Congress and the courts uphold them. Congress could rewrite corporate law to strip that protection away, or simply decline to enforce it when a well-connected shareholder tests the limits. Costco's mission lock survives only because the people who could hollow it out choose not to.
 
-The people holding power are the real leverage point. What matters is whether they can feel the pull toward self-interest and not go under. Manchin is a case worth keeping in mind: he had every reason to vote for reform and folded anyway. Whatever screens got him into the Senate in the first place, they didn't catch that.
+The people holding power are the real leverage point. What matters is whether they can feel the pull toward self-interest and not go under. Manchin is a case worth keeping in mind: he had every reason to vote for reform and folded anyway. Whatever screens got him into the Senate, they weren't enough.
 
 ## How would you even test for that?
 
 Call the skill what you want: empathy, integrity, emotional regulation, self-leadership. The label matters less than the fact that our current ways of detecting it aren't good enough.
 
-Start with self-report, like financial disclosures. Good, but politicians routinely lie about their intentions. Worse, plenty of people who eventually fold probably believed, at some point, that they'd hold the line. Sincere aspiration is a prediction, made by the person least able to see their own blind spots. Questionnaires fare little better. They can measure vocabulary and stated values, but this is not a test under real pressure.
+Start with self-report, like financial disclosures. Good, but politicians routinely lie about their intentions. Worse, plenty of people who eventually fold probably believed, at some point, that they'd hold the line. Sincere aspiration is a prediction, made by the person least able to see their own blind spots. Questionnaires fare little better. People tend to answer the way they think the test writer expects, a well-documented effect called demand characteristics.
 
-Voting records and reputation are the other category we lean on. Both feed the judgment of a trained observer. If any profession has tried to formalize that kind of judgment, it's talk therapy. Years of supervised clinical hours. It's the most serious attempt we make at vetting. But it's enormously expensive: years of one-on-one expert attention per person. And even then it's still a judgment call. Show the same session to two different supervisors and you can get two different verdicts. A voting record doesn't receive anywhere near that level of scrutiny.
+Voting records and reputation feed a third category: the judgment of a trained observer. If any profession has tried to formalize that kind of judgment, it's talk therapy. Years of supervised clinical hours. It's the most serious attempt we make at vetting. But it's enormously expensive: years of one-on-one expert attention per person. And even then it's still a judgment call. Show the same session to two different supervisors and you can get two different verdicts. And a voting record doesn't receive anywhere near that level of scrutiny.
 
-All of these approaches share annoying weaknesses: they watch someone when nothing is at stake, or take their word for how they'd behave under fire. A real test has to ambush the person with material they can't rehearse.
+All of these approaches share annoying weaknesses: they watch someone when nothing is at stake, or trust their word for how they'd behave under fire. A real test has to ambush the person with material they can't rehearse.
 
 ## The test we've been overlooking
 
