@@ -15,7 +15,7 @@ layout: shrine-page
 Anonymous whispered advice points to three key factors for success:
 
 1. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting 12 hours before administration.
-2. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind.
+2. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like cannabis—indifferent to whatever mood you present.
 3. Do not deviate from the kykeon recipe.
 
 ## Recipe
@@ -27,7 +27,7 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 <div id="butterfly-anchor-top"></div>
 
 1. <span class="recipe-step" data-step="0">Grind the <span class="recipe-substep" data-substep="seeds">seeds</span> to a fine powder in the {{< tooltip label="grinder" >}}Stahl adds, "crush the seed fragments by hand with pestle using a twisting downwards motion<br/>for a minute until they look more like dust fragments, don't be afraid to then pound the seed dust<br/>with the pestle to get it crushed as finely as possible."{{< /tooltip >}}.</span>
-2. <span class="recipe-step" data-step="1">In a shot glass, combine the <span class="recipe-substep" data-substep="seed-powder">seed powder</span> with 30mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span> and the <span class="recipe-substep" data-substep="ethanol">ethanol</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes, as if coaxing the spirit free.</span>
+2. <span class="recipe-step" data-step="1">In a shot glass, combine the <span class="recipe-substep" data-substep="seed-powder">seed powder</span> with 30mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span> and the <span class="recipe-substep" data-substep="ethanol">ethanol</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes.</span>
 3. <span class="recipe-step" data-step="2">Refrigerate for 20 minutes, a brief incubation in the cold and dark to let the seed fragments settle out of the solution.</span>
 4. <span class="recipe-step" data-step="3">Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a fan carry the alcohol away.</span>
 5. <span class="recipe-step" data-step="4">Scrape the remaining <span class="recipe-substep" data-substep="residue">residue</span> into a fresh shot glass with 10mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span>, <span class="recipe-substep" data-substep="barley-grass">barley grass powder</span>, and <span class="recipe-substep" data-substep="water">water</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes.</span>
@@ -168,9 +168,14 @@ Choose wisely. Choose with your whole heart.
 
 Prepare a one-pot dish:
 
-1. Combine 2½ cups water, ¼ cup <span class="rite-ingredient" data-ingredient="peanuts">peanuts</span>, ½ cup dried beans (black, pinto, red, or a mix), ½ cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span>, 1 tsp black <span class="rite-ingredient" data-ingredient="pepper">pepper</span>, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> in the pressure cooker.
+<div class="rite-scale-toggle">
+  <button type="button" class="rite-scale-btn" data-rite-scale="1">1x</button>
+  <button type="button" class="rite-scale-btn" data-rite-scale="2">2x</button>
+</div>
+
+1. Combine <span class="rite-amount" data-amount="2.5">2½</span> cups water, <span class="rite-amount" data-amount="0.25">¼</span> cup <span class="rite-ingredient" data-ingredient="peanuts">peanuts</span>, <span class="rite-amount" data-amount="0.5">½</span> cup dried beans (black, pinto, red, or a mix), <span class="rite-amount" data-amount="0.5">½</span> cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span>, <span class="rite-amount" data-amount="1">1</span> tsp black <span class="rite-ingredient" data-ingredient="pepper">pepper</span>, and <span class="rite-amount" data-amount="0.25">¼</span> tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> in the pressure cooker.
 2. Pressure cook for 50 minutes.
-3. Stir in ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span> and 1 cup <span class="rite-ingredient" data-ingredient="pineapple">pineapple</span> chunks.
+3. Stir in ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span> and <span class="rite-amount" data-amount="1">1</span> cup <span class="rite-ingredient" data-ingredient="pineapple">pineapple</span> chunks.
 
 Split into two servings: one for T-1 dinner, one for T-0 lunch.
 
@@ -215,8 +220,13 @@ Finish the portion from the one-pot dish that you set aside.
 
 Prepare a Thai peanut sauce flavored entrée:
 
-1. Blend ½ cup water, ½ tbsp vinegar, 2 tsp soy sauce, 1 table date sugar (or 3 dates), 25g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, 70g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and ¼ tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
-2. Pressure cook 1/3 cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span> with 1/3 cup dry lentils for 12 minutes.
+<div class="rite-scale-toggle">
+  <button type="button" class="rite-scale-btn" data-rite-scale="1">1x</button>
+  <button type="button" class="rite-scale-btn" data-rite-scale="2">2x</button>
+</div>
+
+1. Blend <span class="rite-amount" data-amount="0.5">½</span> cup water, <span class="rite-amount" data-amount="0.5">½</span> tbsp vinegar, <span class="rite-amount" data-amount="2">2</span> tsp soy sauce, <span class="rite-amount" data-amount="1">1</span> table date sugar (or <span class="rite-amount" data-amount="3">3</span> dates), <span class="rite-amount" data-amount="25">25</span>g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, <span class="rite-amount" data-amount="70">70</span>g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and <span class="rite-amount" data-amount="0.25">¼</span> tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
+2. Pressure cook <span class="rite-amount" data-amount="0.3333333333">1/3</span> cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span> with <span class="rite-amount" data-amount="0.3333333333">1/3</span> cup dry lentils for 12 minutes.
 3. Mix in ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
 
 Split into two servings: one for T-1 dinner, one for T-0 lunch.

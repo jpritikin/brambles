@@ -219,10 +219,58 @@ function initVariantToggle(): void {
   if (first) selectVariant(first, buttons, panels, stops, details);
 }
 
+// Quantity scaling ("1x" / "2x") for the Sample Rite recipes. Each amount is
+// tagged with its 1x value in data-amount; scaling just reformats the text,
+// leaving the unit (and everything else in the sentence) untouched.
+const FRACTIONS: [number, string][] = [
+  [0.25, "¼"],
+  [0.5, "½"],
+  [0.75, "¾"],
+  [1 / 3, "⅓"],
+  [2 / 3, "⅔"],
+];
+
+function formatAmount(value: number): string {
+  const whole = Math.floor(value + 1e-9);
+  const remainder = value - whole;
+  const fraction = FRACTIONS.find(([frac]) => Math.abs(remainder - frac) < 1e-6);
+  if (!fraction) return String(Math.round(value * 100) / 100);
+  return whole > 0 ? `${whole}${fraction[1]}` : fraction[1];
+}
+
+function applyScale(multiplier: number): void {
+  document.querySelectorAll<HTMLElement>(".rite-amount").forEach((el) => {
+    const base = Number(el.dataset.amount);
+    if (Number.isNaN(base)) return;
+    el.textContent = formatAmount(base * multiplier);
+  });
+}
+
+function initScaleToggle(): void {
+  const buttons = document.querySelectorAll<HTMLElement>(".rite-scale-btn");
+  if (buttons.length === 0) return;
+
+  const select = (multiplier: number): void => {
+    buttons.forEach((el) => el.classList.toggle("rite-scale-btn-active", Number(el.dataset.riteScale) === multiplier));
+    applyScale(multiplier);
+  };
+
+  buttons.forEach((el) => {
+    el.addEventListener("click", () => {
+      const multiplier = Number(el.dataset.riteScale);
+      if (!Number.isNaN(multiplier)) select(multiplier);
+    });
+  });
+
+  const first = Number(buttons[0]?.dataset.riteScale);
+  select(Number.isNaN(first) ? 1 : first);
+}
+
 function init(): void {
   initTimeline();
   initGrainOracle();
   initVariantToggle();
+  initScaleToggle();
 }
 
 init();

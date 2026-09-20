@@ -254,6 +254,33 @@ details summary:hover {
   border-color: #2e7d32;
 }
 
+.rite-scale-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.75rem auto 0;
+}
+.rite-scale-btn {
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #8a7a55;
+  background: #fdfaf3;
+  border: 1px solid #d4af37;
+  border-radius: 999px;
+  padding: 0.25rem 0.8rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.rite-scale-btn:hover {
+  background-color: rgba(212, 175, 55, 0.14);
+}
+.rite-scale-btn.rite-scale-btn-active {
+  color: #fff;
+  background: #2e7d32;
+  border-color: #2e7d32;
+}
+
 .eat-ingredient {
   transition: background-color 3s ease, box-shadow 3s ease;
   border-radius: 0.15rem;
