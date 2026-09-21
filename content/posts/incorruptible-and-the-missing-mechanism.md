@@ -42,3 +42,7 @@ Recall Manchin. Nobody outside his own head knows for certain, but his behavior 
 DMT is the most direct instrument we have to test whether someone can be with strong emotion without being carried away by it. To fulfill Ries's vision, we need a way to identify who can be trusted with power. We have never had a plausible test for that, until now.
 
 More at [unburdened.biz](https://unburdened.biz).
+
+## Help me amplify my voice
+
+**Like** this book review at [Goodreads](https://www.goodreads.com/review/show/8961964208) [Amazon](https://www.amazon.com/review/R2WWPAQDP1KGNR/ref=pe_123899240_1043597390_SRTC_02_04_BT_99_cm_rv_eml_rv0_rv) [StoryGraph](https://app.thestorygraph.com/reviews/71d15a03-075b-4a5d-92a4-f7aa3acdfecf) [LibraryThing](https://www.librarything.com/work/36216820/reviews/323850421)

@@ -135,3 +135,7 @@ CHARLEY: We're okay. That's never going to happen again. I'm showing him how our
 Charley's food stashing protector still saw Charley as a starving 10-year-old boy, not an adult man with a husband and refrigerator of his own that is full of food.
 
 As we see in this example, parts can be completely unaware of the present, in which case they need to be updated.
+
+## Help me amplify my voice
+
+**Like** this book review at [Goodreads](https://www.goodreads.com/review/show/8961964208) [Amazon](https://www.amazon.com/review/R2WWPAQDP1KGNR/ref=pe_123899240_1043597390_SRTC_02_04_BT_99_cm_rv_eml_rv0_rv) [StoryGraph](https://app.thestorygraph.com/book_reviews/bf223e94-0907-4090-aabc-849011678a30) [LibraryThing](https://www.librarything.com/work/37258576/reviews/323644597)
