@@ -41,6 +41,8 @@ Recall Manchin. Nobody outside his own head knows for certain, but his behavior 
 
 DMT is the most direct instrument we have to test whether someone can be with strong emotion without being carried away by it. To fulfill Ries's vision, we need a way to identify who can be trusted with power. We have never had a plausible test for that, until now.
 
+To be clear about what this is not: the substance doesn't confer integrity, it reveals whether someone already has it. This isn't "give everyone psychedelics and corruption disappears." Most people will never sit for a session, and that's fine. It's a diagnostic, not a treatment. And a diagnostic that decides who gets power is the kind of thing that invites coercion. This isn't a proposal for DMT use as a condition of holding office. Whatever this test looks like in practice, it only works if the person consents.
+
 More at [unburdened.biz](https://unburdened.biz).
 
 ## Help me amplify my voice
