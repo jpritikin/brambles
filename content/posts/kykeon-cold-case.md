@@ -63,7 +63,7 @@ Looking back, I figure experiment 1 was the same trick, stumbled into by acciden
 
 ## Why it works for Stahl and not for everyone else
 
-Bear with a short detour. My grandfather, Nathan Pritikin, was one of the first people to realize that a low-fat, whole-food diet, could reverse cardiovascular disease. I even met my grandfather as a child. And I admire Dr. Michael Greger for continuing my grandfather's work. So I am well aware of the ins and outs of type 2 diabetes. People describe it as sugar intolerance, but that's just a symptom, not the root cause. The cause is chronic excess fat circulating in the blood. This fat infiltrates the pancreas, impairing insulin-producing beta cells.[^diabetes]
+Bear with a short detour. My grandfather, Nathan Pritikin, was one of the first people to realize that a low-fat, whole-food diet, could reverse cardiovascular disease. I even met my grandfather as a child. And I admire [Dr. Michael Greger](https://nutritionfacts.org/) for continuing my grandfather's work. So I am well aware of the ins and outs of type 2 diabetes. People describe it as sugar intolerance, but that's just a symptom, not the root cause. The cause is chronic excess fat circulating in the blood. This fat infiltrates the pancreas, impairing insulin-producing beta cells.[^diabetes]
 
 [^diabetes]: https://nutritionfacts.org/video/does-a-ketogenic-diet-help-diabetes-or-make-it-worse/
 
