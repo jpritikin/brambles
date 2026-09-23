@@ -78,3 +78,5 @@ This would also explain the difference in duration. Stahl's 12 hours may simply 
 ## Where the case stands
 
 So, provisionally: Kykeon is a reversible interaction between ergine tartrate and barley grass aldehydes. The subjective effect has its own decay curve, which redosing barley grass can restart. The role of the aldehyde-preserving diet is still an open question. Hamilton followed it in the trial that finally worked, but that trial also dropped the premix and staggered the barley grass dosing, so there's no way to tell from a single success whether the diet allowed the barley aldehydes to survive substantially longer, or whether the staggered dosing alone would have been enough. It would be nice to support this theory with lab work and chemical investigations. This is one person's month of self-experimentation.
+
+UPDATE: I spoke with Matthew Stahl on Sep 23. He approves this message.
