@@ -83,7 +83,7 @@ export class DrugWheel {
             );
             slice.appendChild(bg);
 
-            const textR = (innerR + outerR) / 2;
+            const textR = innerR + (outerR - innerR) * 0.72;
             const tp = p(textR, angle);
             const label = svgEl("text");
             label.classList.add("ipe-drug-wheel-slice-label");
