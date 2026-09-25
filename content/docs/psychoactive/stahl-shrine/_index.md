@@ -12,6 +12,11 @@ layout: shrine-page
 
 ## Orientation
 
+<div class="shrine-renovation-notice">
+  <span class="shrine-renovation-icon">🏗️</span>
+  <span class="shrine-renovation-text"><strong>Under renovation.</strong> This shrine is being upgraded as befits its glory and wonder. Expect rough edges while the work is under way.</span>
+</div>
+
 Anonymous whispered advice points to three key factors for success:
 
 1. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting 12 hours before administration.
