@@ -1,7 +1,7 @@
 +++
 title = "The Kykeon Cold Case"
 tags = ["psychedelics"]
-date = "2026-09-21"
+date = "2026-09-25"
 categories = ["news"]
 menu = "main"
 bookToc = false
@@ -17,11 +17,13 @@ That's where Matthew Stahl comes in. In his book *LSI: Ancient LSD, Secret of th
 
 ## The complaint file
 
+I'm a journalist, based in Oregon. I publish a monthly, because a story needs time before it stops sounding like what you expected. Credit where due: the book *Slow Sex* had a genuinely good premise. I've redirected it toward journalism, where it belongs.
+
 I first came across Stahl's work through McKenna's Brainforest Café podcast. He was an engaging guest, seemed to know his chemistry, and radiated unshakable confidence in his personal testimony. I ordered the book. It was written in that same confident style, with chemistry details that were over my head but sounded plausible enough. But there were oddities too.
 
 He repeated the kykeon recipe, almost word-for-word, three times. Why would he do that? Chapter 5, pages 94–134, was much longer than it needed to be. He also mentioned, at the bottom of page 134, that he had [a discussion thread on bluelight.org](https://www.bluelight.org/community/threads/lsi-ancient-lsd-secret-of-the-eleusis-kykeon-and-vedic-soma.950819/). What I found waiting there was a toxic cesspool. He had one or two supporters, but practically everybody else on the thread was complaining that the recipe didn't work or were trying to poke holes in his chemistry. I DM'd Stahl around the same time that a moderator stepped in and locked the public discussion thread to new replies.
 
-I'm a journalist, based in Oregon. At this point, I might have drifted off to more promising stories. But as I skimmed through the acrimony, one participant caught my attention. Why was Hamilton Morris posting here? Yes, the guy behind *Hamilton's Pharmacopeia*. I had talked to Hamilton a few times over the past year. He always had interesting things to say. Small world, apparently.
+Reading through a locked, acrimonious thread, I might have drifted off to more promising stories. But one participant caught my attention. Why was Hamilton Morris posting here? Yes, the guy behind *Hamilton's Pharmacopeia*. I had talked to Hamilton a few times over the past year. Years back, his early 5-MeO-DMT reporting got the discovery story wrong. I introduced him to the actual discoverer. A small favor on my end, but he never let the debt go. Tiresome, honestly. He collected debts the way other people collect grudges.
 
 I DM'd Stahl: "Why does this fail for so many people?" He replied that people were not following his recipe carefully enough. He also blamed Hawaiian baby woodrose suppliers for selling seeds that weren't actually *Argyreia nervosa*. I could feel his frustration, but also his unshakable faith in the recipe. He pointed to the one or two other people who had gotten it to work.
 
@@ -69,14 +71,46 @@ Bear with a short detour. My grandfather, Nathan Pritikin, was one of the first 
 
 [^ergine-schedule]: LSA (ergine) is federally Schedule III in the US as an LSD precursor: https://www.deadiversion.usdoj.gov/schedules/schedules.html
 
+[^aldh-genetic]: Diet isn't the only route to suppressed ALDH. Roughly a third of East Asians carry the *ALDH2\*2* variant, which cripples the enzyme outright (the same one responsible for alcohol flush reaction). If Stahl carries a similar loss-of-function variant, that alone could account for his unusual tolerance, no dietary explanation required.
+
 I mentioned that because Stahl helpfully disclosed in his book that he has followed a keto diet for "as long as he can remember" (pp. 216–218). No wonder he has suffered a heart attack (pp. 43–44). Anyway, if chronic fat overload can impair one enzyme system, insulin secretion, there's no obvious reason that ALDH couldn't be similarly impacted.
 
-Years of a high-fat diet may have left Stahl with chronically suppressed ALDH activity. If his body simply isn't clearing barley aldehydes efficiently, ergine doesn't reassert itself. He wrote the recipe for his own unusually forgiving physiology, thinking it should work the same way for everyone else's.
+Years of a high-fat diet may have left Stahl with chronically suppressed ALDH activity.[^aldh-genetic] If his body simply isn't clearing barley aldehydes efficiently, ergine doesn't reassert itself. He wrote the recipe for his own unusually forgiving physiology, thinking it should work the same way for everyone else's.
 
 This would also explain the difference in duration. Stahl's 12 hours may simply be how long kykeon can coast when ergine doesn't interfere.
 
-## Where the case stands
+## Case closed
 
-So, provisionally: Kykeon is a reversible interaction between ergine tartrate and barley grass aldehydes. The subjective effect has its own decay curve, which redosing barley grass can restart. The role of the aldehyde-preserving diet is still an open question. Hamilton followed it in the trial that finally worked, but that trial also dropped the premix and staggered the barley grass dosing, so there's no way to tell from a single success whether the diet allowed the barley aldehydes to survive substantially longer, or whether the staggered dosing alone would have been enough. It would be nice to support this theory with lab work and chemical investigations. This is one person's month of self-experimentation.
+I opened the blackout window shades to make it easier to read back through the final draft. Kykeon is not a single molecule like most other psychedelics. Swallow ergine tartrate and barley grass aldehydes together, and they find each other. But this leaves the aldehydes vulnerable to ALDH. As ALDH mops up, ergine reasserts itself, but it's reversible: redose the barley grass and kykeon returns. A mug of green tea had gone cold at my elbow, steam long since quit. My readers were going to love it.
 
-UPDATE: I spoke with Matthew Stahl on Sep 23. He approves this message.
+I slid the pages back into the folder.
+
+The phone rang. Hamilton, without preamble: "Here's what you should be asking me: Does the diet matter? Or can enough barley grass work, without any special prep?"
+
+I'd had a week with this story and somehow missed the obvious. "Go on."
+
+He'd eaten a pea soup dinner loaded with broccoli, onion, and garlic on purpose, to invigorate ALDH. The next morning, he took 200mg of ergine—50 seeds worth—plus 320mg of THH as a stimulant buffer. That was 10:15 am.
+
+At 11:36 am, still just anxious, he swallowed 0.87g of barley grass. By 12:10 pm the kykeon was already fading, so he took 1.5g more and felt it come on hard enough to go for a walk. It peaked around 12:40, then started slipping again on the way back. By 12:51 he was home, managed only 0.75g more, and collapsed onto the couch as the ergine pressed back down. He rode out a rough patch—three hours since dosing, past ergine's peak—and by 2:17 pm the heaviness finally thinned for good.
+
+"So," I said, "barley grass has plenty of aldehydes, but ALDH clears them. I'll need to run the numbers against the 45-seed trial to see how much the rate actually shifted."
+
+"Yep," Hamilton said. "We're square now: the 5-MeO story."
+
+Click. The phone went dead.
+
+Afterward, I analyzed the timeline to work out roughly how fast his body was clearing barley grass aldehydes:
+
+| Dose | Amount | Coverage window | Rate |
+|---|---|---|---|
+| 1st | 0.87g | 11:36am–~12:05pm (~29 min) | ~0.030 g/min |
+| 2nd | 1.5g | 12:10pm–12:51pm (~41 min) | ~0.037 g/min |
+| 3rd | 0.75g | 12:51pm–1:20pm (~29 min) | ~0.026 g/min |
+
+The rate holds remarkably steady across all three doses, around 0.03g/min—call it roughly 1.8g/hour.
+
+Then I went back through the 45-seed trial. In an email that I sent for clarification, Hamilton wasn't certain but believes that one 3g pouch got split across both rescue doses—call it 1.5g each. The first held for 1.5–2 hours after a 10–15 minute onset, the second for another 1.5–2 hours—call it 90–135 minutes of coverage per dose. That works out to roughly 0.011–0.017 g/min, well under the 0.026–0.037 g/min range from the diet-invigorating trial.
+
+Further testing needed.
+
+This update was approved by Matthew Stahl on Sep 25.
