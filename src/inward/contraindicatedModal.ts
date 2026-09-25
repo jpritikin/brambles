@@ -38,6 +38,10 @@ export class ContraindicatedModal {
         modal.appendChild(btn);
         this.backdrop.appendChild(modal);
         root.appendChild(this.backdrop);
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && this.backdrop.classList.contains("ipe-open")) this.hide();
+        });
     }
 
     show(drug: DrugEffect, other: DrugEffect, note: string): void {

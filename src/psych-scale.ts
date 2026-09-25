@@ -107,6 +107,7 @@ function initWidget(el: HTMLElement): void {
     popup = null;
     el.setAttribute("aria-expanded", "false");
     document.removeEventListener("click", onDocumentClick, true);
+    document.removeEventListener("keydown", onKeyDown);
     window.removeEventListener("scroll", reposition, true);
     window.removeEventListener("resize", reposition);
   };
@@ -114,6 +115,10 @@ function initWidget(el: HTMLElement): void {
   const onDocumentClick = (event: MouseEvent) => {
     const target = event.target as Node;
     if (!el.contains(target) && !popup?.contains(target)) close();
+  };
+
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") close();
   };
 
   const toggle = () => {
@@ -126,6 +131,7 @@ function initWidget(el: HTMLElement): void {
     positionPopup(popup, el);
     el.setAttribute("aria-expanded", "true");
     document.addEventListener("click", onDocumentClick, true);
+    document.addEventListener("keydown", onKeyDown);
     window.addEventListener("scroll", reposition, true);
     window.addEventListener("resize", reposition);
   };

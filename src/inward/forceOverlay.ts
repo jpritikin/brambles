@@ -31,6 +31,7 @@ export class ForceOverlay {
     private forcePopupGroup: SVGGElement;
     private forcePopupBg: SVGRectElement;
     private forcePopupPin: SVGGElement;
+    private forcePopupContent: SVGGElement;
     private hoveredPart: Part | null = null;
     private lockedPart: Part | null = null;
     private forcePopupHideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -77,6 +78,9 @@ export class ForceOverlay {
             }
         });
         this.forcePopupGroup.appendChild(this.forcePopupPin);
+
+        this.forcePopupContent = svgEl("g");
+        this.forcePopupGroup.appendChild(this.forcePopupContent);
 
         this.svg.appendChild(this.forcePopupGroup);
     }
@@ -193,9 +197,7 @@ export class ForceOverlay {
         this.forcePopupVisiblePart = part;
         const rows = part.forces;
 
-        while (this.forcePopupGroup.children.length > 2) {
-            this.forcePopupGroup.removeChild(this.forcePopupGroup.lastChild!);
-        }
+        this.forcePopupContent.textContent = "";
 
         // Part repulsion is purely a display/anti-overlap mechanic with no psychological
         // meaning, so it's omitted from the legend.
@@ -233,7 +235,7 @@ export class ForceOverlay {
             barBg.setAttribute("width", String(barWidth));
             barBg.setAttribute("height", String(barHeight));
             barBg.setAttribute("rx", "3");
-            this.forcePopupGroup.appendChild(barBg);
+            this.forcePopupContent.appendChild(barBg);
 
             const barFill = svgEl("rect");
             barFill.setAttribute("x", String(fromRight ? barX + barWidth - fillWidth : barX));
@@ -245,7 +247,7 @@ export class ForceOverlay {
             barFill.setAttribute("fill-opacity", "0.35");
             barFill.setAttribute("stroke", f.color);
             barFill.setAttribute("stroke-width", "1");
-            this.forcePopupGroup.appendChild(barFill);
+            this.forcePopupContent.appendChild(barFill);
 
             if (overflowing) {
                 const overflowBar = svgEl("rect");
@@ -254,7 +256,7 @@ export class ForceOverlay {
                 overflowBar.setAttribute("width", String(overflowWidth));
                 overflowBar.setAttribute("height", String(barHeight));
                 overflowBar.setAttribute("fill", "#8b0000");
-                this.forcePopupGroup.appendChild(overflowBar);
+                this.forcePopupContent.appendChild(overflowBar);
             }
 
             const label = svgEl("text");
@@ -262,7 +264,7 @@ export class ForceOverlay {
             label.setAttribute("x", String(barX + 4));
             label.setAttribute("y", String(y + barHeight - 2));
             label.textContent = `${f.name} (${displayMag.toFixed(2)})`;
-            this.forcePopupGroup.appendChild(label);
+            this.forcePopupContent.appendChild(label);
         });
 
         this.forcePopupBg.setAttribute("width", String(width));
@@ -273,7 +275,7 @@ export class ForceOverlay {
         title.setAttribute("x", String(barX + 4));
         title.setAttribute("y", "13");
         title.textContent = "Forces";
-        this.forcePopupGroup.appendChild(title);
+        this.forcePopupContent.appendChild(title);
 
         this.forcePopupPin.classList.toggle("ipe-pinned", this.lockedPart === part);
         this.forcePopupPin.setAttribute("transform", `translate(${width - 14}, 12)`);

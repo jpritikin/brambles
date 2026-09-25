@@ -407,7 +407,15 @@ class InwardPerspectiveExplorer {
         let divisor = 1;
         for (const drug of DRUGS) {
             if (!this.doseController.isActive(drug.key)) continue;
-            if (drug.blendUrgencyDivisor !== undefined) divisor *= drug.blendUrgencyDivisor;
+            if (drug.blendUrgencyDivisorRange !== undefined) {
+                const { min, max, curve, k } = drug.blendUrgencyDivisorRange;
+                const frac = this.doseController.doses[drug.key];
+                // exp: stays quiet until late in the dose range, then rises sharply.
+                const shaped = curve === "exp" && k !== undefined ? (Math.pow(k, frac) - 1) / (k - 1) : frac;
+                divisor *= lerp(min, max, shaped);
+            } else if (drug.blendUrgencyDivisor !== undefined) {
+                divisor *= drug.blendUrgencyDivisor;
+            }
             if (part === this.cannabisPart && drug.cannabisBlendUrgencyDivisor !== undefined) {
                 divisor *= lerp(1, drug.cannabisBlendUrgencyDivisor, this.doseGate(drug));
             }
@@ -548,21 +556,15 @@ class InwardPerspectiveExplorer {
     }
 
     // THH caps accumulated Self energy - full dose caps at THH_SELF_ENERGY_CAP_MIN, linear
-    // (not log-linear, unlike doseGate) down to uncapped at zero dose. Distinct from THH's
+    // in slider position (fraction), down to uncapped at zero dose. Distinct from THH's
     // selfEnergyBoostMax: the boost raises the ambient baseline, this ceilings the total.
-    private static readonly THH_SELF_ENERGY_CAP_MIN = 0.75;
+    private static readonly THH_SELF_ENERGY_CAP_MIN = 0.51;
 
     private computeSelfEnergyCap(): number {
         const thh = DRUG_BY_KEY.thh;
         if (!this.doseController.isActive(thh.key)) return 1;
-        // The 0..1 dose slider is log-spaced (doseUnitLogRange) - convert to mg, then to a
-        // linear 0..1 position in the mg range, so the cap is linear in dose, not slider
-        // fraction (which would be log-linear in mg).
         const fraction = this.doseController.doses[thh.key];
-        const { min, max } = thh.doseUnitLogRange!;
-        const mg = min * Math.pow(max / min, fraction);
-        const linearFraction = (mg - min) / (max - min);
-        return lerp(1, InwardPerspectiveExplorer.THH_SELF_ENERGY_CAP_MIN, linearFraction);
+        return lerp(1, InwardPerspectiveExplorer.THH_SELF_ENERGY_CAP_MIN, fraction);
     }
 
     private syncCannabisPart(drug: DrugEffect): void {

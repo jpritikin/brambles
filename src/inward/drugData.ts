@@ -27,6 +27,12 @@ export interface DrugEffect {
     // Divides every part's blend urgency by this factor while active (5-MAPB: quiets
     // the pull toward blended, independent of unblendPushMax/blendPushMax).
     blendUrgencyDivisor?: number;
+    // Like blendUrgencyDivisor but ramps with dose fraction instead of a flat value
+    // (kykeon: 2 at min dose, 10 at max dose). Takes precedence over blendUrgencyDivisor
+    // when both are set. Defaults to a linear ramp; pass curve "exp" with a strength k
+    // (>1) to stay quiet until late in the dose range then rise sharply near max dose:
+    // shaped = (k^frac - 1) / (k - 1).
+    blendUrgencyDivisorRange?: { min: number; max: number; curve?: "exp"; k?: number };
     // Divides only the cannabis part's blend urgency by this factor while active (THH:
     // quiets cannabis's blend pull specifically, on top of THH's general unblendPushMax).
     cannabisBlendUrgencyDivisor?: number;
@@ -53,11 +59,26 @@ export const DRUGS: DrugEffect[] = [
         key: "mapb",
         name: "5-MAPB",
         emoji: "💗",
-        // Binary dosing: 80mg or 100mg, no inactive/0 step.
-        doseSteps: [0.8, 1],
-        doseStepLabels: ["80mg", "100mg"],
-        selfEnergyBoostSteps: [0.25, 0.3],
+        // 80mg-120mg linear range. selfEnergyBoost floors at 0.15 (was the old 80mg step)
+        // rather than ramping from 0, so doseCurve is used instead of selfEnergyBoostMax.
+        doseUnitRange: { min: 80, max: 120, unit: "mg" },
+        doseCurve: [
+            { frac: 0, selfEnergyBoost: 0.05, blendPush: 0 },
+            { frac: 1, selfEnergyBoost: 0.15, blendPush: 0 },
+        ],
         blendUrgencyDivisor: 2,
+    },
+    {
+        key: "kykeon",
+        name: "Kykeon",
+        emoji: "💗",
+        // Copy of 5-MAPB but combinable (no INTERACTIONS entry).
+        doseUnitRange: { min: 100, max: 300, unit: "mg" },
+        doseCurve: [
+            { frac: 0, selfEnergyBoost: 0.15, blendPush: 0 },
+            { frac: 1, selfEnergyBoost: 0.45, blendPush: 0 },
+        ],
+        blendUrgencyDivisorRange: { min: 2, max: 10, curve: "exp", k: 4 },
     },
     {
         key: "thh",

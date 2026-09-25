@@ -65,7 +65,8 @@ export class ManualPartPanel {
         panel.appendChild(toggleLabel);
 
         const row = document.createElement("div");
-        row.className = "ipe-manual-part-row ipe-disabled";
+        row.className = "ipe-manual-part-row";
+        row.classList.toggle("ipe-disabled", simulatePartsEnabled);
 
         const emojiPickerWrap = document.createElement("div");
         emojiPickerWrap.className = "ipe-manual-emoji-picker-wrap";
@@ -96,6 +97,9 @@ export class ManualPartPanel {
         emojiPickerWrap.appendChild(this.manualEmojiPopup);
         document.addEventListener("click", (e) => {
             if (!emojiPickerWrap.contains(e.target as Node)) this.manualEmojiPopup.classList.remove("ipe-open");
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") this.manualEmojiPopup.classList.remove("ipe-open");
         });
         row.appendChild(emojiPickerWrap);
 

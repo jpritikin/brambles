@@ -25,7 +25,12 @@ export class DrugWheel {
         this.selectedKey = initialSelectedKey;
         this.group = svgEl("g");
         this.build();
+        document.addEventListener("keydown", this.onKeyDown);
     }
+
+    private onKeyDown = (e: KeyboardEvent): void => {
+        if (e.key === "Escape" && this.open) this.close();
+    };
 
     private build(): void {
         const cx = this.cx;

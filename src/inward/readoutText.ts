@@ -30,7 +30,7 @@ export function blendIntensityWord(propensity: number): string {
 // around them (tighter = more focused) - not a geometric radius estimate, since there's no
 // single radius once the perimeter wraps a variable number of circles.
 const FOCUS_SCORE_MIN = 0; // clamped floor; raw score can go negative (many circles, tight shrinkWrap) and still reads as hyper-focused
-const FOCUS_SCORE_MAX = Math.sqrt(8) - 0; // sqrt(8 circles) - shrinkWrap=0 (loosest many-circle case)
+const FOCUS_SCORE_MAX = Math.sqrt(8); // sqrt(8 circles) - shrinkWrap=0 (loosest many-circle case)
 const FOCUS_WORDS = ["hyper-focused", "narrow", "gathered", "centered", "spacious", "wide", "panoramic"];
 
 // Below this Self energy (matching SELF_ENERGY_QUALITIES' lowest "depleted" tier), Self
