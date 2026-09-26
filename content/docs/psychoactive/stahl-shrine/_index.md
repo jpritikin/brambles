@@ -27,7 +27,7 @@ Anonymous whispered advice points to three key factors for success:
 
 For millennia, what the ancients were brewing for their kykeon and soma rites has stumped alchemists, chemists, and scholars alike. Stahl's case is laid out with loving care. Go buy the book—this is the cliff notes version.
 
-What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof. Kykeon is similar in effect to mescaline. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
+What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof. Kykeon is similar in effect to MDMA, but the lowest dose of kykeon is like the maximum dose of MDMA. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
 
 <div id="butterfly-anchor-top"></div>
 
@@ -67,25 +67,32 @@ Tender young barley grass aldehydes ([isovaleraldehyde](https://en.wikipedia.org
 
 Eat:
 - **Fruits**
+  - <span class="eat-ingredient" data-ingredient="blackcurrant">Blackcurrant</span> (Ribes nigrum)[^zhang2016]
+  - <span class="eat-ingredient" data-ingredient="chinese-quince">Chinese quince</span> (Chaenomeles sinensis)[^zhang2016]
+  - Cocoa[^srinivasan2019]
+  - <span class="eat-ingredient" data-ingredient="dates">Dates</span>[^srinivasan2019]
+  - <span class="eat-ingredient" data-ingredient="durian">Durian</span> (Durio zibethinus)[^maninang2009]
   - <span class="eat-ingredient" data-ingredient="gooseberry">Gooseberry</span> (Phyllanthus emblica)[^srinivasan2019]
+  - <span class="eat-ingredient" data-ingredient="lemon">Lemon</span> (yellow)[^zhang2016]
+  - <span class="eat-ingredient" data-ingredient="papaya">Papaya</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="pineapple">Pineapple</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="pomegranate">Pomegranate</span>[^srinivasan2019]
-  - <span class="eat-ingredient" data-ingredient="papaya">Papaya</span>[^srinivasan2019]
-  - <span class="eat-ingredient" data-ingredient="dates">Dates</span>[^srinivasan2019]
-  - Cocoa[^srinivasan2019]
+  - <span class="eat-ingredient" data-ingredient="starfruit">Starfruit</span> (Averrhoa carambola)[^zhang2016]
+  - <span class="eat-ingredient" data-ingredient="wax-apple">Wax apple</span> (Syzygium samarangense)[^zhang2016]
 - **Vegetables**
   - <span class="eat-ingredient" data-ingredient="spinach">Spinach</span>[^srinivasan2019]
 - **Grains and legumes**
+  - <span class="eat-ingredient" data-ingredient="millet">Millet</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="oats">Oats</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="peanuts">Peanuts</span>[^srinivasan2019]
-  - <span class="eat-ingredient" data-ingredient="millet">Millet</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="sorghum">Sorghum</span>[^srinivasan2019]
 - **Spices**
-  - <span class="eat-ingredient" data-ingredient="pepper">Pepper</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="cinnamon">Cinnamon</span>[^srinivasan2019]
-  - <span class="eat-ingredient" data-ingredient="turmeric">Turmeric</span>[^srinivasan2019]
+  - <span class="eat-ingredient" data-ingredient="garlic">Garlic</span> (Allium sativum)[^iciek2016]
   - <span class="eat-ingredient" data-ingredient="ginger">Ginger</span> (Zingiber officinale)[^srinivasan2019]
+  - <span class="eat-ingredient" data-ingredient="pepper">Pepper</span>[^srinivasan2019]
   - <span class="eat-ingredient" data-ingredient="peppermint">Peppermint</span> (Mentha piperita) essential oil[^elder1960]
+  - <span class="eat-ingredient" data-ingredient="turmeric">Turmeric</span>[^srinivasan2019]
 - **Other**
   - Vitamin C (ascorbic acid)[^srinivasan2019]
 
@@ -100,17 +107,18 @@ Everything not listed under Eat or Consider above is effectively Avoid.
 <summary>Avoid list (foods confirmed to invigorate ALDH)</summary>
 
 - **Fruits**
-  - Pear[^srinivasan2019]
-  - Orange[^srinivasan2019]
   - Coconut water[^srinivasan2019]
   - Mango (Mangifera indica)[^wang2016]
+  - Orange[^srinivasan2019]
+  - Pear[^srinivasan2019]
   - Persimmon (Diospyros kaki)[^wang2016]
+  - Sweet lime[^srinivasan2019]
 - **Vegetables**
-  - Cucumber[^srinivasan2019]
-  - Tomato[^srinivasan2019]
-  - Onion (Allium cepa)[^srinivasan2019]
   - Asparagus (Asparagus officinalis)[^wang2016]
   - Cruciferous vegetables (broccoli, cabbage, kale, etc.)[^ushida2013]
+  - Cucumber[^srinivasan2019]
+  - Onion (Allium cepa)[^srinivasan2019]
+  - Tomato[^srinivasan2019][^zhang2016][^tomato-conflict]
 - **Seeds**
   - Fenugreek seeds (Trigonella foenum-graecum)[^wang2016][^srinivasan2019][^fenugreek-conflict]
 - **Herbs and spices**
@@ -286,5 +294,13 @@ We lost this knowledge for a couple thousand years. Let's not make it a habit. W
 [^fenugreek-conflict]: Srinivasan et al. (2019) measured a 62.40% decrease in ALDH activity for fenugreek seeds, which would suggest "Eat." But Wang et al. (2016) reported that fenugreek seed polyphenolic extract upregulated ALDH expression in alcohol-treated liver cells. In view of the disagreement, keep under "Avoid."
 
 [^wang2016]: Wang, F., Li, Y., Zhang, Y. J., Zhou, Y., Li, S., & Li, H. B. (2016). Natural products for the prevention and treatment of hangover and alcohol use disorder. *Molecules, 21*(1), 64.
+
+[^zhang2016]: Zhang, Y. J., Wang, F., Zhou, Y., Li, Y., Zhou, T., Zheng, J., Zhang, J. J., Li, S., Xu, D. P., & Li, H. B. (2016). Effects of 20 selected fruits on ethanol metabolism: Potential health benefits and harmful impacts. *International Journal of Environmental Research and Public Health, 13*(4), 399.
+
+[^tomato-conflict]: Srinivasan et al. (2019) placed tomato under "Avoid" (ALDH-invigorating). But Zhang et al. (2016) measured a 46.14% decrease in hepatic ALDH activity in mice given tomato (Lycopersicon esculentum) juice after alcohol dosing, which would suggest "Eat." In view of the disagreement, keep under "Avoid."
+
+[^iciek2016]: Iciek, M., Bilska-Wilkosz, A., Górny, M., Sokołowska-Jeżewicz, M., & Kowalczyk-Pachel, D. (2016). The effects of different garlic-derived allyl sulfides on anaerobic sulfur metabolism in the mouse kidney. *Antioxidants, 5*(4), 46. Diallyl trisulfide (DATS), one of garlic's organosulfur compounds, significantly decreased ALDH activity in mouse kidney (p = 0.018); diallyl sulfide and diallyl disulfide had no significant effect.
+
+[^maninang2009]: Maninang, J. S., Lizada, M. C. C., & Gemma, H. (2009). Inhibition of aldehyde dehydrogenase enzyme by Durian (Durio zibethinus Murray) fruit extract. *Food Chemistry, 117*(2), 352-355. Dose-dependent inhibition of yeast ALDH, up to 70% at 0.33ppm, attributed to durian's sulphur-rich compounds—the same mechanism behind disulfiram-ethanol-like reactions when durian is eaten with alcohol.
 
 [^stahl-keto]: Stahl (pp. 216-217): "For as long as I can remember I have followed a ketogenic diet consisting of proteins like eggs, chicken, flank steak, brisket, turkey, pork, hamburger meat, fish. Fats consisting of olive oil, avocados, the fats in meats, salad dressing such as blue cheese, sour cream. Low carbs consist of non starchy vegetables like broccoli, spinach, cauliflower, squash, zucchini and cabbage." But he must be eating minuscule amounts of broccoli and cabbage (ALDH-inducers). We should **not** follow Stahl here: [Keto diets carry serious risks and few benefits](https://nutritionfacts.org/blog/the-safety-of-keto-diets/).
