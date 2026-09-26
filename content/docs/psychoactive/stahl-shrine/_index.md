@@ -19,7 +19,7 @@ layout: shrine-page
 
 Anonymous whispered advice points to three key factors for success:
 
-1. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting 12 hours before administration.
+1. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 18 hours before administration.
 2. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like cannabis—indifferent to whatever mood you present.
 3. Do not deviate from the kykeon recipe.
 
