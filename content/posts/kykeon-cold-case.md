@@ -91,7 +91,7 @@ I'd had a week with this story and somehow missed the obvious. "Go on."
 
 He'd eaten a pea soup dinner loaded with broccoli, onion, and garlic on purpose, to invigorate ALDH. The next morning, he took 200mg of ergine—50 seeds worth—plus 320mg of THH as a stimulant buffer. That was 10:15 am.
 
-At 11:36 am, still just anxious, he swallowed 0.87g of barley grass. By 12:10 pm the kykeon was already fading, so he took 1.5g more and felt it come on hard enough to go for a walk. It peaked around 12:40, then started slipping again on the way back. By 12:51 he was home, managed only 0.75g more, and collapsed onto the couch as the ergine pressed back down. He rode out a rough patch—three hours since dosing, past ergine's peak—and by 2:17 pm the heaviness finally thinned for good.
+At 11:36 am, still just anxious, he swallowed 0.87g of barley grass. By 12:10 pm the kykeon was already fading, so he took 1.5g more and felt it come on hard enough to go for a walk. It peaked around 12:40, then started slipping again on the way back. Even at that peak, Hamilton said, kykeon was only partially activated, nowhere near the full power he'd hit in the 45-seed trial. By 12:51 he was home, managed only 0.75g more, and collapsed onto the couch as the ergine pressed back down. He rode out a rough patch—three hours since dosing, past ergine's peak—and by 2:17 pm the heaviness finally thinned for good.
 
 "So," I said, "barley grass has plenty of aldehydes, but ALDH clears them. I'll need to run the numbers against the 45-seed trial to see how much the rate actually shifted."
 
