@@ -289,7 +289,7 @@ interface SimState {
 }
 
 function buildSimUI(container: HTMLElement): void {
-    let state: SimState = { ergineMg: 200, dietOn: true, sippingWater: true, doses: [{ t: 90, amount: 3 }], rngSeed: 1, startTime: "" };
+    let state: SimState = { ergineMg: 100, dietOn: true, sippingWater: true, doses: [{ t: 30, amount: 3 }, { t: 130, amount: 3 }, { t: 225, amount: 1.5 }], rngSeed: 1, startTime: "" };
     let dragging: { dose: BarleyDose; pointerId: number; startClientY: number; startAmount: number } | null = null;
     let dragDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -305,7 +305,7 @@ function buildSimUI(container: HTMLElement): void {
 
     const ergineField = el("div", "pk-field");
     const ergineLabelRow = el("label");
-    ergineLabelRow.textContent = "Ergine dose ";
+    ergineLabelRow.textContent = "Ergine weight incl. inert oils ";
     const ergineVal = el("span", "pk-val");
     ergineLabelRow.appendChild(ergineVal);
     const ergineInput = el("input");
@@ -390,7 +390,7 @@ function buildSimUI(container: HTMLElement): void {
 
     const compartmentBlock = el("div", "pk-readout-block");
     const compartmentHeading = el("h4");
-    compartmentHeading.textContent = "Body compartments";
+    compartmentHeading.textContent = "Body compartments (all measurements in fantasy units)";
     compartmentBlock.appendChild(compartmentHeading);
 
     function makeCompartmentRow(labelText: string): HTMLSpanElement {
@@ -507,6 +507,10 @@ function buildSimUI(container: HTMLElement): void {
     });
 
     function updateReadout(point: SimPoint): void {
+        const startMins = state.startTime ? parseClockTime(state.startTime) : null;
+        const timeLabel = startMins !== null ? fmtClock(startMins, point.t) : fmtTime(point.t);
+        subjectiveHeading.textContent = `Subjective state @ ${timeLabel}`;
+
         cStomachErgine.textContent = `${point.stomachErgineMg.toFixed(0)} mg`;
         cStomachAld.textContent = `${point.stomachAldG.toFixed(2)} g`;
         cLiverAld.textContent = `${point.liverAldG.toFixed(2)} g`;
@@ -606,10 +610,7 @@ function buildSimUI(container: HTMLElement): void {
         kykeonPath.setAttribute("class", "pk-kykeon-line");
         svg.appendChild(kykeonPath);
 
-        // Subjective-equivalence guideline: kykeon is vastly more potent per mg
-        // than MDMA, so "MDMA 120mg" worth of effect sits near 1mg of kykeon, not
-        // anywhere close to 120mg on this axis.
-        const mdmaEquivalentKykeonMg = 5;
+        const mdmaEquivalentKykeonMg = 1;
         const mdmaY = yScale(mdmaEquivalentKykeonMg);
         const mdmaLine = svgEl("line");
         mdmaLine.setAttribute("x1", String(PAD.l));

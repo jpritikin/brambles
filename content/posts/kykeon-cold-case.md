@@ -89,17 +89,11 @@ The phone rang. Hamilton, without preamble: "Here's what you should be asking me
 
 I'd had a week with this story and somehow missed the obvious. "Go on."
 
-He'd eaten a pea soup dinner loaded with broccoli, onion, and garlic on purpose, to invigorate ALDH. The next morning, he took 200mg of ergine—50 seeds worth—plus 320mg of THH as a stimulant buffer. That was 10:15 am.
+He'd eaten a pea soup dinner loaded with broccoli and onion on purpose, to invigorate ALDH. The next morning, he took 200mg of ergine—50 seeds worth—plus 320mg of THH for its stimulant and emotional distancing effects. That was 10:15 am.
 
-At 11:36 am, still just anxious, he swallowed 0.87g of barley grass. By 12:10 pm the kykeon was already fading, so he took 1.5g more and felt it come on hard enough to go for a walk. It peaked around 12:40, then started slipping again on the way back. Even at that peak, Hamilton said, kykeon was only partially activated, nowhere near the full power he'd hit in the 45-seed trial. By 12:51 he was home, managed only 0.75g more, and collapsed onto the couch as the ergine pressed back down. He rode out a rough patch—three hours since dosing, past ergine's peak—and by 2:17 pm the heaviness finally thinned for good.
+At 11:36 am, still just anxious, he swallowed 0.87g of barley grass. By 12:10 pm the kykeon was already fading, so he took 1.5g more and felt it come on hard enough to go for a walk. It peaked around 12:40, then started slipping again on the way back. By 12:51 he was home, managed only 0.75g more, and collapsed onto the couch as the ergine pressed back down. He rode out a rough patch—three hours since dosing, past ergine's peak—and by 2:17 pm the heaviness finally thinned for good.
 
-"So," I said, "barley grass has plenty of aldehydes, but ALDH clears them. I'll need to run the numbers against the 45-seed trial to see how much the rate actually shifted."
-
-"Yep," Hamilton said. "We're square now: the 5-MeO story."
-
-Click. The phone went dead.
-
-Afterward, I analyzed the timeline to work out roughly how fast his body was clearing barley grass aldehydes:
+I analyzed the timeline to work out roughly how fast his body was clearing barley grass aldehydes:
 
 | Dose | Amount | Coverage window | Rate |
 |---|---|---|---|
@@ -107,45 +101,22 @@ Afterward, I analyzed the timeline to work out roughly how fast his body was cle
 | 2nd | 1.5g | 12:10pm–12:51pm (~41 min) | ~0.037 g/min |
 | 3rd | 0.75g | 12:51pm–1:20pm (~29 min) | ~0.026 g/min |
 
-The rate holds remarkably steady across all three doses, around 0.03g/min—call it roughly 1.8g/hour.
+Looks like around 0.03g/min.
 
-Then I went back through the 45-seed trial. In an email that I sent for clarification, Hamilton wasn't certain but believes that one 3g pouch got split across both rescue doses—call it 1.5g each. The first held for 1.5–2 hours after a 10–15 minute onset, the second for another 1.5–2 hours—call it 90–135 minutes of coverage per dose. That works out to roughly 0.011–0.017 g/min, well under the 0.026–0.037 g/min range from the diet-invigorating trial.
+"Since I was focused on the initial mixing step, I didn't track the first few trials carefully enough," Hamilton admitted. "For the next trial, I tried to limit the number of differences to the ALDH diet."
 
-Further testing needed.
+At 9:45am, he took THH 254mg. Then at 10:30, LSA 180mg. By 11:30, he was feeling mild nausea and anxiety, but "Maybe it was psychosomotic?" he said. He took 1.51g barley grass and ate lunch at 11:52.
+Kykeon peaked around 1:08 and he took another 1.5g barley grass at 1:15. By 2:30, kykeon was fading.
 
-Here is raw log from Hamilton's next trial. Hamilton carefully followed the ALDH diet and tried to minimize difference from most recent trial:
-
-9:45am THH 254mg
-
-10:30am LSA 180mg
-
-11:30am mild nausea, anxiety, maybe psychosomotic "I just swallowed poison."
-
-11:52am take 1.51g barley grass and eat lunch
-
-12:10 mild sedation
-
-12:22 kykeon transition started
-
-12:50 still transitioning
-
-1pm sedation lifting, kykeon building
-
-1:08pm kykeon peaked
-
-1:15 dose 1.5g barley
-
-1:23 kykeon resuming, but too much LSA resistence
-
-2pm kykeon good, but getting overwhelmed by LSA
-
-2:30 kykeon fading
-
-### Revised clearance estimates
-
-Weighting the most recent data most heavily, here's where that leaves the estimate:
+I analyzed the timeline and found that the aldehydes diet helped, but only modestly.
 
 | Dose | Amount | Coverage window | Rate |
 |---|---|---|---|
 | 1st | 1.51g | 11:52am–1:08pm (~76 min) | ~0.020 g/min |
 | 2nd | 1.5g | 1:15pm–2:30pm (~75 min) | ~0.020 g/min |
+
+"The other learning from this trial", Hamilton continued, "was that I took barley grass way too late. The whole experience was haunted by ergine, which cancelled out some of the kykeon feeling."
+
+"Anyway," Hamilton said. "We're square now: the 5-MeO story."
+
+Click. The phone went dead.
