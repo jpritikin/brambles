@@ -4,7 +4,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "validate:psych-scale": "node scripts/validate-psych-scale.mjs",
-    "build": "npm run typecheck && npm run validate:psych-scale && esbuild src/*.ts --bundle --minify --format=esm --outdir=static/js",
+    "validate:ingredients": "node scripts/validate-ingredients.mjs",
+    "validate:links": "node scripts/validate-links.mjs",
+    "build": "npm run typecheck && npm run validate:psych-scale && npm run validate:ingredients && npm run validate:links && esbuild src/*.ts --bundle --minify --format=esm --outdir=static/js",
     "watch": "esbuild src/*.ts --bundle --format=esm --outdir=static/js --watch",
     "watch:typecheck": "tsc --noEmit --watch --preserveWatchOutput",
     "dev": "npm-run-all --parallel watch watch:typecheck dev:hugo",
