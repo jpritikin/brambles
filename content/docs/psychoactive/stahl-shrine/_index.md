@@ -23,6 +23,18 @@ Anonymous whispered advice points to three key factors for success:
 2. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like cannabis—indifferent to whatever mood you present.
 3. Do not deviate from the kykeon recipe.
 
+## Pharmacokinetics
+
+What follows is a guess built from journey reports,[^pk-credit] turned into a toy simulator to make specific predictions. Picture the body as three compartments. The **stomach** holds ergine and barley grass aldehydes. The **liver** either passes ergine through untouched or converts it into kykeon, depending on whether aldehydes are present. The **bloodstream/brain** is where the subjective effects happen.
+
+[^pk-credit]: Deepest, most fervent thanks to Hamilton Morris—intrepid psychonaut who marched fearlessly into the ergine-aldehyde unknown so the rest of us wouldn't have to. May his liver enzymes be forever blessed. Read the saga in [The Kykeon Cold Case]({{< relref "/posts/kykeon-cold-case" >}}).
+
+Ergine trickles out of the stomach slowly: it takes about 30 minutes to start, the rate peaks around 3-4 hours in, and it's fully released by around 7 hours. Barley grass aldehydes leave the stomach fast, in about 5 minutes. In the liver, aldehyde dehydrogenase (ALDH) attacks whatever aldehydes have arrived, at a rate that depends on diet. When aldehyde is present in the liver, all ergine arriving is converted into kykeon instead of passing through. Kykeon has a short half-life in the brain. Ergine is largely cleared by the kidneys, and that requires drinking water.
+
+Drag the sliders below, click the timeline, and see what the model predicts.
+
+<div id="pk-sim"></div>
+
 ## Recipe
 
 For millennia, what the ancients were brewing for their kykeon and soma rites has stumped alchemists, chemists, and scholars alike. Stahl's case is laid out with loving care. Go buy the book—this is the cliff notes version.
@@ -149,7 +161,7 @@ Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats
 
 <div class="rite-detail" data-rite-detail="shared-kykeon" hidden>
 
-Mix the [recipe](#recipe) above with 1-2 tsp of <span class="rite-ingredient" data-ingredient="peanuts">peanut butter</span> and a dash of salt. Chill in the refrigerator for at least ½ hour. Optionally, chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="papaya">papaya</span> and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
+Mix the [recipe](#recipe) above with a squeeze of <span class="rite-ingredient" data-ingredient="lemon">lemon</span> juice. Chill in the refrigerator for at least ½ hour. Optionally, chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="papaya">papaya</span> and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
 
 </div>
 

@@ -113,4 +113,39 @@ Then I went back through the 45-seed trial. In an email that I sent for clarific
 
 Further testing needed.
 
-This update was approved by Matthew Stahl on Sep 25.
+Here is raw log from Hamilton's next trial. Hamilton carefully followed the ALDH diet and tried to minimize difference from most recent trial:
+
+9:45am THH 254mg
+
+10:30am LSA 180mg
+
+11:30am mild nausea, anxiety, maybe psychosomotic "I just swallowed poison."
+
+11:52am take 1.51g barley grass and eat lunch
+
+12:10 mild sedation
+
+12:22 kykeon transition started
+
+12:50 still transitioning
+
+1pm sedation lifting, kykeon building
+
+1:08pm kykeon peaked
+
+1:15 dose 1.5g barley
+
+1:23 kykeon resuming, but too much LSA resistence
+
+2pm kykeon good, but getting overwhelmed by LSA
+
+2:30 kykeon fading
+
+### Revised clearance estimates
+
+Weighting the most recent data most heavily, here's where that leaves the estimate:
+
+| Dose | Amount | Coverage window | Rate |
+|---|---|---|---|
+| 1st | 1.51g | 11:52am–1:08pm (~76 min) | ~0.020 g/min |
+| 2nd | 1.5g | 1:15pm–2:30pm (~75 min) | ~0.020 g/min |
