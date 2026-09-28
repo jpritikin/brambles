@@ -377,10 +377,6 @@ function buildSimUI(container: HTMLElement): void {
     svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
     svg.classList.add("pk-chart");
     chartWrap.appendChild(svg);
-    const trashZone = el("div", "pk-trash-zone");
-    trashZone.textContent = "drop here to remove";
-    trashZone.hidden = true;
-    chartWrap.appendChild(trashZone);
     const dragTooltip = el("div", "pk-dose-drag-tooltip");
     dragTooltip.hidden = true;
     chartWrap.appendChild(dragTooltip);
@@ -695,7 +691,6 @@ function buildSimUI(container: HTMLElement): void {
 
                 g.addEventListener("pointerdown", (e: PointerEvent) => {
                     dragging = { dose, pointerId: e.pointerId, startClientY: e.clientY, startAmount: dose.amount };
-                    trashZone.hidden = false;
                     showDragTooltip(dose, e.clientX, e.clientY);
                     svg.setPointerCapture(e.pointerId);
                     e.stopPropagation();
@@ -827,12 +822,6 @@ function buildSimUI(container: HTMLElement): void {
     document.addEventListener("pointermove", (e: PointerEvent) => {
         if (!dragging || e.pointerId !== dragging.pointerId) return;
         const rect = svg.getBoundingClientRect();
-        const overTrash = isOverTrash(e.clientX, e.clientY);
-        trashZone.classList.toggle("pk-trash-zone-active", overTrash);
-        if (overTrash) {
-            dragTooltip.hidden = true;
-            return;
-        }
 
         const t = Math.max(0, Math.min(T_END, Math.round(xToT(e.clientX, rect) / 5) * 5));
         dragging.dose.t = t;
@@ -853,13 +842,10 @@ function buildSimUI(container: HTMLElement): void {
     });
     document.addEventListener("pointerup", (e: PointerEvent) => {
         if (!dragging || e.pointerId !== dragging.pointerId) return;
-        const overTrash = isOverTrash(e.clientX, e.clientY);
-        if (overTrash || dragging.dose.amount <= 0) {
+        if (dragging.dose.amount <= 0) {
             state.doses = state.doses.filter((d) => d !== dragging!.dose);
         }
         dragging = null;
-        trashZone.hidden = true;
-        trashZone.classList.remove("pk-trash-zone-active");
         dragTooltip.hidden = true;
         if (dragDebounceTimer !== null) {
             clearTimeout(dragDebounceTimer);
@@ -867,12 +853,6 @@ function buildSimUI(container: HTMLElement): void {
         }
         run();
     });
-
-    function isOverTrash(clientX: number, clientY: number): boolean {
-        if (trashZone.hidden) return false;
-        const r = trashZone.getBoundingClientRect();
-        return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
-    }
 
     function showDragTooltip(dose: BarleyDose, clientX: number, clientY: number): void {
         const wrapRect = chartWrap.getBoundingClientRect();
