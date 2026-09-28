@@ -12,45 +12,48 @@ layout: shrine-page
 
 ## Orientation
 
+For millennia, what the ancients were brewing for their kykeon and soma rites has stumped alchemists, chemists, and scholars alike. What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof.
+
+Kykeon is similar in effect to MDMA, but the lowest dose of kykeon is like the maximum dose of MDMA. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
+
 <div class="shrine-renovation-notice">
   <span class="shrine-renovation-icon">🏗️</span>
   <span class="shrine-renovation-text"><strong>Under renovation.</strong> This shrine is being upgraded as befits its glory and wonder. Expect rough edges while the work is under way.</span>
 </div>
 
-Anonymous whispered advice points to three key factors for success:
+1. Use the pharmacokinetics tool to plan to journey.
+2. Procure <span class="must-be-fresh">fresh</span> young barley grass powder. Each serving should be in an individually sealed packet.
+3. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 18 hours before administration.
+4. [Extract ergine/LSA](#erginelsa-extraction)
+5. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like cannabis—indifferent to whatever mood you present.
+6. Implement plan from step 1.
 
-1. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 18 hours before administration.
-2. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like cannabis—indifferent to whatever mood you present.
-3. Do not deviate from the kykeon recipe.
+## Pharmacokinetics
 
-## Recipe
+What follows is a guess built from journey reports,[^pk-credit] turned into a simulator to make specific predictions. Picture the body as three compartments. The **stomach** holds ergine and barley grass aldehydes (NOT REALISTIC). The **liver** either passes ergine through untouched or converts it into kykeon, depending on whether aldehydes are present. The **brain** is where the subjective effects happen.
 
-For millennia, what the ancients were brewing for their kykeon and soma rites has stumped alchemists, chemists, and scholars alike. Stahl's case is laid out with loving care. Go buy the book—this is the cliff notes version.
+[^pk-credit]: Deepest, most fervent thanks to Hamilton Morris—intrepid psychonaut who marched fearlessly into the ergine-aldehyde unknown so the rest of us wouldn't have to. May his liver enzymes be forever blessed. Read the saga in [The Kykeon Cold Case]({{< relref "/posts/kykeon-cold-case" >}}).
 
-What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof. Kykeon is similar in effect to MDMA, but the lowest dose of kykeon is like the maximum dose of MDMA. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
+Ergine trickles out of the stomach slowly: it takes about 30 minutes to start, the rate peaks around 3-4 hours in, and it's fully released by around 7 hours. Barley grass aldehydes leave the stomach fast, in about 5 minutes. In the liver, aldehyde dehydrogenase (ALDH) attacks whatever aldehydes have arrived. When aldehyde is present in the liver, all ergine arriving is converted into kykeon instead of passing through. Kykeon has a short half-life in the brain. Ergine is largely cleared by the kidneys, and that requires drinking water.
 
-<div id="butterfly-anchor-top"></div>
+Drag the sliders below, click the timeline, and see what the model predicts.
 
-1. <span class="recipe-step" data-step="0">Grind the <span class="recipe-substep" data-substep="seeds">seeds</span> to a fine powder in the {{< tooltip label="grinder" >}}Stahl adds, "crush the seed fragments by hand with pestle using a twisting downwards motion<br/>for a minute until they look more like dust fragments, don't be afraid to then pound the seed dust<br/>with the pestle to get it crushed as finely as possible."{{< /tooltip >}}.</span>
-2. <span class="recipe-step" data-step="1">In a shot glass, combine the <span class="recipe-substep" data-substep="seed-powder">seed powder</span> with 30mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span> and the <span class="recipe-substep" data-substep="ethanol">ethanol</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes.</span>
-3. <span class="recipe-step" data-step="2">Refrigerate for at least 20 minutes (1 hour is better), to let the seed fragments settle out of the solution.</span>
-4. <span class="recipe-step" data-step="3">Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a fan carry the alcohol away.</span>
-5. <span class="recipe-step" data-step="4">Scrape the remaining <span class="recipe-substep" data-substep="residue">residue</span> into a fresh shot glass with 10mg <span class="recipe-substep" data-substep="tartaric-acid">tartaric acid</span>, <span class="recipe-substep" data-substep="barley-grass">barley grass powder</span>, and <span class="recipe-substep" data-substep="water">water</span>. <span class="recipe-substep" data-substep="stir">Stir</span> for ten minutes.</span>
-6. <span class="recipe-step" data-step="5">With God's grace, you have created LSI, LSV, and LSCr. Refrigerate for up to a day. Drink with reverence.</span>
+<div id="pk-sim"></div>
 
-<div id="butterfly-anchor-bottom"></div>
+## Ergine/LSA Extraction
 
-<div id="stahl-slideshow" hidden></div>
+Even beginning chemists will recognize this as a straightforward LSA extraction.
+
+1. Grind the seeds to a fine powder in the {{< tooltip label="grinder" >}}Stahl adds, "crush the seed fragments by hand with pestle using a twisting downwards motion<br/>for a minute until they look more like dust fragments, don't be afraid to then pound the seed dust<br/>with the pestle to get it crushed as finely as possible."{{< /tooltip >}}.
+2. In a shot glass, combine the seed powder with 30mg tartaric acid and the ethanol. Stir for ten minutes.
+3. Refrigerate for at least 20 minutes (1 hour is better), to let the seed fragments settle out of the solution.
+4. Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a fan carry the alcohol away.
 
 ## Materials
 
-**Sacraments**
-
 - {{< tooltip label="25 HBWR" >}}Increase seeds to increase the strength of the subjective effects.<br/>Start low and increase with caution.{{< /tooltip >}} (*Argyreia nervosa*, Hawaiian baby woodrose) seeds
-- 40mg {{< tooltip label="tartaric acid" >}}Do not substitute another acid. According to Stahl,<br/>"Tartaric acid participates in hydrogen bonding to LSA and<br/>is an important chemical catalyst in the aldehyde condensation."{{< /tooltip >}} (30mg + 10mg)
+- 30mg {{< tooltip label="tartaric acid" >}}Do not substitute another acid. According to Stahl,<br/>"Tartaric acid participates in hydrogen bonding to LSA and<br/>is an important chemical catalyst in the aldehyde condensation."{{< /tooltip >}}
 - 30ml of 95% ethanol (or purer)
-- 3g young barley grass powder (<span class="must-be-fresh">**must** be fresh</span>; each serving should be in an individually sealed packet)
-- 60ml holy water
 
 **Tools of the Rite**
 
@@ -63,7 +66,7 @@ What follows is **not** a historical reconstruction (the ancients had neither co
 
 ## Aldehydes TLC
 
-Tender young barley grass aldehydes ([isovaleraldehyde](https://en.wikipedia.org/wiki/Isovaleraldehyde), [valeraldehyde](https://en.wikipedia.org/wiki/Pentanal), and [crotonaldehyde](https://en.wikipedia.org/wiki/Crotonaldehyde)) form relatively weak chemical bonds with [ergine](https://en.wikipedia.org/wiki/Ergine). They are also vulnerable to big bad [aldehyde dehydrogenase](https://en.wikipedia.org/wiki/Aldehyde_dehydrogenase) (ALDH), which can prematurely degrade these little beauties. Some foods inhibit ALDH (helping preserve the aldehydes) while others invigorate it (accelerating their breakdown). So, food choices in the days around the rite are key.
+Tender young barley grass aldehydes ([isovaleraldehyde](https://en.wikipedia.org/wiki/Isovaleraldehyde), [valeraldehyde](https://en.wikipedia.org/wiki/Pentanal), and [crotonaldehyde](https://en.wikipedia.org/wiki/Crotonaldehyde)) are vulnerable oxidation and metabolization. Prior to ingesting, <span class="must-be-fresh">freshness is paramount</span>; each serving should be in an individually sealed packet. After ingesting, big bad [aldehyde dehydrogenase](https://en.wikipedia.org/wiki/Aldehyde_dehydrogenase) (ALDH) can prematurely degrade these little beauties. Some foods inhibit ALDH (helping preserve the aldehydes) while others invigorate it (accelerating their breakdown). So, food choices in the days around the rite are key.
 
 Eat:
 - **Fruits**
@@ -149,7 +152,7 @@ Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats
 
 <div class="rite-detail" data-rite-detail="shared-kykeon" hidden>
 
-Mix the [recipe](#recipe) above with 1-2 tsp of <span class="rite-ingredient" data-ingredient="peanuts">peanut butter</span> and a dash of salt. Chill in the refrigerator for at least ½ hour. Optionally, chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="papaya">papaya</span> and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
+Mix the [recipe](#recipe) above with a squeeze of <span class="rite-ingredient" data-ingredient="lemon">lemon</span> juice. Chill in the refrigerator for at least ½ hour. Optionally, chase it with a fruit salad of <span class="rite-ingredient" data-ingredient="papaya">papaya</span> and <span class="rite-ingredient" data-ingredient="pomegranate">pomegranate</span>.
 
 </div>
 
