@@ -20,6 +20,7 @@ const PEE_FRACTION = 0.33;
 const PEE_RATE_SIPPING = 1 / 30;
 const PEE_RATE_BASELINE = 1 / 120; // ordinary incidental water intake, no deliberate sipping
 const PEE_INTERVAL_SIPPING_LABEL = `~1 pee / ${Math.round(1 / PEE_RATE_SIPPING)} min`;
+const SIPPING_KYKEON_THRESHOLD_MG = 1; // sipping only boosts pee rate while kykeon hasn't built up
 const ERGINE_KIDNEY_SLOWDOWN = 1 / 40; // higher brain ergine suppresses the urge to pee
 const ALDH_RATE_DIET = 0.02; // g/min, zero-order (saturated) ALDH clearance, preserving diet
 const ALDH_RATE_NORMAL = 0.03; // g/min, zero-order (saturated) ALDH clearance, normal diet
@@ -97,7 +98,6 @@ function runSimulation(ergineMg: number, dietOn: boolean, sippingWater: boolean,
     const peeEvents: number[] = [];
 
     const aldhRate = dietOn ? ALDH_RATE_DIET : ALDH_RATE_NORMAL;
-    const baseRate = sippingWater ? PEE_RATE_SIPPING : PEE_RATE_BASELINE;
     const kykeonDecay = Math.log(2) / KYKEON_HALF_LIFE;
     const ergineDecay = Math.log(2) / ERGINE_HALF_LIFE;
 
@@ -139,6 +139,7 @@ function runSimulation(ergineMg: number, dietOn: boolean, sippingWater: boolean,
         brainKykeon = (brainKykeon + kykeonIn) * Math.exp(-kykeonDecay * DT);
         brainErgine = (brainErgine + ergineThrough) * Math.exp(-ergineDecay * DT);
 
+        const baseRate = sippingWater && brainKykeon < SIPPING_KYKEON_THRESHOLD_MG ? PEE_RATE_SIPPING : PEE_RATE_BASELINE;
         if (rand() < peeRateAt(baseRate, brainErgine) * DT) {
             brainErgine *= 1 - PEE_FRACTION;
             peeEvents.push(t);
