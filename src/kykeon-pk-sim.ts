@@ -210,11 +210,13 @@ function fmtTime(mins: number): string {
 // Returns null if the string doesn't parse.
 function parseClockTime(raw: string): number | null {
     const s = raw.trim().toLowerCase();
-    const m = s.match(/^(\d{1,2}):(\d{2})\s*(am|pm)?$/);
+    if (s === "noon") return 12 * 60;
+    if (s === "midnight") return 0;
+    const m = s.match(/^(\d{1,2})(?:[:.]?(\d{2}))?\s*(?:([ap])\.?m?\.?)?$/);
     if (!m) return null;
     let h = Number(m[1]);
-    const min = Number(m[2]);
-    const suffix = m[3];
+    const min = Number(m[2] ?? 0);
+    const suffix = m[3] && `${m[3]}m`;
     if (min > 59) return null;
     if (suffix) {
         if (h < 1 || h > 12) return null;
@@ -237,6 +239,31 @@ function fmtClock(startMins: number, elapsedMins: number): string {
     let h12 = h24 % 12;
     if (h12 === 0) h12 = 12;
     return `${h12}:${String(m).padStart(2, "0")}${suffix}`;
+}
+
+function fmtDuration(mins: number): string {
+    const total = Math.round(mins);
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    if (h === 0) return `${m} min`;
+    return m === 0 ? `${h} h` : `${h} h ${m} min`;
+}
+
+function describeParams(state: SimState): string {
+    const startMins = state.startTime ? parseClockTime(state.startTime) : null;
+    const clock = (t: number) => (startMins !== null ? fmtClock(startMins, t) : `T+${fmtTime(t)}`);
+    const doses = [...state.doses].sort((a, b) => a.t - b.t);
+    const lines = [
+        `Ergine: ${state.ergineMg} mg${startMins !== null ? ` at ${fmtClock(startMins, 0)}` : ""}`,
+        `Diet: ${state.dietOn ? "on" : "off"}`,
+        `Sipping water: ${state.sippingWater ? "yes" : "no"}`,
+        "Barley grass doses:",
+        ...doses.map((d, i) => {
+            const gap = i === 0 ? `${fmtDuration(d.t)} after ergine` : `${fmtDuration(d.t - doses[i - 1].t)} after previous dose`;
+            return `  ${i + 1}. ${d.amount.toFixed(d.amount % 1 === 0 ? 0 : 2)} g at ${clock(d.t)} (${gap})`;
+        }),
+    ];
+    return lines.join("\n");
 }
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -481,14 +508,7 @@ function buildSimUI(container: HTMLElement): void {
     });
 
     copyParamsBtn.addEventListener("click", () => {
-        const params = {
-            ergineMg: state.ergineMg,
-            dietOn: state.dietOn,
-            sippingWater: state.sippingWater,
-            doses: state.doses,
-            startTime: state.startTime,
-        };
-        const text = JSON.stringify(params, null, 2);
+        const text = describeParams(state);
         navigator.clipboard?.writeText(text).then(
             () => {
                 const original = copyParamsBtn.textContent;
