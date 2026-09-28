@@ -25,7 +25,7 @@ Anonymous whispered advice points to three key factors for success:
 
 ## Pharmacokinetics
 
-What follows is a guess built from journey reports,[^pk-credit] turned into a toy simulator to make specific predictions. Picture the body as three compartments. The **stomach** holds ergine and barley grass aldehydes. The **liver** either passes ergine through untouched or converts it into kykeon, depending on whether aldehydes are present. The **bloodstream/brain** is where the subjective effects happen.
+What follows is a guess built from journey reports,[^pk-credit] turned into a toy simulator to make specific predictions. Picture the body as three compartments. The **stomach** holds ergine and barley grass aldehydes (NOT REALISTIC). The **liver** either passes ergine through untouched or converts it into kykeon, depending on whether aldehydes are present. The **brain** is where the subjective effects happen.
 
 [^pk-credit]: Deepest, most fervent thanks to Hamilton Morris—intrepid psychonaut who marched fearlessly into the ergine-aldehyde unknown so the rest of us wouldn't have to. May his liver enzymes be forever blessed. Read the saga in [The Kykeon Cold Case]({{< relref "/posts/kykeon-cold-case" >}}).
 
