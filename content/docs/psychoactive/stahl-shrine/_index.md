@@ -23,9 +23,9 @@ Tolerance resets in at most 3 days (X is a day of use, O is a day without): X O 
   <span class="shrine-renovation-text"><strong>Under renovation.</strong> This shrine is being upgraded as befits its glory and wonder. Expect rough edges while the work is under way.</span>
 </div>
 
-1. Use the pharmacokinetics tool to plan to journey.
+1. Use the pharmacokinetics tool to plan your journey.
 2. Procure <span class="must-be-fresh">fresh</span> young barley grass powder. Each serving should be in an individually sealed packet.
-3. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 18 hours before administration.
+3. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 18 hours prior to administration.
 4. [Extract ergine/LSA](#erginelsa-extraction)
 5. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like cannabis—indifferent to whatever mood you present.
 6. Implement plan from step 1.
@@ -68,7 +68,7 @@ Even beginning chemists will recognize this as a straightforward LSA extraction.
 
 ## Aldehydes TLC
 
-Tender young barley grass aldehydes ([isovaleraldehyde](https://en.wikipedia.org/wiki/Isovaleraldehyde), [valeraldehyde](https://en.wikipedia.org/wiki/Pentanal), and [crotonaldehyde](https://en.wikipedia.org/wiki/Crotonaldehyde)) are vulnerable oxidation and metabolization. Prior to ingesting, <span class="must-be-fresh">freshness is paramount</span>; each serving should be in an individually sealed packet. After ingesting, big bad [aldehyde dehydrogenase](https://en.wikipedia.org/wiki/Aldehyde_dehydrogenase) (ALDH) can prematurely degrade these little beauties. Some foods inhibit ALDH (helping preserve the aldehydes) while others invigorate it (accelerating their breakdown). So, food choices in the days around the rite are key.
+Tender young barley grass aldehydes ([isovaleraldehyde](https://en.wikipedia.org/wiki/Isovaleraldehyde), [valeraldehyde](https://en.wikipedia.org/wiki/Pentanal), and [crotonaldehyde](https://en.wikipedia.org/wiki/Crotonaldehyde)) are vulnerable to oxidation and metabolization. Prior to ingesting, <span class="must-be-fresh">freshness is paramount</span>; each serving should be in an individually sealed packet. After ingesting, big bad [aldehyde dehydrogenase](https://en.wikipedia.org/wiki/Aldehyde_dehydrogenase) (ALDH) can prematurely degrade these little beauties. Some foods inhibit ALDH (helping preserve the aldehydes) while others invigorate it (accelerating their breakdown). So, food choices in the days around the rite are key.
 
 Eat:
 - **Fruits**

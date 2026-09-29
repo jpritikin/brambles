@@ -374,7 +374,7 @@ function buildSimUI(container: HTMLElement): void {
     grid.appendChild(waterField);
 
     const dosesHint = el("p", "pk-hint");
-    dosesHint.textContent = "Barley grass doses are the gold circles on the timeline below: drag left/right to change timing, up/down to change the amount, double-click the timeline to add one, or drag a circle onto the trash zone to remove it.";
+    dosesHint.textContent = "Barley grass doses are the gold circles on the timeline below: drag left/right to change timing, up/down to change the amount, double-click the timeline to add one, or set amount to zero to remove it.";
     panel.appendChild(dosesHint);
 
     // ---- chart section ----
