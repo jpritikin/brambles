@@ -151,53 +151,55 @@ function runSimulation(ergineMg: number, dietOn: boolean, sippingWater: boolean,
     return { series, peeEvents };
 }
 
-// Effect magnitude tracks: 0..1 saturating curves against brain mg. Ergine's
-// 24-hour brain half-life lets it accumulate close to the full unconverted
-// dose, but kykeon's 10-minute half-life means it never holds more than a
-// dose's worth of fast turnover — its natural peak is higher than ergine's
-// for the same ingested amount, but both stay in the single-digit-to-low-
-// teens mg range, nowhere near the full ingested dose. Scales tuned so a
-// clean 200mg trial reaches a strong kykeon effect around its peak.
-const ERGINE_EFFECT_SCALE = 1 / 6;
-const KYKEON_EFFECT_SCALE = 1 / 10;
 const CHART_ERGINE_MG_MAX = 20;
 const CHART_KYKEON_MG_MAX = 20;
 
-function effectMagnitude(amountMg: number, scale: number): number {
-    return 1 - Math.exp(-amountMg * scale);
+// Effects are linear in brain mg, scaled to the chart's y-axis ceilings.
+function effectFraction(amountMg: number, chartMaxMg: number): number {
+    return Math.min(1, amountMg / chartMaxMg);
 }
 
-type Bucket = "none" | "mild" | "moderate" | "strong";
+const TIER_FROM = { mild: 0.02, moderate: 0.25, high: 0.5, strong: 0.75 };
+type Bucket = "none" | keyof typeof TIER_FROM;
+interface Tier {
+    from: number;
+    text: string;
+}
 
 function bucket(v: number): Bucket {
-    if (v < 0.15) return "none";
-    if (v < 0.4) return "mild";
-    if (v < 0.7) return "moderate";
-    return "strong";
+    const reached = (Object.keys(TIER_FROM) as (keyof typeof TIER_FROM)[]).filter((k) => v >= TIER_FROM[k]);
+    return reached.pop() ?? "none";
+}
+
+const ERGINE_TIERS: Tier[] = [
+    { from: TIER_FROM.mild, text: "Mild ergine heaviness." },
+    { from: TIER_FROM.moderate, text: "Relaxing heaviness (not unpleasant)." },
+    { from: TIER_FROM.high, text: "Heavy sedation with dysphoric undertow." },
+    { from: TIER_FROM.strong, text: "Heavy ergine dysphoria: sedation, nausea, crushing weight." },
+];
+const KYKEON_TIERS: Tier[] = [
+    { from: TIER_FROM.mild, text: "Pleasant buzzing stimulation, open hearted fearlessness, enhanced empathy, huge smile." },
+    { from: TIER_FROM.moderate, text: "Waves of love and bliss, deep connection with everyone, gratitude welling up, old burdens falling away." },
+    { from: TIER_FROM.high, text: "Rapturous euphoria, boundless love for everything, ecstatic tears, the sense of self dissolving into joy." },
+    { from: TIER_FROM.strong, text: "Unbelievable mindboggling euphoria. Stunning awe." },
+];
+const OVERLAP_TIERS: Tier[] = [
+    { from: TIER_FROM.mild, text: "The conflict drags on the experience a bit." },
+    { from: TIER_FROM.moderate, text: "Like rowing a boat with one oar in the water and the other one pulling backward." },
+    { from: TIER_FROM.high, text: "A tug of war, and you're the rope." },
+    { from: TIER_FROM.strong, text: "You're doing the splits and it's not great." },
+];
+
+function describeEffect(v: number, tiers: Tier[]): string {
+    return tiers.filter((t) => v >= t.from).pop()?.text ?? "";
 }
 
 function blendDescription(ergineEff: number, kykeonEff: number): string {
-    const eB = bucket(ergineEff);
-    const kB = bucket(kykeonEff);
-
-    if (eB === "none" && kB === "none") return "Nothing active yet. The body is still processing what's in the stomach.";
-
-    if (eB === "none") {
-        return { mild: "A gentle lift, stimulating and warm.", moderate: "A strong, euphoric, heart-opening current.", strong: "Kykeon in full flood: intense euphoria with no ergine to weigh it down." }[kB as "mild" | "moderate" | "strong"];
-    }
-    if (kB === "none") {
-        return { mild: "Mild ergine heaviness starting to settle in.", moderate: "Sedation and a queasy, dysphoric undertow.", strong: "Heavy ergine dysphoria: sedation, nausea, a real sense of being dragged down." }[eB as "mild" | "moderate" | "strong"];
-    }
-
-    if (kB === "strong" && eB === "mild") return "Kykeon dominates; a faint ergine undertow of queasiness is barely noticeable beneath the euphoria.";
-    if (kB === "strong" && eB === "moderate") return "Kykeon carries the moment, but there's a real ergine current underneath—euphoria with occasional flickers of nausea.";
-    if (kB === "strong" && eB === "strong") return "Both are strong at once: the ergine dysphoria is real but blunted, riding underneath a dominant, stimulating euphoria.";
-    if (eB === "strong" && kB === "mild") return "Ergine dominates; sedation and dysphoria with only a thin thread of kykeon warmth cutting through.";
-    if (eB === "strong" && kB === "moderate") return "A tug of war leaning ergine: heavy sedation with a stimulating kykeon pulse fighting to break through.";
-    if (eB === "moderate" && kB === "moderate") return "Roughly balanced: sedation and euphoria partly cancel, leaving something flatter and more transitional than either alone.";
-    if (eB === "moderate" && kB === "mild") return "Mostly ergine—mild sedation and unease, softened only slightly by a thin kykeon presence.";
-    if (eB === "mild" && kB === "moderate") return "Mostly kykeon—stimulating and pleasant, with a mild ergine heaviness at the edges.";
-    return "A mixed, transitional state—neither ergine nor kykeon clearly in charge.";
+    const [strongerText, weakerText] = ergineEff > kykeonEff
+        ? [describeEffect(ergineEff, ERGINE_TIERS), describeEffect(kykeonEff, KYKEON_TIERS)]
+        : [describeEffect(kykeonEff, KYKEON_TIERS), describeEffect(ergineEff, ERGINE_TIERS)];
+    const parts = [strongerText, weakerText, describeEffect(Math.min(ergineEff, kykeonEff), OVERLAP_TIERS)].filter(Boolean);
+    return parts.length ? parts.join(" ") : "Nothing active yet. The body is still processing what's in the stomach.";
 }
 
 function fmtTime(mins: number): string {
@@ -440,7 +442,7 @@ function buildSimUI(container: HTMLElement): void {
     subjectiveHeading.textContent = "Subjective state";
     subjectiveBlock.appendChild(subjectiveHeading);
 
-    function makeBarRow(labelText: string, swatchClass: string): { fill: HTMLDivElement; lbl: HTMLSpanElement } {
+    function makeBarRow(labelText: string, swatchClass: string): { fill: HTMLDivElement; maxed: HTMLDivElement; lbl: HTMLSpanElement } {
         const row = el("div", "pk-bar-row");
         const labelRow = el("div", "pk-bar-label");
         const label = el("span");
@@ -449,10 +451,12 @@ function buildSimUI(container: HTMLElement): void {
         labelRow.append(label, lbl);
         const track = el("div", "pk-bar-track");
         const fill = el("div", `pk-bar-fill ${swatchClass}`);
-        track.appendChild(fill);
+        const maxed = el("div", "pk-bar-maxed");
+        maxed.hidden = true;
+        track.append(fill, maxed);
         row.append(labelRow, track);
         subjectiveBlock.appendChild(row);
-        return { fill, lbl };
+        return { fill, maxed, lbl };
     }
     const ergineBar = makeBarRow("Ergine effect", "pk-bar-ergine");
     const kykeonBar = makeBarRow("Kykeon effect", "pk-bar-kykeon");
@@ -526,6 +530,14 @@ function buildSimUI(container: HTMLElement): void {
         );
     });
 
+    function updateBar(bar: ReturnType<typeof makeBarRow>, mg: number, chartMaxMg: number): number {
+        const eff = effectFraction(mg, chartMaxMg);
+        bar.fill.style.width = `${(eff * 100).toFixed(0)}%`;
+        bar.maxed.hidden = mg <= chartMaxMg;
+        bar.lbl.textContent = `${bucket(eff)} (${eff.toFixed(2)})`;
+        return eff;
+    }
+
     function updateReadout(point: SimPoint): void {
         const startMins = state.startTime ? parseClockTime(state.startTime) : null;
         const timeLabel = startMins !== null ? fmtClock(startMins, point.t) : fmtTime(point.t);
@@ -537,12 +549,8 @@ function buildSimUI(container: HTMLElement): void {
         cBrainErgine.textContent = `${point.brainErgineMg.toFixed(0)} mg`;
         cBrainKykeon.textContent = `${point.brainKykeonMg.toFixed(0)} mg`;
 
-        const eEff = effectMagnitude(point.brainErgineMg, ERGINE_EFFECT_SCALE);
-        const kEff = effectMagnitude(point.brainKykeonMg, KYKEON_EFFECT_SCALE);
-        ergineBar.fill.style.width = `${(eEff * 100).toFixed(0)}%`;
-        kykeonBar.fill.style.width = `${(kEff * 100).toFixed(0)}%`;
-        ergineBar.lbl.textContent = `${bucket(eEff)} (${eEff.toFixed(2)})`;
-        kykeonBar.lbl.textContent = `${bucket(kEff)} (${kEff.toFixed(2)})`;
+        const eEff = updateBar(ergineBar, point.brainErgineMg, CHART_ERGINE_MG_MAX);
+        const kEff = updateBar(kykeonBar, point.brainKykeonMg, CHART_KYKEON_MG_MAX);
         blendText.textContent = blendDescription(eEff, kEff);
     }
 

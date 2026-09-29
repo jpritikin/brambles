@@ -580,6 +580,15 @@ details summary:hover {
   border-radius: 4px;
   background: rgba(212, 175, 55, 0.18);
   overflow: hidden;
+  position: relative;
+}
+.pk-bar-maxed {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  background: #e67e22;
 }
 .pk-bar-fill {
   height: 100%;
