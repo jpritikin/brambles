@@ -12,7 +12,7 @@ layout: shrine-page
 
 ## Orientation
 
-For millennia, what the ancients were brewing for their kykeon and soma rites has stumped alchemists, chemists, and scholars alike. What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof.
+For millennia, what the ancients were brewing for their kykeon rites has stumped alchemists, chemists, and scholars alike. What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof.
 
 Kykeon is similar in effect to MDMA, but the lowest dose of kykeon is like the maximum dose of MDMA. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
 
