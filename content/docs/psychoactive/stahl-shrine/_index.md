@@ -16,6 +16,8 @@ For millennia, what the ancients were brewing for their kykeon and soma rites ha
 
 Kykeon is similar in effect to MDMA, but the lowest dose of kykeon is like the maximum dose of MDMA. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
 
+Tolerance resets in at most 3 days (X is a day of use, O is a day without): X O O O X
+
 <div class="shrine-renovation-notice">
   <span class="shrine-renovation-icon">🏗️</span>
   <span class="shrine-renovation-text"><strong>Under renovation.</strong> This shrine is being upgraded as befits its glory and wonder. Expect rough edges while the work is under way.</span>
