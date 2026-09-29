@@ -32,11 +32,11 @@ Tolerance resets in at most 3 days (X is a day of use, O is a day without): X O 
 
 ## Pharmacokinetics
 
-What follows is a guess built from journey reports,[^pk-credit] turned into a simulator to make specific predictions. Picture the body as three compartments. The **stomach** holds ergine and barley grass aldehydes (NOT REALISTIC). The **liver** either passes ergine through untouched or converts it into kykeon, depending on whether aldehydes are present. The **brain** is where the subjective effects happen.
+What follows is a guess built from journey reports,[^pk-credit] implemented as a simulator to make specific predictions. Picture the body as three compartments. The **stomach** holds ergine and barley grass aldehydes (NOT REALISTIC). The **liver** either passes ergine through untouched or converts it into kykeon, depending on whether aldehydes are present. The **brain** is where the subjective effects happen.
 
 [^pk-credit]: Deepest, most fervent thanks to Hamilton Morris—intrepid psychonaut who marched fearlessly into the ergine-aldehyde unknown so the rest of us wouldn't have to. May his liver enzymes be forever blessed. Read the saga in [The Kykeon Cold Case]({{< relref "/posts/kykeon-cold-case" >}}).
 
-Ergine trickles out of the stomach slowly: it takes about 30 minutes to start, the rate peaks around 3-4 hours in, and it's fully released by around 7 hours. Barley grass aldehydes leave the stomach fast, in about 5 minutes. In the liver, aldehyde dehydrogenase (ALDH) attacks whatever aldehydes have arrived. When aldehyde is present in the liver, all ergine arriving is converted into kykeon instead of passing through. Kykeon has a short half-life in the brain. Ergine is largely cleared by the kidneys, and that requires drinking water.
+Ergine trickles out of the stomach slowly: it takes about 30 minutes to start, the rate peaks around 3-4 hours in, and it's fully released by around 7 hours. Barley grass aldehydes leave the stomach fast, in about 5 minutes. In the liver, aldehyde dehydrogenase (ALDH) attacks whatever aldehydes have arrived. When aldehyde is present in the liver, all arriving ergine is converted into kykeon instead of passing through. Kykeon has a short half-life in the brain. Ergine is largely cleared by the kidneys, and that requires drinking water.
 
 Drag the sliders below, click the timeline, and see what the model predicts.
 
@@ -50,10 +50,11 @@ Even beginning chemists will recognize this as a straightforward LSA extraction.
 2. In a shot glass, combine the seed powder with 30mg tartaric acid and the ethanol. Stir for ten minutes.
 3. Refrigerate for at least 20 minutes (1 hour is better), to let the seed fragments settle out of the solution.
 4. Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a fan carry the alcohol away.
+5. Once the alcohol has fully evaporated, scrape the residue from the dish into an oily blob with a spatula or razor blade.
 
 ## Materials
 
-- {{< tooltip label="25 HBWR" >}}Increase seeds to increase the strength of the subjective effects.<br/>Start low and increase with caution.{{< /tooltip >}} (*Argyreia nervosa*, Hawaiian baby woodrose) seeds
+- {{< tooltip label="25 Hawaiian baby woodrose (HBWR)" >}}Increase seeds to increase the strength of the subjective effects.<br/>Start low and increase with caution.{{< /tooltip >}} (*Argyreia nervosa*) seeds
 - 30mg {{< tooltip label="tartaric acid" >}}Do not substitute another acid. According to Stahl,<br/>"Tartaric acid participates in hydrogen bonding to LSA and<br/>is an important chemical catalyst in the aldehyde condensation."{{< /tooltip >}}
 - 30ml of 95% ethanol (or purer)
 
@@ -64,6 +65,7 @@ Even beginning chemists will recognize this as a straightforward LSA extraction.
 - Refrigerator
 - Small glass baking dish
 - Fan
+- Spatula or razor blade
 - Magnetic stir machine (optional)
 
 ## Aldehydes TLC
@@ -130,7 +132,7 @@ Everything not listed under Eat or Consider above is effectively Avoid.
   - Thyme (Thymus vulgaris)[^wang2016]
   - Tea[^srinivasan2019]
 
-This avoid list makes the point that there's no obvious pattern separating Eat from Avoid. Pear and orange invigorate ALDH while gooseberry, pineapple, and pomegranate preserve it. Cucumber and tomato invigorate it while spinach preserves it. So don't guess the classification (not "citrus," not "nightshades,"). If a food isn't on the Eat or Consider list above, treat it as Avoid.
+This avoid list makes the point that there's no obvious pattern separating Eat from Avoid. Pear and orange invigorate ALDH while gooseberry, pineapple, and pomegranate preserve it. Cucumber and tomato invigorate it while spinach preserves it. So don't guess the classification (not "citrus" or "nightshades"). If a food isn't on the Eat or Consider list above, treat it as Avoid.
 
 </details>
 
@@ -243,8 +245,8 @@ Prepare a Thai peanut sauce flavored entrée:
   <button type="button" class="rite-scale-btn" data-rite-scale="2">2x</button>
 </div>
 
-1. Blend <span class="rite-amount" data-amount="0.5">½</span> cup water, <span class="rite-amount" data-amount="1">1</span> teaspoon vinegar, <span class="rite-amount" data-amount="0.5">½</span> tablespoon lemon juice, <span class="rite-amount" data-amount="2">2</span> tsp soy sauce, <span class="rite-amount" data-amount="2">2</span> <span class="rite-ingredient" data-ingredient="garlic">garlic</span> cloves (pressed or grated), <span class="rite-amount" data-amount="1">1</span> table date sugar (or <span class="rite-amount" data-amount="3">3</span> dates), <span class="rite-amount" data-amount="25">25</span>g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, <span class="rite-amount" data-amount="70">70</span>g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and <span class="rite-amount" data-amount="0.25">¼</span> tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
-2. Pressure cook <span class="rite-amount" data-amount="0.3333333333">1/3</span> cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span> with <span class="rite-amount" data-amount="0.3333333333">1/3</span> cup dry lentils for 12 minutes.
+1. Blend <span class="rite-amount" data-amount="0.5">½</span> cup water, <span class="rite-amount" data-amount="1">1</span> teaspoon vinegar, <span class="rite-amount" data-amount="0.5">½</span> tablespoon lemon juice, <span class="rite-amount" data-amount="2">2</span> tsp soy sauce, <span class="rite-amount" data-amount="2">2</span> <span class="rite-ingredient" data-ingredient="garlic">garlic</span> cloves (pressed or grated), <span class="rite-amount" data-amount="1">1</span> tablespoon date sugar (or <span class="rite-amount" data-amount="3">3</span> dates), <span class="rite-amount" data-amount="25">25</span>g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, <span class="rite-amount" data-amount="70">70</span>g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and <span class="rite-amount" data-amount="0.25">¼</span> tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
+2. Pressure cook <span class="rite-amount" data-amount="0.3333333333">⅓</span> cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span> with <span class="rite-amount" data-amount="0.3333333333">⅓</span> cup dry lentils for 12 minutes.
 3. Mix in ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
 
 Split into two servings: one for T-1 dinner, one for T-0 lunch.
@@ -284,7 +286,7 @@ Finish the portion from the Thai peanut sauce dish that you set aside.
 
 ## Lest We Forget
 
-We lost this knowledge for a couple thousand years. Let's not make it a habit. Write it down and pass it on. Keep the kykeon flowing.
+We lost this knowledge for a couple of thousand years. Let's not make it a habit. Write it down and pass it on. Keep the kykeon flowing.
 
 ## Notes
 
@@ -306,6 +308,6 @@ We lost this knowledge for a couple thousand years. Let's not make it a habit. W
 
 [^iciek2016]: Iciek, M., Bilska-Wilkosz, A., Górny, M., Sokołowska-Jeżewicz, M., & Kowalczyk-Pachel, D. (2016). The effects of different garlic-derived allyl sulfides on anaerobic sulfur metabolism in the mouse kidney. *Antioxidants, 5*(4), 46. Diallyl trisulfide (DATS), one of garlic's organosulfur compounds, significantly decreased ALDH activity in mouse kidney (p = 0.018); diallyl sulfide and diallyl disulfide had no significant effect.
 
-[^maninang2009]: Maninang, J. S., Lizada, M. C. C., & Gemma, H. (2009). Inhibition of aldehyde dehydrogenase enzyme by Durian (Durio zibethinus Murray) fruit extract. *Food Chemistry, 117*(2), 352-355. Dose-dependent inhibition of yeast ALDH, up to 70% at 0.33ppm, attributed to durian's sulphur-rich compounds—the same mechanism behind disulfiram-ethanol-like reactions when durian is eaten with alcohol.
+[^maninang2009]: Maninang, J. S., Lizada, M. C. C., & Gemma, H. (2009). Inhibition of aldehyde dehydrogenase enzyme by Durian (Durio zibethinus Murray) fruit extract. *Food Chemistry, 117*(2), 352-355. Dose-dependent inhibition of yeast ALDH, up to 70% at 0.33ppm, attributed to durian's sulfur-rich compounds—the same mechanism behind disulfiram-ethanol-like reactions when durian is eaten with alcohol.
 
 [^stahl-keto]: Stahl (pp. 216-217): "For as long as I can remember I have followed a ketogenic diet consisting of proteins like eggs, chicken, flank steak, brisket, turkey, pork, hamburger meat, fish. Fats consisting of olive oil, avocados, the fats in meats, salad dressing such as blue cheese, sour cream. Low carbs consist of non starchy vegetables like broccoli, spinach, cauliflower, squash, zucchini and cabbage." But he must be eating minuscule amounts of broccoli and cabbage (ALDH-inducers). We should **not** follow Stahl here: [Keto diets carry serious risks and few benefits](https://nutritionfacts.org/blog/the-safety-of-keto-diets/).
