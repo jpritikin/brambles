@@ -4,7 +4,7 @@
 // this. It exists to make the ergine/kykeon conversion theory concrete enough
 // to poke at, not to claim it's measured.
 //
-// Three compartments: stomach (ergine + barley grass aldehydes), liver
+// Three compartments: pre-liver pool (ergine + barley grass aldehydes), liver
 // (converts ergine to kykeon 1:1 by mass whenever any aldehyde is present,
 // otherwise passes ergine through untouched; ALDH degrades the liver's
 // aldehyde pool at a diet-dependent rate), and brain (kykeon decays on a
@@ -30,12 +30,9 @@ const ALDH_RATE_NORMAL = 0.03; // g/min, zero-order (saturated) ALDH clearance, 
 // liver aldehyde pool actually reaches zero instead of tailing off forever
 // under the zero-order term alone. Magnitude is a guess, not a measurement.
 const ALDEHYDE_OTHER_CLEARANCE_RATE = 0.01; // per-minute fractional clearance
-const BARLEY_TRANSIT_TAU = 1.2; // min, stomach -> liver time constant for aldehydes
-const ERGINE_NO_ALDEHYDE_RATIO = 0.5; // stomach -> brain mass ratio for ergine when no aldehydes are present to convert it
+const BARLEY_TRANSIT_TAU = 1.2; // min, pre-liver pool -> liver time constant for aldehydes
+const ERGINE_NO_ALDEHYDE_RATIO = 0.5; // pre-liver pool -> brain mass ratio for ergine when no aldehydes are present to convert it
 
-// Ergine's stomach -> liver release rate: a gamma-shaped curve, onset ~30min,
-// peaking ~3-4h in, fully released by ~7h. Shape is fixed; only the total
-// dose (mg) scales its height.
 const ERGINE_ONSET = 30;
 const ERGINE_K = 4;
 const ERGINE_THETA = 40;
@@ -62,8 +59,8 @@ interface BarleyDose {
 
 interface SimPoint {
     t: number;
-    stomachErgineMg: number;
-    stomachAldG: number;
+    preLiverErgineMg: number;
+    preLiverAldG: number;
     liverAldG: number;
     brainErgineMg: number;
     brainKykeonMg: number;
@@ -101,8 +98,8 @@ function runSimulation(ergineMg: number, dietOn: boolean, sippingWater: boolean,
     const kykeonDecay = Math.log(2) / KYKEON_HALF_LIFE;
     const ergineDecay = Math.log(2) / ERGINE_HALF_LIFE;
 
-    let stomachErgineRemaining = ergineMg;
-    let stomachAld = 0;
+    let preLiverErgineRemaining = ergineMg;
+    let preLiverAld = 0;
     let liverAld = 0;
     let brainErgine = 0;
     let brainKykeon = 0;
@@ -113,17 +110,17 @@ function runSimulation(ergineMg: number, dietOn: boolean, sippingWater: boolean,
 
     for (let t = 0; t <= T_END; t += DT) {
         while (doseIdx < sortedDoses.length && sortedDoses[doseIdx].t <= t) {
-            stomachAld += sortedDoses[doseIdx].amount;
+            preLiverAld += sortedDoses[doseIdx].amount;
             doseIdx++;
         }
 
         const ergineOutRate = ergineReleaseFrac(t) * ergineMg;
-        const ergineOut = Math.min(stomachErgineRemaining, ergineOutRate * DT);
-        stomachErgineRemaining -= ergineOut;
+        const ergineOut = Math.min(preLiverErgineRemaining, ergineOutRate * DT);
+        preLiverErgineRemaining -= ergineOut;
 
-        const aldOutRate = stomachAld / BARLEY_TRANSIT_TAU;
-        const aldOut = Math.min(stomachAld, aldOutRate * DT);
-        stomachAld -= aldOut;
+        const aldOutRate = preLiverAld / BARLEY_TRANSIT_TAU;
+        const aldOut = Math.min(preLiverAld, aldOutRate * DT);
+        preLiverAld -= aldOut;
         liverAld += aldOut;
 
         const aldhLoss = Math.min(liverAld, aldhRate * DT);
@@ -145,7 +142,7 @@ function runSimulation(ergineMg: number, dietOn: boolean, sippingWater: boolean,
             peeEvents.push(t);
         }
 
-        series.push({ t, stomachErgineMg: stomachErgineRemaining, stomachAldG: stomachAld, liverAldG: liverAld, brainErgineMg: brainErgine, brainKykeonMg: brainKykeon });
+        series.push({ t, preLiverErgineMg: preLiverErgineRemaining, preLiverAldG: preLiverAld, liverAldG: liverAld, brainErgineMg: brainErgine, brainKykeonMg: brainKykeon });
     }
 
     return { series, peeEvents };
@@ -199,7 +196,7 @@ function blendDescription(ergineEff: number, kykeonEff: number): string {
         ? [describeEffect(ergineEff, ERGINE_TIERS), describeEffect(kykeonEff, KYKEON_TIERS)]
         : [describeEffect(kykeonEff, KYKEON_TIERS), describeEffect(ergineEff, ERGINE_TIERS)];
     const parts = [strongerText, weakerText, describeEffect(Math.min(ergineEff, kykeonEff), OVERLAP_TIERS)].filter(Boolean);
-    return parts.length ? parts.join(" ") : "Nothing active yet. The body is still processing what's in the stomach.";
+    return parts.length ? parts.join(" ") : "Nothing active yet. The body is still processing what you swallowed.";
 }
 
 function fmtTime(mins: number): string {
@@ -431,8 +428,8 @@ function buildSimUI(container: HTMLElement): void {
         compartmentBlock.appendChild(row);
         return amt;
     }
-    const cStomachErgine = makeCompartmentRow("Stomach · ergine");
-    const cStomachAld = makeCompartmentRow("Stomach · aldehydes");
+    const cPreLiverErgine = makeCompartmentRow("Pre-liver · ergine");
+    const cPreLiverAld = makeCompartmentRow("Pre-liver · aldehydes");
     const cLiverAld = makeCompartmentRow("Liver · aldehyde pool");
     const cBrainErgine = makeCompartmentRow("Brain · ergine");
     const cBrainKykeon = makeCompartmentRow("Brain · kykeon");
@@ -543,8 +540,8 @@ function buildSimUI(container: HTMLElement): void {
         const timeLabel = startMins !== null ? fmtClock(startMins, point.t) : fmtTime(point.t);
         subjectiveHeading.textContent = `Subjective state @ ${timeLabel}`;
 
-        cStomachErgine.textContent = `${point.stomachErgineMg.toFixed(0)} mg`;
-        cStomachAld.textContent = `${point.stomachAldG.toFixed(2)} g`;
+        cPreLiverErgine.textContent = `${point.preLiverErgineMg.toFixed(0)} mg`;
+        cPreLiverAld.textContent = `${point.preLiverAldG.toFixed(2)} g`;
         cLiverAld.textContent = `${point.liverAldG.toFixed(2)} g`;
         cBrainErgine.textContent = `${point.brainErgineMg.toFixed(0)} mg`;
         cBrainKykeon.textContent = `${point.brainKykeonMg.toFixed(0)} mg`;
