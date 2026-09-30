@@ -178,7 +178,7 @@ const KYKEON_TIERS: Tier[] = [
     { from: TIER_FROM.mild, text: "Pleasant buzzing stimulation, open hearted fearlessness, enhanced empathy, huge smile." },
     { from: TIER_FROM.moderate, text: "Waves of love and bliss, deep connection with everyone, gratitude welling up, old burdens falling away." },
     { from: TIER_FROM.high, text: "Rapturous euphoria, boundless love for everything, ecstatic tears, the sense of self dissolving into joy." },
-    { from: TIER_FROM.strong, text: "Unbelievable mindboggling euphoria. Stunning awe." },
+    { from: TIER_FROM.strong, text: "Unbelievable mindboggling euphoria." },
 ];
 const OVERLAP_TIERS: Tier[] = [
     { from: TIER_FROM.mild, text: "The conflict drags on the experience a bit." },
