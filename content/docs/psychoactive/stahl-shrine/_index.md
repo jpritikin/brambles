@@ -54,7 +54,7 @@ Even beginning chemists will recognize this as a straightforward LSA extraction.
 
 ## Materials
 
-- {{< tooltip label="25 Hawaiian baby woodrose (HBWR)" >}}Increase seeds to increase the strength of the subjective effects.<br/>Start low and increase with caution.{{< /tooltip >}} (*Argyreia nervosa*) seeds
+- {{< tooltip label="25 Hawaiian baby woodrose" >}}Increase seeds to increase the strength of the subjective effects.<br/>Start low and increase with caution.{{< /tooltip >}} (*Argyreia nervosa*) seeds
 - 30mg {{< tooltip label="tartaric acid" >}}Do not substitute another acid. According to Stahl,<br/>"Tartaric acid participates in hydrogen bonding to LSA and<br/>is an important chemical catalyst in the aldehyde condensation."{{< /tooltip >}}
 - 30ml of 95% ethanol (or purer)
 
