@@ -29,7 +29,7 @@ const ALDH_RATE_NORMAL = 0.03; // g/min, zero-order (saturated) ALDH clearance, 
 // unlike ALDH which saturates. Lumped into one fractional rate constant so the
 // liver aldehyde pool actually reaches zero instead of tailing off forever
 // under the zero-order term alone. Magnitude is a guess, not a measurement.
-const ALDEHYDE_OTHER_CLEARANCE_RATE = 0.01; // per-minute fractional clearance
+const ALDEHYDE_OTHER_CLEARANCE_RATE = 0.006; // per-minute fractional clearance
 const BARLEY_TRANSIT_TAU = 1.2; // min, pre-liver pool -> liver time constant for aldehydes
 const ERGINE_NO_ALDEHYDE_RATIO = 0.5; // pre-liver pool -> brain mass ratio for ergine when no aldehydes are present to convert it
 

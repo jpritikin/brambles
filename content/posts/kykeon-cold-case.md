@@ -117,6 +117,17 @@ I analyzed the timeline and found that the aldehydes diet helped, but only modes
 
 "The other learning from this trial", Hamilton continued, "was that I took barley grass way too late. The whole experience was haunted by ergine, which cancelled out some of the kykeon feeling."
 
+After pausing to read through his notes, Hamilton continued, "So where are we in the Michaelis–Menten model? A larger dose of barley grass could help estimate parameters."
+
+Following the ALDH diet, he took 164mg of ergine at 9am. Half an hour later, he swallowed 6g of barley grass. A squeeze of lemon and a chaser of seltzer water made it tolerable. Onset came at 9:45. Kykeon faded at about 11:45. At 11:50 he took another 3g of barley grass and ate lunch. By 12:05 the kykeon was back and lasted until 2:20. The sedation lifted at 3:45.
+
+| Dose | Amount | Coverage window | Rate |
+|---|---|---|---|
+| 1st | 6g | 9:30am–11:50am (~140 min) | ~0.043 g/min |
+| 2nd | 3g | 11:50am–2:20pm (~150 min) | ~0.020 g/min |
+
+The 6g and 3g doses should have cleared at the same rate. They didn't. But I wouldn't hang a conclusion on it. Doubling from 1.5g to 3g changed nothing (0.020 g/min both times), so only the 6g dose broke the pattern. Until the 6g trial is repeated, I'm treating 0.02 g/min as the working estimate.
+
 "Anyway," Hamilton said. "We're square now: the 5-MeO story."
 
 Click. The phone went dead.
