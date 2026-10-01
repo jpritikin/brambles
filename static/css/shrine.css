@@ -475,6 +475,7 @@ details summary:hover {
 }
 
 .pk-dose-marker {
+  touch-action: none;
   transition: opacity 0.1s ease;
 }
 .pk-dose-marker:active {
@@ -517,6 +518,7 @@ details summary:hover {
   border-radius: 0.35rem;
   border: 1px solid rgba(212, 175, 55, 0.5);
   background: #fdfaf3;
+  color: #000;
   font-size: 0.8rem;
 }
 .pk-copy-params-btn {

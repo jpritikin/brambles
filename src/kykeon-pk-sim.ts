@@ -272,7 +272,9 @@ const VB_H = 420;
 const PLOT_W = VB_W - PAD.l - PAD.r;
 const PLOT_H = VB_H - PAD.t - PAD.b;
 const DOSE_MARKER_R = 14;
-const DOSE_ZONE_HALF_HEIGHT = DOSE_MARKER_R + 6; // band around y=0 reserved for dose-marker interaction
+const DOSE_MARKER_HIT_R = 22;
+const DOUBLE_TAP_MS = 400;
+const DOSE_ZONE_HALF_HEIGHT = DOSE_MARKER_HIT_R; // band around y=0 reserved for dose-marker interaction
 const DOSE_AMOUNT_MIN = 0;
 const DOSE_AMOUNT_MAX = 6;
 const DOSE_DRAG_PX_PER_FULL_RANGE = PLOT_H / 2; // half the chart height of vertical drag sweeps the full amount range
@@ -706,6 +708,12 @@ function buildSimUI(container: HTMLElement): void {
                 circle.setAttribute("cy", String(zeroY));
                 circle.setAttribute("r", String(DOSE_MARKER_R));
                 circle.setAttribute("class", "pk-dose-circle");
+                const hitArea = svgEl("circle");
+                hitArea.setAttribute("cx", String(x));
+                hitArea.setAttribute("cy", String(zeroY));
+                hitArea.setAttribute("r", String(DOSE_MARKER_HIT_R));
+                hitArea.setAttribute("fill", "transparent");
+                g.appendChild(hitArea);
                 g.appendChild(circle);
 
                 const label = svgEl("text");
@@ -781,6 +789,7 @@ function buildSimUI(container: HTMLElement): void {
         doseZoneRect.setAttribute("height", String(doseZoneBottom - doseZoneTop));
         doseZoneRect.setAttribute("fill", "transparent");
         doseZoneRect.style.cursor = "copy";
+        doseZoneRect.style.touchAction = "none";
         svg.appendChild(doseZoneRect);
         svg.appendChild(doseGroup);
 
@@ -821,7 +830,12 @@ function buildSimUI(container: HTMLElement): void {
             zone.addEventListener("touchmove", handlePointer as EventListener, { passive: true });
         });
 
-        doseZoneRect.addEventListener("dblclick", (e: MouseEvent) => {
+        let lastZoneTapMs = 0;
+        doseZoneRect.addEventListener("pointerdown", (e: PointerEvent) => {
+            const now = e.timeStamp;
+            const isDoubleTap = now - lastZoneTapMs < DOUBLE_TAP_MS;
+            lastZoneTapMs = isDoubleTap ? 0 : now;
+            if (!isDoubleTap) return;
             const rect = svg.getBoundingClientRect();
             const t = Math.round(xToT(e.clientX, rect) / 5) * 5;
             state.doses.push({ t, amount: 1.5 });
