@@ -117,6 +117,31 @@ I analyzed the timeline and found that the aldehydes diet helped, but only modes
 
 "The other learning from this trial", Hamilton continued, "was that I took barley grass way too late. The whole experience was haunted by ergine, which cancelled out some of the kykeon feeling."
 
+RAW DATA FOLLOWS:
+
+9am 164gm ergine
+
+9:27am 6g barley grass (wow, didn't vomit); lemon & seltzer water helps!
+
+9:45 onset
+
+10:40 subjective effects still mild, but not peaking
+
+11:30 not peaked yet
+
+11:45 peaked! wow, right on schedule!
+
+11:50 3g barley grass + lunch
+
+12:05 stimulation is back
+
+1:00 stimulation continues, but dragging slightly. Take 15mg THH
+
+2:20pm mostly recovered, sipping water
+
+3:45pm sedation lifted
+
+
 "Anyway," Hamilton said. "We're square now: the 5-MeO story."
 
 Click. The phone went dead.
