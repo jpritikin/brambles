@@ -27,7 +27,7 @@ Tolerance resets in at most 3 days (X is a day of use, O is a day without): X O 
 2. Procure <span class="must-be-fresh">fresh</span> young barley grass powder. Each serving should be in an individually sealed packet.
 3. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 18 hours prior to administration.
 4. [Extract ergine/LSA](#erginelsa-extraction)
-5. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like cannabis—indifferent to whatever mood you present.
+5. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. In this way, kykeon isn't like MDMA—indifferent to whatever mood you present.[^mdma] If you only feel buzzing stimulation, consider whether you prepared yourself sufficiently.[^stimulation]
 6. Implement plan from step 1.
 
 ## Pharmacokinetics
@@ -41,6 +41,8 @@ Ergine takes about 30 minutes to get from the stomach into the bloodstream. Bloo
 Drag the sliders below, click the timeline, and see what the model predicts.
 
 <div id="pk-sim"></div>
+
+During recovery, sip water (not so much during the kykeon experience itself) and move as much as you can to resist sedation and encourage your kidneys.
 
 ## Ergine/LSA Extraction
 
@@ -156,7 +158,7 @@ Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats
 
 <div class="rite-detail" data-rite-detail="shared-kykeon" hidden>
 
-Ingest the [LSA](#erginelsa-extraction). Start a timer. Prep barley grass doses with a squeeze of <span class="rite-ingredient" data-ingredient="lemon">lemon</span> juice. Chill in the refrigerator for at least ½ hour. Administer per your planned schedule. Wash it down with seltzer water.
+Ingest the [LSA](#erginelsa-extraction). Start a timer. Prep barley grass doses with a squeeze of <span class="rite-ingredient" data-ingredient="lemon">lemon</span> juice. Chill in the refrigerator for at least ½ hour. Administer per your planned schedule. Wash it down with seltzer water.[^seltzer]
 
 </div>
 
@@ -311,3 +313,9 @@ We lost this knowledge for a couple of thousand years. Let's not make it a habit
 [^maninang2009]: Maninang, J. S., Lizada, M. C. C., & Gemma, H. (2009). Inhibition of aldehyde dehydrogenase enzyme by Durian (Durio zibethinus Murray) fruit extract. *Food Chemistry, 117*(2), 352-355. Dose-dependent inhibition of yeast ALDH, up to 70% at 0.33ppm, attributed to durian's sulfur-rich compounds—the same mechanism behind disulfiram-ethanol-like reactions when durian is eaten with alcohol.
 
 [^stahl-keto]: Stahl (pp. 216-217): "For as long as I can remember I have followed a ketogenic diet consisting of proteins like eggs, chicken, flank steak, brisket, turkey, pork, hamburger meat, fish. Fats consisting of olive oil, avocados, the fats in meats, salad dressing such as blue cheese, sour cream. Low carbs consist of non starchy vegetables like broccoli, spinach, cauliflower, squash, zucchini and cabbage." But he must be eating minuscule amounts of broccoli and cabbage (ALDH-inducers). We should **not** follow Stahl here: [Keto diets carry serious risks and few benefits](https://nutritionfacts.org/blog/the-safety-of-keto-diets/).
+
+[^stimulation]: Stimulation signals you set the correct conditions for kykeon (steps 1–4). Otherwise you would feel sedation. You're feeling the kykeon but not meeting it fully.
+
+[^mdma]: MDMA is used to treat people struggling with complex PTSD because it is indifferent to their initial condition. Even a deeply distressed person is met with warmth and openness.
+
+[^seltzer]: Seltzer help clears the barley grass taste and aftertaste. This is more than a nicety: A lingering grassy taste is a distraction that could contribute to nausea.
