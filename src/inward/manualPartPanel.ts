@@ -49,6 +49,8 @@ export class ManualPartPanel {
     private manualEmojiPopup!: HTMLElement;
     private manualUrgencyInput!: HTMLInputElement;
     private msgEl!: HTMLElement;
+    private simulateToggle!: HTMLInputElement;
+    private manualRow!: HTMLElement;
     private msgTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(root: HTMLElement, simulatePartsEnabled: boolean, private callbacks: ManualPartPanelCallbacks) {
@@ -59,6 +61,7 @@ export class ManualPartPanel {
         toggleLabel.className = "ipe-sim-toggle";
         const toggle = document.createElement("input");
         toggle.type = "checkbox";
+        this.simulateToggle = toggle;
         toggle.checked = simulatePartsEnabled;
         toggleLabel.appendChild(toggle);
         toggleLabel.appendChild(document.createTextNode("Let parts appear and disappear on their own schedule"));
@@ -66,6 +69,7 @@ export class ManualPartPanel {
 
         const row = document.createElement("div");
         row.className = "ipe-manual-part-row";
+        this.manualRow = row;
         row.classList.toggle("ipe-disabled", simulatePartsEnabled);
 
         const emojiPickerWrap = document.createElement("div");
@@ -159,10 +163,13 @@ export class ManualPartPanel {
 
         root.appendChild(panel);
 
-        toggle.addEventListener("change", () => {
-            row.classList.toggle("ipe-disabled", toggle.checked);
-            this.callbacks.onSimulateToggle(toggle.checked);
-        });
+        toggle.addEventListener("change", () => this.setSimulateEnabled(toggle.checked));
+    }
+
+    setSimulateEnabled(enabled: boolean): void {
+        this.simulateToggle.checked = enabled;
+        this.manualRow.classList.toggle("ipe-disabled", enabled);
+        this.callbacks.onSimulateToggle(enabled);
     }
 
     private showMessage(text: string): void {

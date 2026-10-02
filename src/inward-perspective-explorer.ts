@@ -609,7 +609,10 @@ class InwardPerspectiveExplorer {
         const up = () => {
             this.draggingPart = null;
             this.forceOverlay.setDragging(null);
-            if (dragged) this.swallowNextClick(part.el);
+            if (dragged) {
+                this.swallowNextClick(part.el);
+                this.manualPartPanel.setSimulateEnabled(false);
+            }
             window.removeEventListener("pointermove", move);
             window.removeEventListener("pointerup", up);
         };
