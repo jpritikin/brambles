@@ -18,6 +18,8 @@ Kykeon is similar in effect to MDMA, but the lowest dose of kykeon is like the m
 
 Tolerance resets in at most 3 days (X is a day of use, O is a day without): X O O O X
 
+Kykeon can be co-administered with [THH]({{< relref "/docs/psychoactive/thh" >}}).
+
 <div class="shrine-renovation-notice">
   <span class="shrine-renovation-icon">🏗️</span>
   <span class="shrine-renovation-text"><strong>Under renovation.</strong> This shrine is being upgraded as befits its glory and wonder. Expect rough edges while the work is under way.</span>
