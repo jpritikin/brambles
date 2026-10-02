@@ -116,6 +116,7 @@ I have first-hand experience with
 *   [Metocin]({{< relref "metocin" >}}) (4-HO-MET)
 *   5-MeO-DMT <span class="psych-scale" data-pattern="🛶1️⃣🧊🍃"></span>
 *   [Tetrahydroharmine]({{< relref "thh" >}})[^stahl2026]
+*   [Not ketamine]({{< relref "ketamine" >}})
 
 In general, I use psychoactive substances as [entheogens](https://en.wikipedia.org/wiki/Entheogen).
 My preferred substances generally align with the opinions of the 1972 Church of the Tree of Life.[^bigwood2024]
