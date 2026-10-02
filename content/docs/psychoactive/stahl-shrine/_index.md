@@ -44,7 +44,7 @@ Drag the sliders below, click the timeline, and see what the model predicts.
 
 <div id="pk-sim"></div>
 
-During recovery, sip water (not so much during the kykeon experience itself) and move as much as you can to resist sedation and encourage your kidneys.
+During recovery, sip water (not so much during the kykeon experience itself) and move as much as you can to resist sedation and encourage your kidneys to clear residual ergine.
 
 ## Ergine/LSA Extraction
 
