@@ -4,9 +4,9 @@
 // this. It exists to make the ergine/kykeon conversion theory concrete enough
 // to poke at, not to claim it's measured.
 //
-// Three compartments: pre-liver pool (ergine + barley grass aldehydes), liver
+// Three compartments: pre-barrier pool (ergine + barley grass aldehydes), barrier
 // (converts ergine to kykeon 1:1 by mass whenever any aldehyde is present,
-// otherwise passes ergine through untouched; ALDH degrades the liver's
+// otherwise passes ergine through untouched; ALDH degrades the barrier's
 // aldehyde pool at a diet-dependent rate), and brain (kykeon decays on a
 // short half-life; ergine barely decays on its own and is instead knocked
 // down by discrete urination events, a Poisson process whose rate is itself
@@ -27,11 +27,11 @@ const ALDH_RATE_NORMAL = 0.03; // g/min, zero-order (saturated) ALDH clearance, 
 // Glutathione conjugation, AKR/ADH reduction, protein adduction, and pulmonary
 // loss are all first-order (or pseudo-first-order) in aldehyde concentration,
 // unlike ALDH which saturates. Lumped into one fractional rate constant so the
-// liver aldehyde pool actually reaches zero instead of tailing off forever
+// barrier aldehyde pool actually reaches zero instead of tailing off forever
 // under the zero-order term alone. Magnitude is a guess, not a measurement.
 const ALDEHYDE_OTHER_CLEARANCE_RATE = 0.006; // per-minute fractional clearance
-const BARLEY_TRANSIT_TAU = 1.2; // min, pre-liver pool -> liver time constant for aldehydes
-const ERGINE_NO_ALDEHYDE_RATIO = 0.5; // pre-liver pool -> brain mass ratio for ergine when no aldehydes are present to convert it
+const BARLEY_TRANSIT_TAU = 1.2; // min, pre-barrier pool -> barrier time constant for aldehydes
+const ERGINE_NO_ALDEHYDE_RATIO = 0.5; // pre-barrier pool -> brain mass ratio for ergine when no aldehydes are present to convert it
 
 const ERGINE_ONSET = 30;
 const ERGINE_K = 4;
@@ -59,9 +59,9 @@ interface BarleyDose {
 
 interface SimPoint {
     t: number;
-    preLiverErgineMg: number;
-    preLiverAldG: number;
-    liverAldG: number;
+    preBarrierErgineMg: number;
+    preBarrierAldG: number;
+    barrierAldG: number;
     brainErgineMg: number;
     brainKykeonMg: number;
 }
@@ -98,9 +98,9 @@ function runSimulation(ergineMg: number, dietOn: boolean, sippingWater: boolean,
     const kykeonDecay = Math.log(2) / KYKEON_HALF_LIFE;
     const ergineDecay = Math.log(2) / ERGINE_HALF_LIFE;
 
-    let preLiverErgineRemaining = ergineMg;
-    let preLiverAld = 0;
-    let liverAld = 0;
+    let preBarrierErgineRemaining = ergineMg;
+    let preBarrierAld = 0;
+    let barrierAld = 0;
     let brainErgine = 0;
     let brainKykeon = 0;
 
@@ -110,26 +110,26 @@ function runSimulation(ergineMg: number, dietOn: boolean, sippingWater: boolean,
 
     for (let t = 0; t <= T_END; t += DT) {
         while (doseIdx < sortedDoses.length && sortedDoses[doseIdx].t <= t) {
-            preLiverAld += sortedDoses[doseIdx].amount;
+            preBarrierAld += sortedDoses[doseIdx].amount;
             doseIdx++;
         }
 
         const ergineOutRate = ergineReleaseFrac(t) * ergineMg;
-        const ergineOut = Math.min(preLiverErgineRemaining, ergineOutRate * DT);
-        preLiverErgineRemaining -= ergineOut;
+        const ergineOut = Math.min(preBarrierErgineRemaining, ergineOutRate * DT);
+        preBarrierErgineRemaining -= ergineOut;
 
-        const aldOutRate = preLiverAld / BARLEY_TRANSIT_TAU;
-        const aldOut = Math.min(preLiverAld, aldOutRate * DT);
-        preLiverAld -= aldOut;
-        liverAld += aldOut;
+        const aldOutRate = preBarrierAld / BARLEY_TRANSIT_TAU;
+        const aldOut = Math.min(preBarrierAld, aldOutRate * DT);
+        preBarrierAld -= aldOut;
+        barrierAld += aldOut;
 
-        const aldhLoss = Math.min(liverAld, aldhRate * DT);
-        liverAld -= aldhLoss;
+        const aldhLoss = Math.min(barrierAld, aldhRate * DT);
+        barrierAld -= aldhLoss;
 
-        const otherLoss = Math.min(liverAld, liverAld * ALDEHYDE_OTHER_CLEARANCE_RATE * DT);
-        liverAld -= otherLoss;
+        const otherLoss = Math.min(barrierAld, barrierAld * ALDEHYDE_OTHER_CLEARANCE_RATE * DT);
+        barrierAld -= otherLoss;
 
-        const gateOpen = liverAld > 1e-6;
+        const gateOpen = barrierAld > 1e-6;
         const kykeonIn = gateOpen ? ergineOut : 0; // 1:1 mass conversion
         const ergineThrough = gateOpen ? 0 : ergineOut * ERGINE_NO_ALDEHYDE_RATIO;
 
@@ -142,7 +142,7 @@ function runSimulation(ergineMg: number, dietOn: boolean, sippingWater: boolean,
             peeEvents.push(t);
         }
 
-        series.push({ t, preLiverErgineMg: preLiverErgineRemaining, preLiverAldG: preLiverAld, liverAldG: liverAld, brainErgineMg: brainErgine, brainKykeonMg: brainKykeon });
+        series.push({ t, preBarrierErgineMg: preBarrierErgineRemaining, preBarrierAldG: preBarrierAld, barrierAldG: barrierAld, brainErgineMg: brainErgine, brainKykeonMg: brainKykeon });
     }
 
     return { series, peeEvents };
@@ -430,9 +430,9 @@ function buildSimUI(container: HTMLElement): void {
         compartmentBlock.appendChild(row);
         return amt;
     }
-    const cPreLiverErgine = makeCompartmentRow("Pre-liver · ergine");
-    const cPreLiverAld = makeCompartmentRow("Pre-liver · aldehydes");
-    const cLiverAld = makeCompartmentRow("Liver · aldehyde pool");
+    const cPreBarrierErgine = makeCompartmentRow("Pre-barrier · ergine");
+    const cPreBarrierAld = makeCompartmentRow("Pre-barrier · aldehydes");
+    const cBarrierAld = makeCompartmentRow("Barrier · aldehyde pool");
     const cBrainErgine = makeCompartmentRow("Brain · ergine");
     const cBrainKykeon = makeCompartmentRow("Brain · kykeon");
 
@@ -542,9 +542,9 @@ function buildSimUI(container: HTMLElement): void {
         const timeLabel = startMins !== null ? fmtClock(startMins, point.t) : fmtTime(point.t);
         subjectiveHeading.textContent = `Subjective state @ ${timeLabel}`;
 
-        cPreLiverErgine.textContent = `${point.preLiverErgineMg.toFixed(0)} mg`;
-        cPreLiverAld.textContent = `${point.preLiverAldG.toFixed(2)} g`;
-        cLiverAld.textContent = `${point.liverAldG.toFixed(2)} g`;
+        cPreBarrierErgine.textContent = `${point.preBarrierErgineMg.toFixed(0)} mg`;
+        cPreBarrierAld.textContent = `${point.preBarrierAldG.toFixed(2)} g`;
+        cBarrierAld.textContent = `${point.barrierAldG.toFixed(2)} g`;
         cBrainErgine.textContent = `${point.brainErgineMg.toFixed(0)} mg`;
         cBrainKykeon.textContent = `${point.brainKykeonMg.toFixed(0)} mg`;
 
