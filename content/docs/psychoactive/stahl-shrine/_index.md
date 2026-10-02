@@ -39,13 +39,15 @@ What follows is a guess built from journey reports,[^pk-credit] implemented as a
 
 [^pk-credit]: Deepest, most fervent thanks to Hamilton Morris—intrepid psychonaut who marched fearlessly into the ergine-aldehyde unknown so the rest of us wouldn't have to. May his blood-brain barrier be forever blessed. Read the saga in [The Kykeon Cold Case]({{< relref "/posts/kykeon-cold-case" >}}).
 
-Ergine takes about 30 minutes to get from the stomach into the bloodstream. Blood circulates past the blood-brain barrier repeatedly. Each pass converts or clears only a fraction. Barley grass aldehydes get from the stomach through the bloodstream to the barrier fast, in about 5 minutes. When aldehyde is present at the barrier, some ergine passing through is converted into kykeon. Otherwise ergine passes through unchanged. Aldehyde dehydrogenase (ALDH) attacks aldehydes, gradually depleting them. Psychoactive effects depend on travel across the blood-brain barrier. Kykeon crosses easily, but the barrier only partly passes ergine. Kykeon has a short duration in the brain. Ergine is largely cleared by the kidneys, and that requires drinking water. The simulator is an empirical fit that simplifies this physiology (it treats the barrier as a single pass, for instance), and many of the underlying mechanisms remain a mystery.
+Ergine takes about 30 minutes to get from the stomach into the bloodstream. Blood circulates past the blood-brain barrier repeatedly. Each pass converts or clears only a fraction. Barley grass aldehydes get from the stomach through the bloodstream to the barrier fast, in about 5 minutes. When aldehyde is present at the barrier, some ergine passing through is converted into kykeon. Otherwise ergine passes through unchanged. Aldehyde dehydrogenase (ALDH) attacks aldehydes, gradually depleting them. Psychoactive effects depend on travel across the blood-brain barrier. Kykeon crosses easily, but the barrier only partly passes ergine. Kykeon has a short duration in the brain. Ergine is largely cleared by the kidneys,[^kidney-clearance] and that requires drinking water. The simulator is an empirical fit that simplifies this physiology (it treats the barrier as a single pass, for instance), and many of the underlying mechanisms remain a mystery.
 
 Drag the sliders below, click the timeline, and see what the model predicts.
 
 <div id="pk-sim"></div>
 
-During recovery, sip water (not so much during the kykeon experience itself) and move as much as you can to resist sedation and encourage your kidneys to clear residual ergine.
+During recovery, sip water (not so much during the kykeon experience itself) and move as much as you can to resist sedation and encourage your kidneys to clear residual ergine.[^kidney-clearance]
+
+[^kidney-clearance]: This rests on anecdotal reports. A systematic review of LSA found no evidence on how ergine is eliminated. Drinking water is low risk even if it doesn't help. Castro, P. S. C. C., Leopoldo, K., Pedro, M. O. P., Takitane, J., Bombana, H. S., Negrão, A. B., Scholz, J. R., & Castaldelli-Maia, J. M. (2025). Lysergic acid amide (LSA), an LSD analog: Systematic review of pharmacological effects, adverse outcomes, and therapeutic potentials. *Pharmacy, 13*(4), 98.
 
 ## Ergine/LSA Extraction
 
