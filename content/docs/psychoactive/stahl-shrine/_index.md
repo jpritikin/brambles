@@ -23,12 +23,13 @@ Tolerance resets in at most 3 days (X is a day of use, O is a day without): X O 
   <span class="shrine-renovation-text"><strong>Under renovation.</strong> This shrine is being upgraded as befits its glory and wonder. Expect rough edges while the work is under way.</span>
 </div>
 
-1. Use the pharmacokinetics tool to plan your journey.
-2. Procure <span class="must-be-fresh">fresh</span> young barley grass powder. Each serving should be in an individually sealed packet.
-3. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 18 hours prior to administration.
-4. [Extract ergine/LSA](#erginelsa-extraction)
-5. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. In this way, kykeon isn't like MDMA—indifferent to whatever mood you present.[^mdma] If you only feel buzzing stimulation, consider whether you prepared yourself sufficiently.[^stimulation]
-6. Implement plan from step 1.
+1. [Screen for contraindications](#screen-for-contraindications)
+2. Use the pharmacokinetics tool to plan your journey.
+3. Procure <span class="must-be-fresh">fresh</span> young barley grass powder. Each serving should be in an individually sealed packet.
+4. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 18 hours prior to administration.
+5. [Extract ergine/LSA](#erginelsa-extraction)
+6. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. In this way, kykeon isn't like MDMA—indifferent to whatever mood you present.[^mdma] If you only feel buzzing stimulation, consider whether you prepared yourself sufficiently.[^stimulation]
+7. Implement plan from step 2.
 
 ## Pharmacokinetics
 
@@ -288,6 +289,24 @@ Finish the portion from the Thai peanut sauce dish that you set aside.
 
 </div>
 
+## Screen for Contraindications
+
+Ergine belongs to the ergot alkaloids, and ergot's classic danger is **ergotism**: sustained vasoconstriction that starves the extremities and organs of blood. It comes in a gangrenous form (numb, painful, blackened fingers and toes) and a convulsive form (spasms, seizures, hallucinations). Historically it struck people who ate rye contaminated with the *Claviceps* fungus, a chronic and heavy exposure far beyond anything in this protocol. Still, you should take the vascular risk seriously.
+
+Do not proceed if any of these apply:
+
+- Cardiovascular disease, including coronary artery disease, prior heart attack, angina, or uncontrolled hypertension
+- Peripheral vascular disease or Raynaud's phenomenon
+- Pregnancy, or trying to conceive (ergot alkaloids can contract the uterus)
+- Breastfeeding
+- Liver impairment, since ergot alkaloids are metabolized there
+- Taking strong CYP3A4 inhibitors (certain macrolide antibiotics, azole antifungals, HIV protease inhibitors), which can raise ergot levels dangerously
+- Taking triptans or other vasoconstrictors
+
+Stahl himself is a heart attack survivor, yet he reports no vasoconstriction when he uses kykeon. [His ALDH enzyme seems to be unusual]({{< relref "/posts/kykeon-cold-case" >}}), so his experience may not transfer to you. Do not treat it as evidence that the protocol is safe for a damaged heart.
+
+Ergot alkaloids aren't known to be bioaccumulative. The liver breaks them down (mostly via CYP3A4) and the body clears them within days. Humans have no known delayed illness from an exposure that felt tolerable at the time.
+
 ## Lest We Forget
 
 We lost this knowledge for a couple of thousand years. Let's not make it a habit. Write it down and pass it on. Keep the kykeon flowing.
@@ -316,7 +335,7 @@ We lost this knowledge for a couple of thousand years. Let's not make it a habit
 
 [^stahl-keto]: Stahl (pp. 216-217): "For as long as I can remember I have followed a ketogenic diet consisting of proteins like eggs, chicken, flank steak, brisket, turkey, pork, hamburger meat, fish. Fats consisting of olive oil, avocados, the fats in meats, salad dressing such as blue cheese, sour cream. Low carbs consist of non starchy vegetables like broccoli, spinach, cauliflower, squash, zucchini and cabbage." But he must be eating minuscule amounts of broccoli and cabbage (ALDH-inducers). We should **not** follow Stahl here: [Keto diets carry serious risks and few benefits](https://nutritionfacts.org/blog/the-safety-of-keto-diets/).
 
-[^stimulation]: Stimulation signals you set the correct conditions for kykeon (steps 1–4). Otherwise you would feel sedation. You're feeling the kykeon but not meeting it fully.
+[^stimulation]: Stimulation signals you set the correct conditions for kykeon (steps 2–5). Otherwise you would feel sedation. You're feeling the kykeon but not meeting it fully.
 
 [^mdma]: MDMA is used to treat people struggling with complex PTSD because it is indifferent to their initial condition. Even a deeply distressed person is met with warmth and openness.
 
