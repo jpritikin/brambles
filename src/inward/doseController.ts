@@ -253,23 +253,38 @@ export class DoseController {
         }
     }
 
+    appliedLabel(d: DrugEffect): string {
+        const dose = this.doses[d.key];
+        const label = d.doseStepLabels
+            ? (d.doseStepLabels[d.doseSteps!.indexOf(dose)] ?? `${Math.round(dose * 100)}%`)
+            : this.formatFreeDose(d, dose);
+        const unitSuffix = d.doseUnitRange ? " Δ9-THC" : "";
+        return `${d.emoji} ${d.name} ${label}${unitSuffix}`;
+    }
+
+    activeDrugs(): DrugEffect[] {
+        return DRUGS.filter((d) => this.isActive(d.key));
+    }
+
+    setDose(drug: DrugEffect, fraction: number): void {
+        this.administeredKeys.add(drug.key);
+        this.applyDoseChange(drug, fraction);
+        if (this.selectedDrugKey === drug.key) this.configureSliderFor(drug);
+    }
+
     private updateAppliedList(): void {
         this.appliedListEl.textContent = ""; // clear all child rows
-        const applied = DRUGS.filter((d) => this.isActive(d.key));
+        const applied = this.activeDrugs();
 
         applied.forEach((d, i) => {
             const dose = this.doses[d.key];
-            const label = d.doseStepLabels
-                ? (d.doseStepLabels[d.doseSteps!.indexOf(dose)] ?? `${Math.round(dose * 100)}%`)
-                : this.formatFreeDose(d, dose);
             const y = this.appliedListY + i * 14;
-            const unitSuffix = d.doseUnitRange ? " Δ9-THC" : "";
 
             const label_ = svgEl("text");
             label_.classList.add("ipe-applied-list");
             label_.setAttribute("x", String(this.appliedListX));
             label_.setAttribute("y", String(y));
-            label_.textContent = `${d.emoji} ${d.name} ${label}${unitSuffix}`;
+            label_.textContent = this.appliedLabel(d);
             this.appliedListEl.appendChild(label_);
 
             // Rough per-char width estimate avoids a getBBox layout reflow.

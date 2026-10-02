@@ -13,6 +13,7 @@ const CONTRAINDICATED_MESSAGES: string[] = [
 // SVG) appended to the widget root, since it needs to sit above the whole widget.
 export class ContraindicatedModal {
     private backdrop: HTMLElement;
+    private emoji: HTMLElement;
     private text: HTMLElement;
 
     constructor(root: HTMLElement) {
@@ -23,10 +24,9 @@ export class ContraindicatedModal {
         });
         const modal = document.createElement("div");
         modal.className = "ipe-contraindicated-modal";
-        const emoji = document.createElement("div");
-        emoji.className = "ipe-contraindicated-modal-emoji";
-        emoji.textContent = "🚫";
-        modal.appendChild(emoji);
+        this.emoji = document.createElement("div");
+        this.emoji.className = "ipe-contraindicated-modal-emoji";
+        modal.appendChild(this.emoji);
         this.text = document.createElement("p");
         this.text.className = "ipe-contraindicated-modal-text";
         modal.appendChild(this.text);
@@ -46,7 +46,12 @@ export class ContraindicatedModal {
 
     show(drug: DrugEffect, other: DrugEffect, note: string): void {
         const template = CONTRAINDICATED_MESSAGES[Math.floor(Math.random() * CONTRAINDICATED_MESSAGES.length)];
-        this.text.textContent = template.replace(/{a}/g, drug.name).replace(/{b}/g, other.name).replace(/{note}/g, note);
+        this.showMessage("🚫", template.replace(/{a}/g, drug.name).replace(/{b}/g, other.name).replace(/{note}/g, note));
+    }
+
+    showMessage(emoji: string, message: string): void {
+        this.emoji.textContent = emoji;
+        this.text.textContent = message;
         this.backdrop.classList.add("ipe-open");
     }
 

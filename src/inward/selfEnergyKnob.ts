@@ -83,6 +83,15 @@ export class SelfEnergyKnob {
         return Math.min(1, Math.max(0, raw));
     }
 
+    get userKnobFraction(): number {
+        return this.userFraction;
+    }
+
+    setUserFraction(fraction: number): void {
+        this.userFraction = fraction;
+        this.updateRing();
+    }
+
     get currentBaseline(): number {
         return this.baseline;
     }

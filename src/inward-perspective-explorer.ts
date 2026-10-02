@@ -11,6 +11,7 @@ import { SelfEnergyKnob } from "./inward/selfEnergyKnob";
 import { DoseController } from "./inward/doseController";
 import { ContraindicatedModal } from "./inward/contraindicatedModal";
 import { ManualPartPanel } from "./inward/manualPartPanel";
+import { LOOKS_LIKE_STATE, stateToYaml, yamlToState, type ExplorerState } from "./inward/stateYaml";
 import { ForceOverlay, FORCE_COLORS, VOLITION_FORCE_NAME } from "./inward/forceOverlay";
 import { computeConflict } from "./inward/part";
 import { DebugOverlay } from "./inward/debugOverlay";
@@ -205,6 +206,8 @@ class InwardPerspectiveExplorer {
         });
 
         this.svg.addEventListener("pointerdown", (e) => this.onPointerDown(e));
+        this.root.appendChild(this.buildCopyButton());
+        document.addEventListener("paste", (e) => this.onPaste(e));
 
         requestAnimationFrame((ts) => this.tick(ts));
         this.updateReadout();
@@ -515,6 +518,62 @@ class InwardPerspectiveExplorer {
         const feeling = PARTS_PALETTE.find((p) => p.emoji === emoji)?.feeling ?? "";
         const part = this.createPart(emoji, feeling, blendUrgency);
         this.parts.push(part);
+    }
+
+    private buildCopyButton(): HTMLButtonElement {
+        const button = document.createElement("button");
+        button.classList.add("ipe-copy-btn");
+        button.textContent = "Copy";
+        button.title = "Copy state as YAML (paste anywhere on the page to restore)";
+        button.addEventListener("click", async () => {
+            await navigator.clipboard.writeText(stateToYaml(this.exportState()));
+            button.textContent = "Copied!";
+            setTimeout(() => (button.textContent = "Copy"), 1500);
+        });
+        return button;
+    }
+
+    private exportState(): ExplorerState {
+        return {
+            selfKnob: this.selfEnergyKnob.userKnobFraction,
+            drugs: this.doseController.activeDrugs().map((d) => ({
+                key: d.key,
+                dose: this.doseController.doses[d.key],
+                label: this.doseController.appliedLabel(d),
+            })),
+            parts: this.parts
+                .filter((p) => !p.fadingOut && !p.isDrugRendered)
+                .map((p) => ({ emoji: p.emoji, feeling: p.feeling, blendUrgency: p.blendUrgency, volition: p.volition })),
+        };
+    }
+
+    private onPaste(e: ClipboardEvent): void {
+        const target = e.target as HTMLElement;
+        if (target.closest("input, textarea, [contenteditable]")) return;
+        const text = e.clipboardData?.getData("text") ?? "";
+        if (!LOOKS_LIKE_STATE.test(text)) return;
+        e.preventDefault();
+        try {
+            this.importState(yamlToState(text));
+        } catch (err) {
+            this.contraindicatedModal.showMessage("⚠️", `Couldn't restore that state. ${(err as Error).message}`);
+        }
+    }
+
+    private importState(state: ExplorerState): void {
+        const unknown = state.drugs.find((d) => !DRUG_BY_KEY[d.key]);
+        if (unknown) throw new Error(`Unknown drug "${unknown.key}".`);
+        for (const d of this.doseController.activeDrugs()) this.doseController.cancelDrug(d);
+        for (const { key, dose } of state.drugs) {
+            this.doseController.setDose(DRUG_BY_KEY[key], dose);
+        }
+        this.selfEnergyKnob.setUserFraction(state.selfKnob);
+        while (this.sweepOldestPart());
+        for (const { emoji, feeling, blendUrgency, volition } of state.parts) {
+            const part = this.createPart(emoji, feeling, blendUrgency);
+            part.volition = volition;
+            this.parts.push(part);
+        }
     }
 
     private draggingPart: Part | null = null;
