@@ -86,3 +86,5 @@
 .ipe-contraindicated-modal-emoji { font-size: 2.2em; line-height: 1; }
 .ipe-contraindicated-modal-text { margin: 0.6em 0 1em; font-size: 0.95em; line-height: 1.4; }
 .ipe-contraindicated-modal-btn { border: 1px solid currentColor; background: transparent; border-radius: 999px; padding: 0.4em 1.2em; font-size: 0.9em; cursor: pointer; }
+.ipe-force-popup-volition-hit { fill: transparent; cursor: ew-resize; }
+.ipe-force-popup-drag-handle { fill: transparent; cursor: move; }

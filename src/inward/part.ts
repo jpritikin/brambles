@@ -45,6 +45,10 @@ export interface Part {
     // stand-in for a drug effect, not a psychological part with a stake in Self vs. blended -
     // so it never shows a conflict ring even when its underlying forces read as opposed.
     isDrugRendered: boolean;
+    // The user's volition on the blended<->unblended axis, -1 (full blend) to +1 (full
+    // unblend). Set by dragging the part or, while its force popup is pinned, by the popup's
+    // volition bar.
+    volition: number;
 }
 
 // Self-unblend and blend-urgency are the only two forces on the shared 0-1 psychological

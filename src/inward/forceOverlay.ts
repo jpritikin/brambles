@@ -9,7 +9,10 @@ export const FORCE_COLORS: Record<string, string> = {
     selfProximity: "#2980b9",
     blendUrgency: "#27ae60",
     partRepulsion: "#f39c12",
+    volition: "#8e44ad",
 };
+
+export const VOLITION_FORCE_NAME = "Mental Steering";
 
 // Small burst of these drifts off a part while its conflict ring is showing - a pained
 // reaction to being pulled toward Self and blended at once. Non-face emoji deliberately,
@@ -36,6 +39,8 @@ export class ForceOverlay {
     private lockedPart: Part | null = null;
     private forcePopupHideTimer: ReturnType<typeof setTimeout> | null = null;
     private forcePopupVisiblePart: Part | null = null;
+    private draggingPart: Part | null = null;
+    private pinnedPos: { x: number; y: number } | null = null;
     private conflictRings = new Map<Part, SVGCircleElement>();
     // Last time (ms) each conflicted part spawned a pain-emoji burst - throttles spawns to
     // an occasional pulse rather than one every frame.
@@ -68,14 +73,8 @@ export class ForceOverlay {
         this.forcePopupPin.appendChild(pinGlyph);
         this.forcePopupPin.addEventListener("click", (e) => {
             e.stopPropagation();
-            if (this.lockedPart) {
-                this.lockedPart = null;
-                if (this.hoveredPart) this.showForcePopup(this.hoveredPart);
-                else this.hideForcePopup();
-            } else if (this.forcePopupVisiblePart) {
-                this.lockedPart = this.forcePopupVisiblePart;
-                this.showForcePopup(this.lockedPart);
-            }
+            if (this.lockedPart) this.unlock();
+            else if (this.forcePopupVisiblePart) this.lock(this.forcePopupVisiblePart);
         });
         this.forcePopupGroup.appendChild(this.forcePopupPin);
 
@@ -98,14 +97,8 @@ export class ForceOverlay {
         });
         part.el.addEventListener("click", (e) => {
             e.stopPropagation();
-            if (this.lockedPart === part) {
-                this.lockedPart = null;
-                if (this.hoveredPart) this.showForcePopup(this.hoveredPart);
-                else this.hideForcePopup();
-            } else {
-                this.lockedPart = part;
-                this.showForcePopup(part);
-            }
+            if (this.lockedPart === part) this.unlock();
+            else this.lock(part);
         });
 
         const ring = svgEl("circle");
@@ -123,10 +116,35 @@ export class ForceOverlay {
             this.hoveredPart = null;
             if (!this.lockedPart) this.hideForcePopup();
         }
+        if (this.draggingPart === part) this.draggingPart = null;
         if (this.lockedPart === part) {
             this.lockedPart = null;
+            this.pinnedPos = null;
             this.hideForcePopup();
         }
+    }
+
+    setDragging(part: Part | null): void {
+        this.draggingPart = part;
+        if (!part && !this.lockedPart && !this.hoveredPart) this.scheduleForcePopupHide();
+    }
+
+    private lock(part: Part): void {
+        this.lockedPart = part;
+        this.pinnedPos = null;
+        this.showForcePopup(part);
+    }
+
+    private unlock(): void {
+        this.lockedPart = null;
+        this.pinnedPos = null;
+        const next = this.hoveredPart ?? this.draggingPart;
+        if (next) this.showForcePopup(next);
+        else this.hideForcePopup();
+    }
+
+    private currentPart(): Part | null {
+        return this.lockedPart ?? this.draggingPart ?? this.hoveredPart;
     }
 
     // Per-frame update for one part: conflict ring opacity/spawn and (if this part is the
@@ -148,9 +166,7 @@ export class ForceOverlay {
             ring.style.opacity = conflict > 0.75 ? String(Math.min(1, (conflict - 0.75) / 0.25)) : "0";
             if (conflict > 0.75) this.maybeSpawnConflictEmoji(part);
         }
-        if (this.lockedPart === part || (!this.lockedPart && this.hoveredPart === part)) {
-            this.showForcePopup(part);
-        }
+        if (this.currentPart() === part) this.showForcePopup(part);
     }
 
     private maybeSpawnConflictEmoji(part: Part): void {
@@ -201,7 +217,8 @@ export class ForceOverlay {
 
         // Part repulsion is purely a display/anti-overlap mechanic with no psychological
         // meaning, so it's omitted from the legend.
-        const legendRows = rows.filter((f) => f.name !== "Part repulsion");
+        const legendRows = rows.filter((f) => f.name !== "Part repulsion" && f.name !== VOLITION_FORCE_NAME);
+        const volitionRowIndex = legendRows.length;
 
         const rowHeight = 16;
         const width = 150;
@@ -209,7 +226,7 @@ export class ForceOverlay {
         const barX = 6;
         const barWidth = width - 12;
         const barHeight = 10;
-        const height = barTop + rowHeight * Math.max(legendRows.length, 1);
+        const height = barTop + rowHeight * (legendRows.length + 1);
 
         // Bars are normalized against 1.0, not the largest force present - most forces on
         // this scale stay within 0..1, but THH/N,N,-DMT's direct pushes can exceed it (see
@@ -267,6 +284,8 @@ export class ForceOverlay {
             this.forcePopupContent.appendChild(label);
         });
 
+        this.addVolitionRow(part, barX, barTop + volitionRowIndex * rowHeight, barWidth, barHeight);
+
         this.forcePopupBg.setAttribute("width", String(width));
         this.forcePopupBg.setAttribute("height", String(height));
 
@@ -274,18 +293,118 @@ export class ForceOverlay {
         title.classList.add("ipe-force-popup-title");
         title.setAttribute("x", String(barX + 4));
         title.setAttribute("y", "13");
-        title.textContent = "Forces";
+        title.textContent = `Forces: ${part.feeling || part.emoji}`;
         this.forcePopupContent.appendChild(title);
+        if (this.lockedPart === part) this.addTitleDragHandle(width);
 
         this.forcePopupPin.classList.toggle("ipe-pinned", this.lockedPart === part);
         this.forcePopupPin.setAttribute("transform", `translate(${width - 14}, 12)`);
 
+        const pos = this.lockedPart === part ? (this.pinnedPos ??= this.followPosition(part, width, height)) : this.followPosition(part, width, height);
+        this.forcePopupGroup.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
+    }
+
+    private addTitleDragHandle(width: number): void {
+        const handle = svgEl("rect");
+        handle.classList.add("ipe-force-popup-drag-handle");
+        handle.setAttribute("width", String(width - 24));
+        handle.setAttribute("height", "20");
+        handle.addEventListener("pointerdown", (e) => {
+            e.stopPropagation();
+            const pointerToSvg = (ev: PointerEvent) => {
+                const rect = this.svg.getBoundingClientRect();
+                const scale = W / rect.width;
+                return { x: (ev.clientX - rect.left) * scale, y: (ev.clientY - rect.top) * scale };
+            };
+            const grab = pointerToSvg(e);
+            const origin = { ...this.pinnedPos! };
+            const move = (ev: PointerEvent) => {
+                const pointer = pointerToSvg(ev);
+                this.pinnedPos = {
+                    x: Math.max(0, Math.min(W - width, origin.x + pointer.x - grab.x)),
+                    y: Math.max(0, origin.y + pointer.y - grab.y),
+                };
+                this.forcePopupGroup.setAttribute("transform", `translate(${this.pinnedPos.x}, ${this.pinnedPos.y})`);
+            };
+            const up = () => {
+                window.removeEventListener("pointermove", move);
+                window.removeEventListener("pointerup", up);
+            };
+            window.addEventListener("pointermove", move);
+            window.addEventListener("pointerup", up);
+        });
+        this.forcePopupContent.appendChild(handle);
+    }
+
+    private followPosition(part: Part, width: number, height: number): { x: number; y: number } {
         const partCy = part.y - EMOJI_VERTICAL_CENTER_OFFSET;
-        let px = part.x + 18;
-        let py = partCy - height - 10;
-        if (px + width > W) px = part.x - width - 18;
-        if (py < 0) py = partCy + 18;
-        this.forcePopupGroup.setAttribute("transform", `translate(${px}, ${py})`);
+        let x = part.x + 18;
+        let y = partCy - height - 10;
+        if (x + width > W) x = part.x - width - 18;
+        if (y < 0) y = partCy + 18;
+        return { x, y };
+    }
+
+    // Signed bar centered on zero: full blend at the left end and full unblend at the right.
+    // Only adjustable by pointer while pinned,
+    // since an unpinned popup follows the part and vanishes when the pointer leaves it.
+    private addVolitionRow(part: Part, barX: number, y: number, barWidth: number, barHeight: number): void {
+        const color = FORCE_COLORS.volition;
+        const center = barX + barWidth / 2;
+        const half = barWidth / 2;
+        const value = Math.max(-1, Math.min(1, part.volition));
+        const fillWidth = Math.abs(value) * half;
+
+        const barBg = svgEl("rect");
+        barBg.classList.add("ipe-force-popup-bar-bg");
+        barBg.setAttribute("x", String(barX));
+        barBg.setAttribute("y", String(y));
+        barBg.setAttribute("width", String(barWidth));
+        barBg.setAttribute("height", String(barHeight));
+        barBg.setAttribute("rx", "3");
+        this.forcePopupContent.appendChild(barBg);
+
+        const barFill = svgEl("rect");
+        barFill.setAttribute("x", String(value >= 0 ? center : center - fillWidth));
+        barFill.setAttribute("y", String(y));
+        barFill.setAttribute("width", String(fillWidth));
+        barFill.setAttribute("height", String(barHeight));
+        barFill.setAttribute("fill", color);
+        barFill.setAttribute("fill-opacity", "0.35");
+        barFill.setAttribute("stroke", color);
+        barFill.setAttribute("stroke-width", "1");
+        this.forcePopupContent.appendChild(barFill);
+
+        const label = svgEl("text");
+        label.classList.add("ipe-force-popup-row");
+        label.setAttribute("x", String(barX + 4));
+        label.setAttribute("y", String(y + barHeight - 2));
+        label.textContent = `${VOLITION_FORCE_NAME} (${Math.abs(value).toFixed(2)})`;
+        this.forcePopupContent.appendChild(label);
+
+        if (this.lockedPart !== part) return;
+        const hit = svgEl("rect");
+        hit.classList.add("ipe-force-popup-volition-hit");
+        hit.setAttribute("x", String(barX));
+        hit.setAttribute("y", String(y));
+        hit.setAttribute("width", String(barWidth));
+        hit.setAttribute("height", String(barHeight));
+        hit.addEventListener("pointerdown", (e) => {
+            e.stopPropagation();
+            const set = (ev: PointerEvent) => {
+                const rect = this.svg.getBoundingClientRect();
+                const localX = (ev.clientX - rect.left) * (W / rect.width) - (this.pinnedPos?.x ?? 0);
+                part.volition = Math.max(-1, Math.min(1, (localX - center) / half));
+            };
+            const up = () => {
+                window.removeEventListener("pointermove", set);
+                window.removeEventListener("pointerup", up);
+            };
+            window.addEventListener("pointermove", set);
+            window.addEventListener("pointerup", up);
+            set(e);
+        });
+        this.forcePopupContent.appendChild(hit);
     }
 
     private hideForcePopup(): void {

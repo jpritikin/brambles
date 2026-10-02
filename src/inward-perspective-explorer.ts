@@ -11,7 +11,7 @@ import { SelfEnergyKnob } from "./inward/selfEnergyKnob";
 import { DoseController } from "./inward/doseController";
 import { ContraindicatedModal } from "./inward/contraindicatedModal";
 import { ManualPartPanel } from "./inward/manualPartPanel";
-import { ForceOverlay, FORCE_COLORS } from "./inward/forceOverlay";
+import { ForceOverlay, FORCE_COLORS, VOLITION_FORCE_NAME } from "./inward/forceOverlay";
 import { computeConflict } from "./inward/part";
 import { DebugOverlay } from "./inward/debugOverlay";
 
@@ -123,9 +123,11 @@ class InwardPerspectiveExplorer {
             this.drugWheelCenterY,
             this.selectedDrugKey,
             (key) => this.onSelectDrug(key),
-            (open) => this.root.classList.toggle("ipe-wheel-open", open),
+            (open) => {
+                this.root.classList.toggle("ipe-wheel-open", open);
+                this.setDrugWheelLayer(open);
+            },
         );
-        this.svg.appendChild(this.drugWheel.group);
 
         // Subjective-effects readout, centered inside the triangle.
         const READOUT_X = CX + 100;
@@ -166,6 +168,7 @@ class InwardPerspectiveExplorer {
         this.svg.appendChild(this.readoutFeelings);
 
         this.svg.appendChild(this.partsLayer);
+        this.setDrugWheelLayer(false);
 
         // Force-breakdown popup, appended last so it renders above every part.
         this.forceOverlay = new ForceOverlay(this.svg);
@@ -234,6 +237,8 @@ class InwardPerspectiveExplorer {
     private static readonly WANDER_KICK_CHANCE_PER_SEC = 0.2;
     private static readonly WANDER_KICK_CHANCE_PER_SEC_CONFLICTED = 0.4;
     private static readonly WANDER_KICK_STRENGTH = 2;
+    private static readonly VOLITION_DRAG_RANGE = 100;
+    private static readonly CLICK_MAX_DRAG = 4;
     // Fixed unit direction from blended toward unblended, used for the unblend/blend-
     // propensity forces so their direction never depends on a part's own position.
     private static readonly BLEND_TO_UNBLEND_DIR = (() => {
@@ -456,7 +461,7 @@ class InwardPerspectiveExplorer {
         el.setAttribute("y", String(y));
         el.style.opacity = "0";
         el.textContent = emoji;
-        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendUrgency, forces: [], extraLinkTo: this.rollExtraLink(), hyperFocused: false, isDrugRendered };
+        const part: Part = { emoji, feeling, x, y, vx: 0, vy: 0, opacity: 0, fadingOut: false, el, blendUrgency, forces: [], extraLinkTo: this.rollExtraLink(), hyperFocused: false, isDrugRendered, volition: 0 };
         el.addEventListener("pointerdown", (e) => {
             e.stopPropagation();
             this.startDrag(part, e);
@@ -520,11 +525,23 @@ class InwardPerspectiveExplorer {
 
     private startDrag(part: Part, e: PointerEvent): void {
         this.draggingPart = part;
-        const move = (ev: PointerEvent) => {
+        this.forceOverlay.setDragging(part);
+        const startX = part.x;
+        const startY = part.y;
+        const startVolition = part.volition;
+        let dragged = false;
+        const toSvg = (ev: PointerEvent) => {
             const rect = this.svg.getBoundingClientRect();
             const scale = W / rect.width;
-            part.x = (ev.clientX - rect.left) * scale;
-            part.y = (ev.clientY - rect.top) * scale;
+            return { x: (ev.clientX - rect.left) * scale, y: (ev.clientY - rect.top) * scale };
+        };
+        const grab = toSvg(e);
+        const move = (ev: PointerEvent) => {
+            const pointer = toSvg(ev);
+            part.x = startX + pointer.x - grab.x;
+            part.y = startY + pointer.y - grab.y;
+            if (Math.hypot(part.x - startX, part.y - startY) > InwardPerspectiveExplorer.CLICK_MAX_DRAG) dragged = true;
+            part.volition = Math.max(-1, Math.min(1, startVolition + (part.x - startX) / InwardPerspectiveExplorer.VOLITION_DRAG_RANGE));
             part.vx = 0;
             part.vy = 0;
             part.el.setAttribute("x", String(part.x));
@@ -532,12 +549,25 @@ class InwardPerspectiveExplorer {
         };
         const up = () => {
             this.draggingPart = null;
+            this.forceOverlay.setDragging(null);
+            if (dragged) this.swallowNextClick(part.el);
             window.removeEventListener("pointermove", move);
             window.removeEventListener("pointerup", up);
         };
         window.addEventListener("pointermove", move);
         window.addEventListener("pointerup", up);
         move(e);
+    }
+
+    // A drag that ends over its part still fires a click there, which would toggle pinning.
+    private swallowNextClick(el: Element): void {
+        const swallow = (e: Event) => e.stopImmediatePropagation();
+        el.addEventListener("click", swallow, { capture: true, once: true });
+        setTimeout(() => el.removeEventListener("click", swallow, { capture: true }), 0);
+    }
+
+    private setDrugWheelLayer(open: boolean): void {
+        this.svg.insertBefore(this.drugWheel.group, open ? null : this.partsLayer);
     }
 
     private onSelectDrug(key: string): void {
@@ -620,6 +650,17 @@ class InwardPerspectiveExplorer {
         }
     }
 
+    private volitionForce(p: Part): PartForce {
+        const dir = InwardPerspectiveExplorer.BLEND_TO_UNBLEND_DIR;
+        return {
+            name: VOLITION_FORCE_NAME,
+            color: FORCE_COLORS.volition,
+            x: dir.x * p.volition * BLEND_FORCE_SCALE,
+            y: dir.y * p.volition * BLEND_FORCE_SCALE,
+            displayMag: Math.abs(p.volition),
+        };
+    }
+
     private tick(ts: number): void {
         const dt = this.lastTs ? Math.min(0.05, (ts - this.lastTs) / 1000) : 0;
         this.lastTs = ts;
@@ -628,7 +669,11 @@ class InwardPerspectiveExplorer {
         const unblendPush = this.unblendPressure();
         const blendPush = this.blendPressure();
         for (const p of this.parts) {
-            if (p === this.draggingPart) continue;
+            if (p === this.draggingPart) {
+                p.forces = [...p.forces.filter((f) => f.name !== VOLITION_FORCE_NAME), this.volitionForce(p)];
+                this.forceOverlay.update(p);
+                continue;
+            }
             // Wander as occasional larger impulses rather than continuous per-frame noise -
             // WANDER_KICK_CHANCE_PER_SEC tuned so a kick lands roughly every couple of seconds
             // per part, each one a single discrete nudge (not scaled by dt, since it's an
@@ -708,6 +753,11 @@ class InwardPerspectiveExplorer {
             }
             p.vx += fPartRepulsion.x * dt;
             p.vy += fPartRepulsion.y * dt;
+
+            const fVolition = this.volitionForce(p);
+            forces.push(fVolition);
+            p.vx += fVolition.x * dt;
+            p.vy += fVolition.y * dt;
 
             p.forces = forces;
 
