@@ -91,7 +91,7 @@ I'd had a week with this story and somehow missed the obvious. "Go on."
 
 He'd eaten a pea soup dinner loaded with broccoli and onion on purpose, to invigorate ALDH. The next morning, he took 200mg of ergine—50 seeds worth—plus 320mg of THH for its stimulant and emotional distancing effects. That was 10:15 am.
 
-At 11:36 am, still just anxious, he swallowed 0.87g of barley grass. By 12:10 pm the kykeon was already fading, so he took 1.5g more and felt it come on hard enough to go for a walk. It peaked around 12:40, then started slipping again on the way back. By 12:51 he was home, managed only 0.75g more, and collapsed onto the couch as the ergine pressed back down. He rode out a rough patch—three hours since dosing, past ergine's peak—and by 2:17 pm the heaviness finally thinned for good.
+At 11:36 am, still just anxious, he swallowed 0.87g of barley grass. By 12:10 pm the kykeon was already fading, so he took 1.5g more and felt it come on hard enough to go for a walk. It faded around 12:40, then started slipping again on the way back. By 12:51 he was home, managed only 0.75g more, and collapsed onto the couch as the ergine pressed back down. He rode out a rough patch—three hours since dosing, past ergine's peak—and by 2:17 pm the heaviness finally thinned for good.
 
 I analyzed the timeline to work out roughly how fast his body was clearing barley grass aldehydes:
 
@@ -106,7 +106,7 @@ Looks like around 0.03g/min.
 "Since I was focused on the initial mixing step, I didn't track the first few trials carefully enough," Hamilton admitted. "For the next trial, I tried to limit the number of differences to the ALDH diet."
 
 At 9:45am, he took THH 254mg. Then at 10:30, LSA 180mg. By 11:30, he was feeling mild nausea and anxiety, but "Maybe it was psychosomotic?" he said. He took 1.51g barley grass and ate lunch at 11:52.
-Kykeon peaked around 1:08 and he took another 1.5g barley grass at 1:15. By 2:30, kykeon was fading.
+Kykeon faded around 1:08 and he took another 1.5g barley grass at 1:15. By 2:30, kykeon was fading.
 
 I analyzed the timeline and found that the aldehydes diet helped, but only modestly.
 
