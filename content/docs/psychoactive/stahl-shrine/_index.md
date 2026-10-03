@@ -47,7 +47,7 @@ Drag the sliders below, click the timeline, and see what the model predicts.
 
 <div id="pk-sim"></div>
 
-During recovery, sip water (not so much during the kykeon experience itself) and move as much as you can to resist sedation and encourage your kidneys to clear residual ergine.[^kidney-clearance]
+During recovery, sip water (not so much during the kykeon experience itself) and move as much as you can to resist sedation and encourage your kidneys to clear residual ergine.[^kidney-clearance] Don't forget that a hot shower can help persuade the bladder to loosen its grip.
 
 [^kidney-clearance]: This rests on anecdotal reports. A systematic review of LSA found no evidence on how ergine is eliminated. Drinking water is low risk even if it doesn't help. Castro, P. S. C. C., Leopoldo, K., Pedro, M. O. P., Takitane, J., Bombana, H. S., Negrão, A. B., Scholz, J. R., & Castaldelli-Maia, J. M. (2025). Lysergic acid amide (LSA), an LSD analog: Systematic review of pharmacological effects, adverse outcomes, and therapeutic potentials. *Pharmacy, 13*(4), 98.
 
