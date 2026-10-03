@@ -241,6 +241,7 @@ class InwardPerspectiveExplorer {
     private static readonly WANDER_KICK_CHANCE_PER_SEC_CONFLICTED = 0.4;
     private static readonly WANDER_KICK_STRENGTH = 2;
     private static readonly VOLITION_DRAG_RANGE = 100;
+    private static readonly VOLITION_LIMIT = 0.5;
     private static readonly CLICK_MAX_DRAG = 4;
     // Fixed unit direction from blended toward unblended, used for the unblend/blend-
     // propensity forces so their direction never depends on a part's own position.
@@ -600,7 +601,7 @@ class InwardPerspectiveExplorer {
             part.x = startX + pointer.x - grab.x;
             part.y = startY + pointer.y - grab.y;
             if (Math.hypot(part.x - startX, part.y - startY) > InwardPerspectiveExplorer.CLICK_MAX_DRAG) dragged = true;
-            part.volition = Math.max(-1, Math.min(1, startVolition + (part.x - startX) / InwardPerspectiveExplorer.VOLITION_DRAG_RANGE));
+            part.volition = Math.max(-InwardPerspectiveExplorer.VOLITION_LIMIT, Math.min(InwardPerspectiveExplorer.VOLITION_LIMIT, startVolition + (part.x - startX) / InwardPerspectiveExplorer.VOLITION_DRAG_RANGE));
             part.vx = 0;
             part.vy = 0;
             part.el.setAttribute("x", String(part.x));
