@@ -28,9 +28,9 @@ Kykeon can be co-administered with [THH]({{< relref "/docs/psychoactive/thh" >}}
 1. [Screen for contraindications](#screen-for-contraindications)
 2. Use the pharmacokinetics tool to plan your journey.
 3. Procure <span class="must-be-fresh">fresh</span> young barley grass powder. Each serving should be in an individually sealed packet.
-4. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 18 hours prior to administration.
+4. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 22 hours prior to administration.
 5. [Extract ergine/LSA](#erginelsa-extraction)
-6. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. In this way, kykeon isn't like MDMA—indifferent to whatever mood you present.[^mdma] If you only feel buzzing stimulation, consider whether you prepared yourself sufficiently.[^stimulation]
+6. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like MDMA—indifferent to whatever mood you present.[^mdma] If you only feel buzzing stimulation (without euphoria), consider whether you prepared yourself sufficiently.[^stimulation]
 7. Implement plan from step 2.
 
 ## Pharmacokinetics
