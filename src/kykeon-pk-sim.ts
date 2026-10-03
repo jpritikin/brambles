@@ -274,6 +274,7 @@ const PLOT_H = VB_H - PAD.t - PAD.b;
 const DOSE_MARKER_R = 14;
 const DOSE_MARKER_HIT_R = 22;
 const DOUBLE_TAP_MS = 400;
+const COPY_PLAN_LABEL = "Copy plan";
 const DOSE_ZONE_HALF_HEIGHT = DOSE_MARKER_HIT_R; // band around y=0 reserved for dose-marker interaction
 const DOSE_AMOUNT_MIN = 0;
 const DOSE_AMOUNT_MAX = 6;
@@ -396,7 +397,7 @@ function buildSimUI(container: HTMLElement): void {
 
     const copyParamsBtn = el("button", "pk-copy-params-btn");
     copyParamsBtn.type = "button";
-    copyParamsBtn.textContent = "Copy parameters";
+    copyParamsBtn.textContent = COPY_PLAN_LABEL;
 
     chartHeadingRow.append(chartHeading, startTimeField, copyParamsBtn);
 
@@ -514,16 +515,15 @@ function buildSimUI(container: HTMLElement): void {
         const text = describeParams(state);
         navigator.clipboard?.writeText(text).then(
             () => {
-                const original = copyParamsBtn.textContent;
                 copyParamsBtn.textContent = "Copied!";
                 setTimeout(() => {
-                    copyParamsBtn.textContent = original;
+                    copyParamsBtn.textContent = COPY_PLAN_LABEL;
                 }, 1200);
             },
             () => {
                 copyParamsBtn.textContent = "Copy failed";
                 setTimeout(() => {
-                    copyParamsBtn.textContent = "Copy parameters";
+                    copyParamsBtn.textContent = COPY_PLAN_LABEL;
                 }, 1200);
             }
         );
