@@ -903,10 +903,15 @@ const MOBILE_WIDTH_THRESHOLD = 600;
 const container = document.getElementById("inward-perspective-explorer-widget");
 if (container) {
     if (window.innerWidth < MOBILE_WIDTH_THRESHOLD) {
-        const notice = document.createElement("p");
-        notice.style.cssText = "max-width: 480px; margin: 1.5em auto; padding: 1em; text-align: center; opacity: 0.75; font-style: italic;";
-        notice.textContent =
+        const notice = document.createElement("div");
+        notice.className = "ipe-unsupported";
+        const title = document.createElement("div");
+        title.className = "ipe-unsupported-title";
+        title.textContent = "Error";
+        const message = document.createElement("p");
+        message.textContent =
             "🖥️ This little world of Self and parts wants a bigger screen and a mouse to fidget with. Come back on desktop!";
+        notice.append(title, message);
         container.appendChild(notice);
     } else {
         new InwardPerspectiveExplorer(container);
