@@ -16,7 +16,7 @@ For millennia, what the ancients were brewing for their kykeon rites has stumped
 
 Kykeon is similar in effect to MDMA, but the lowest dose of kykeon is like the maximum dose of MDMA. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
 
-Tolerance resets in at most 3 days (X is a day of use, O is a day without): X O O O X
+Kykeon tolerance is similar to ergine tolerance. It resets in about 4 days (X is a day of use, O is a day without): X O O O O X
 
 Kykeon can be co-administered with [THH]({{< relref "/docs/psychoactive/thh" >}}).
 
@@ -113,9 +113,18 @@ Eat:
   - Vitamin C (ascorbic acid)[^srinivasan2019]
 
 Consider:
+- **Grains and legumes**
+  - Chickpea[^aldh-anectodal]
+  - Lentil[^aldh-anectodal]
+  - Wheat[^aldh-anectodal]
+- **Fruits**
+  - Blueberry[^aldh-anectodal]
+  - Plum[^aldh-anectodal]
 - **Spices**
   - <span class="eat-ingredient" data-ingredient="mace">Mace</span>[^srinivasan2019][^myristicin-caveat]
   - <span class="eat-ingredient" data-ingredient="nutmeg">Nutmeg</span>[^srinivasan2019][^myristicin-caveat]
+
+[^aldh-anectodal]: These foods do not seem to cause issues in informal testing. No published research is available.
 
 Everything not listed under Eat or Consider above is effectively Avoid.
 
@@ -254,7 +263,7 @@ Prepare a Thai peanut sauce flavored entrée:
   <button type="button" class="rite-scale-btn" data-rite-scale="2">2x</button>
 </div>
 
-1. Blend <span class="rite-amount" data-amount="0.5">½</span> cup water, <span class="rite-amount" data-amount="1.5">1½</span> tablespoon lemon juice, <span class="rite-amount" data-amount="2">2</span> tsp soy sauce, <span class="rite-amount" data-amount="2">2</span> <span class="rite-ingredient" data-ingredient="garlic">garlic</span> cloves (pressed or grated), <span class="rite-amount" data-amount="1">1</span> tablespoon date sugar (or <span class="rite-amount" data-amount="3">3</span> dates), <span class="rite-amount" data-amount="25">25</span>g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, <span class="rite-amount" data-amount="70">70</span>g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and <span class="rite-amount" data-amount="0.25">¼</span> tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
+1. Blend <span class="rite-amount" data-amount="0.25">¼</span> cup water, <span class="rite-amount" data-amount="1.5">1½</span> tablespoon lemon juice, <span class="rite-amount" data-amount="2">2</span> tsp soy sauce, <span class="rite-amount" data-amount="2">2</span> <span class="rite-ingredient" data-ingredient="garlic">garlic</span> cloves (pressed or grated), <span class="rite-amount" data-amount="1">1</span> tablespoon date sugar (or <span class="rite-amount" data-amount="3">3</span> dates), <span class="rite-amount" data-amount="25">25</span>g fresh <span class="rite-ingredient" data-ingredient="ginger">ginger</span>, <span class="rite-amount" data-amount="70">70</span>g <span class="rite-ingredient" data-ingredient="peanuts">peanut</span> butter, and <span class="rite-amount" data-amount="0.25">¼</span> tsp <span class="rite-ingredient" data-ingredient="turmeric">turmeric</span> until smooth.
 2. Pressure cook <span class="rite-amount" data-amount="0.3333333333">⅓</span> cup <span class="rite-ingredient grain-slot" data-ingredient="millet">millet</span> with <span class="rite-amount" data-amount="0.3333333333">⅓</span> cup dry lentils for 12 minutes.
 3. Mix in ¼ to ½ pound frozen <span class="rite-ingredient" data-ingredient="spinach">spinach</span>, then ladle the peanut sauce over the top.
 
