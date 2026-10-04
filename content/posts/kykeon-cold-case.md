@@ -126,8 +126,20 @@ Following the ALDH diet, he took 164mg of ergine at 9am. Half an hour later, he 
 | 1st | 6g | 9:30am–11:50am (~140 min) | ~0.043 g/min |
 | 2nd | 3g | 11:50am–2:20pm (~150 min) | ~0.020 g/min |
 
-The 6g and 3g doses should have cleared at the same rate. They didn't. But I wouldn't hang a conclusion on it. Doubling from 1.5g to 3g changed nothing (0.020 g/min both times), so only the 6g dose broke the pattern. Until the 6g trial is repeated, I'm treating 0.02 g/min as the working estimate.
+The 6g and 3g doses should have cleared at the same rate. They didn't. Maybe the 9:30am start time was too early? Maybe the ALDH diet hadn't kicked in yet?
 
-"Anyway," Hamilton said. "We're square now: the 5-MeO story."
+"Oh, one more thing," Hamilton said. "Doblin called me last week. He asked whether I'd tried quercetin."
+
+"Had you?" I asked.
+
+"No." Hamilton groaned. "I felt like a fool. Of course, quercetin."
+
+"Why?" I asked.
+
+"It's an ALDH inhibitor," he said.
+
+"Ah," I said.
+
+"Anyway," Hamilton said. "Enough about that. We're square now: the 5-MeO story."
 
 Click. The phone went dead.
