@@ -632,3 +632,7 @@ details summary:hover {
   pointer-events: none;
   z-index: 5;
 }
+
+:root[data-quercetin="off"] .quercetin-only {
+  display: none;
+}
