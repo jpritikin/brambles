@@ -33,6 +33,8 @@ Kykeon can be co-administered with [THH]({{< relref "/docs/psychoactive/thh" >}}
 6. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like MDMA—indifferent to whatever mood you present.[^mdma] If you only feel buzzing stimulation (without euphoria), consider whether you prepared yourself sufficiently.[^stimulation]
 7. Implement plan from step 2.
 
+**Do not drink alcohol while aldehydes are in play.** Ethanol is metabolized into acetaldehyde, a toxic compound (a carcinogen, and the main cause of hangover symptoms) that ALDH must clear. The aldehyde preserving diet suppresses ALDH, so acetaldehyde would linger. Make sure the extraction ethanol has fully evaporated before you ingest the residue.
+
 ## Pharmacokinetics
 
 What follows is a guess built from journey reports,[^pk-credit] implemented as a simulator to make specific predictions. Picture the body as three compartments. The **pre-barrier pool** (stomach plus bloodstream) holds ergine and barley grass aldehydes until they reach the blood-brain barrier. The **blood-brain barrier** either leaves ergine untouched or converts it into kykeon, depending on whether aldehydes are present.[^not-liver] The **brain**, behind the barrier, is where the subjective effects happen.
