@@ -98,7 +98,9 @@ Option: Peanut butter and goji berries on a bagel.
 | pine essential oil | 🤷 |
 | sweet orange essential oil | 🤷 |
 
-Best tested: Combine 700 mL of water, quarter cup of white vinegar, two drops of peppermint oil, and five drops of rosemary oil. Sip during ceremony.
+Best tested: Combine 700 mL of water, quarter cup of white vinegar, two drops of peppermint oil, and five drops of rosemary oil.
+
+Improved candidate: Combine 700 mL of water with four drops of food-grade peppermint (Mentha piperita) essential oil, ten drops of food-grade copaiba essential oil, and a quarter cup of white vinegar (5% acetic acid).
 
 ### Lyrics
 
