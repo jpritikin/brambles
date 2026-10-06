@@ -33,7 +33,7 @@ Kykeon can be co-administered with [THH]({{< relref "/docs/psychoactive/thh" >}}
 6. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like MDMA—indifferent to whatever mood you present.[^mdma] If you only feel buzzing stimulation (without euphoria), consider whether you prepared yourself sufficiently.[^stimulation]
 7. Implement plan from step 2.
 
-**Do not drink alcohol while aldehydes are in play.** Ethanol is metabolized into acetaldehyde, a toxic compound (a carcinogen, and the main cause of hangover symptoms) that ALDH must clear. The aldehyde preserving diet suppresses ALDH, so acetaldehyde would linger. Make sure the extraction ethanol has fully evaporated before you ingest the residue.
+**Do not drink alcohol while aldehydes are in play.** Ethanol is metabolized into acetaldehyde, a carcinogen and the main cause of hangover symptoms. The aldehyde preserving diet suppresses ALDH, the enzyme that clears it, so acetaldehyde would linger. Make sure the extraction ethanol has fully evaporated before you ingest the residue.
 
 ## Pharmacokinetics
 
@@ -60,7 +60,7 @@ Even beginning chemists will recognize this as a straightforward LSA extraction.
 1. Grind the seeds to a fine powder in the {{< tooltip label="grinder" >}}Stahl adds, "crush the seed fragments by hand with pestle using a twisting downwards motion<br/>for a minute until they look more like dust fragments, don't be afraid to then pound the seed dust<br/>with the pestle to get it crushed as finely as possible."{{< /tooltip >}}.
 2. In a shot glass, combine the seed powder with 30mg tartaric acid and the ethanol. Stir for ten minutes.
 3. Refrigerate for at least 20 minutes (1 hour is better), to let the seed fragments settle out of the solution.
-4. Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a fan carry the alcohol away.
+4. Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a dehydrator or hair dryer carry the alcohol away.
 5. Once the alcohol has fully evaporated, scrape the residue from the dish into an oily blob with a spatula or razor blade.
 
 ## Materials
@@ -75,7 +75,7 @@ Even beginning chemists will recognize this as a straightforward LSA extraction.
 - Shot glass
 - Refrigerator
 - Small glass baking dish
-- Fan
+- Dehydrator or hair dryer
 - Spatula or razor blade
 - Magnetic stir machine (optional)
 
