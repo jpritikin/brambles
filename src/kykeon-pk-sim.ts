@@ -332,7 +332,7 @@ interface SimState {
 }
 
 function buildSimUI(container: HTMLElement): void {
-    let state: SimState = { ergineMg: 100, dietOn: true, quercetinOn: true, sippingWater: true, doses: [{ t: 30, amount: 3 }], rngSeed: 1, startTime: "" };
+    let state: SimState = { ergineMg: 100, dietOn: true, quercetinOn: true, sippingWater: true, doses: [{ t: 15, amount: 3 }], rngSeed: 1, startTime: "" };
     let dragging: { dose: BarleyDose; pointerId: number; startClientY: number; startAmount: number } | null = null;
     let dragDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     let cursorT: number | null = null;
