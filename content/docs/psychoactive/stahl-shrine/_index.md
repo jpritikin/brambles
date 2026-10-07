@@ -350,7 +350,7 @@ We lost this knowledge for a couple of thousand years. Let's not make it a habit
 
 [^stahl-keto]: Stahl (pp. 216-217): "For as long as I can remember I have followed a ketogenic diet consisting of proteins like eggs, chicken, flank steak, brisket, turkey, pork, hamburger meat, fish. Fats consisting of olive oil, avocados, the fats in meats, salad dressing such as blue cheese, sour cream. Low carbs consist of non starchy vegetables like broccoli, spinach, cauliflower, squash, zucchini and cabbage." But he must be eating minuscule amounts of broccoli and cabbage (ALDH-inducers). We should **not** follow Stahl here: [Keto diets carry serious risks and few benefits](https://nutritionfacts.org/blog/the-safety-of-keto-diets/).
 
-[^stimulation]: Stimulation signals you set the correct conditions for kykeon (steps 2–5). Otherwise you would feel sedation. You're feeling the kykeon but not meeting it fully.
+[^stimulation]: Stimulation signals you set the correct conditions for kykeon (steps 2–5). Otherwise you would feel sedation. You're feeling the kykeon but not meeting it fully. Here's how to get it wrong: Set your alarm way too early, like 4am. Roll out of bed groggy and sleep deprived. Don't comb your hair. Proudly keep pristine bed-head. Take ergine before you've fully woken up. Definitely don't practice meditation. Extra credit if, in addition, you've been sleep deprived for the last 3-4 days.
 
 [^mdma]: MDMA is used to treat people struggling with complex PTSD because it is indifferent to their initial condition. Even a deeply distressed person is met with warmth and openness.
 
