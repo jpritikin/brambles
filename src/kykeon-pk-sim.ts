@@ -293,6 +293,8 @@ const PULSE_MS = 1400;
 const PULSE_HEAD_END = 0.7; // fraction of the pulse when the glow's leading edge reaches the tips
 const PULSE_TAIL_START = 0.2; // fraction of the pulse when the glow begins decaying from the center
 const easeOut = (x: number) => 1 - (1 - x) ** 2;
+const easeInOutCubic = (x: number) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
+const GLIDE_MS = 900;
 
 function xScale(t: number): number {
     return PAD.l + (t / T_END) * PLOT_W;
@@ -336,6 +338,8 @@ function buildSimUI(container: HTMLElement): void {
     let dragging: { dose: BarleyDose; pointerId: number; startClientY: number; startAmount: number } | null = null;
     let dragDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     let cursorT: number | null = null;
+    let setCursorIdx: ((idx: number) => void) | null = null;
+    let glideFrame = 0;
 
     container.classList.add("pk-sim");
 
@@ -568,18 +572,33 @@ function buildSimUI(container: HTMLElement): void {
         }
         startTimeInput.classList.remove("pk-input-invalid");
         state.startTime = raw;
-        moveCursorToNow();
         run();
+        glideCursorToNow();
     });
 
-    function moveCursorToNow(): boolean {
+    function glideCursorToNow(): void {
         const startMins = state.startTime ? parseClockTime(state.startTime) : null;
-        if (startMins === null) return false;
+        if (startMins === null || cursorT === null || !setCursorIdx) return;
         const elapsed = minutesSinceClock(startMins);
-        if (elapsed > T_END) return false;
-        const alreadySelected = cursorT !== null && Math.round(cursorT / DT) === Math.round(elapsed / DT);
-        cursorT = elapsed;
-        return alreadySelected;
+        if (elapsed > T_END) return;
+        const fromIdx = Math.round(cursorT / DT);
+        const toIdx = Math.round(elapsed / DT);
+        cancelGlide();
+        if (fromIdx === toIdx) {
+            pulseCursorLine();
+            return;
+        }
+        const start = performance.now();
+        const frame = (now: number) => {
+            const p = Math.min(1, (now - start) / GLIDE_MS);
+            setCursorIdx?.(Math.round(fromIdx + (toIdx - fromIdx) * easeInOutCubic(p)));
+            if (p < 1) glideFrame = requestAnimationFrame(frame);
+        };
+        glideFrame = requestAnimationFrame(frame);
+    }
+
+    function cancelGlide(): void {
+        cancelAnimationFrame(glideFrame);
     }
 
     function pulseCursorLine(): void {
@@ -614,8 +633,7 @@ function buildSimUI(container: HTMLElement): void {
             missingStartTimeDialog.showModal();
             return;
         }
-        if (moveCursorToNow()) pulseCursorLine();
-        else run();
+        glideCursorToNow();
     });
 
     copyParamsBtn.addEventListener("click", () => {
@@ -918,7 +936,10 @@ function buildSimUI(container: HTMLElement): void {
             updateReadout(point);
         }
 
+        setCursorIdx = (idx) => setCursor(Math.min(series.length - 1, Math.max(0, idx)));
+
         function handlePointer(evt: MouseEvent | TouchEvent): void {
+            cancelGlide();
             const rect = svg.getBoundingClientRect();
             const clientX = "touches" in evt ? evt.touches[0].clientX : evt.clientX;
             const t = xToT(clientX, rect);
@@ -1014,6 +1035,7 @@ function buildSimUI(container: HTMLElement): void {
     }
 
     function run(): void {
+        cancelGlide();
         const result = runSimulation(state.ergineMg, state.dietOn, state.quercetinOn, state.sippingWater, state.doses, state.rngSeed);
         drawChart(result);
     }
