@@ -533,6 +533,57 @@ details summary:hover {
 .pk-copy-params-btn:hover {
   background: rgba(212, 175, 55, 0.15);
 }
+.pk-cursor-pulse {
+  stroke: #ffe000;
+  stroke-width: 6;
+  stroke-linecap: round;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px #ffe000) drop-shadow(0 0 10px #ffd400) drop-shadow(0 0 20px #ffb300);
+}
+.pk-modal {
+  max-width: 22rem;
+  padding: 0 0 1rem;
+  border: 3px solid #b3261e;
+  border-radius: 0.4rem;
+  background: #fff5f4;
+  color: #3a0d0a;
+  box-shadow: 0 0 0 4px rgba(179, 38, 30, 0.25), 0 0 2rem rgba(179, 38, 30, 0.6);
+  overflow: hidden;
+  text-align: center;
+}
+.pk-modal::backdrop {
+  background: rgba(90, 0, 0, 0.55);
+}
+.pk-modal > p,
+.pk-modal > button {
+  margin-left: 1.2rem;
+  margin-right: 1.2rem;
+}
+.pk-modal-title {
+  margin: 0 0 0.8rem;
+  padding: 0.6rem 1rem;
+  color: #fff;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: repeating-linear-gradient(-45deg, #b3261e 0 14px, #8c1c16 14px 28px);
+  animation: pk-alarm 1s steps(2, jump-none) infinite;
+}
+.pk-modal > button {
+  border-color: #b3261e;
+  color: #b3261e;
+  font-weight: bold;
+}
+@keyframes pk-alarm {
+  50% {
+    filter: brightness(1.4);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pk-modal-title {
+    animation: none;
+  }
+}
 .pk-input-invalid {
   border-color: #8a4b3a;
   outline: 1px solid #8a4b3a;

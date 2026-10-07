@@ -228,6 +228,12 @@ function parseClockTime(raw: string): number | null {
     return h * 60 + min;
 }
 
+function minutesSinceClock(startMins: number): number {
+    const now = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    return (nowMins - startMins + 24 * 60) % (24 * 60);
+}
+
 // Formats an elapsed-minutes value as a wall-clock label given a start time
 // (minutes since midnight), wrapping past midnight if needed.
 function fmtClock(startMins: number, elapsedMins: number): string {
@@ -283,6 +289,11 @@ const DOSE_AMOUNT_MAX = 6;
 const DOSE_DRAG_PX_PER_FULL_RANGE = PLOT_H / 2; // half the chart height of vertical drag sweeps the full amount range
 const DOSE_DRAG_DEBOUNCE_MS = 20;
 
+const PULSE_MS = 1400;
+const PULSE_HEAD_END = 0.7; // fraction of the pulse when the glow's leading edge reaches the tips
+const PULSE_TAIL_START = 0.2; // fraction of the pulse when the glow begins decaying from the center
+const easeOut = (x: number) => 1 - (1 - x) ** 2;
+
 function xScale(t: number): number {
     return PAD.l + (t / T_END) * PLOT_W;
 }
@@ -324,6 +335,7 @@ function buildSimUI(container: HTMLElement): void {
     let state: SimState = { ergineMg: 100, dietOn: true, quercetinOn: true, sippingWater: true, doses: [{ t: 30, amount: 3 }], rngSeed: 1, startTime: "" };
     let dragging: { dose: BarleyDose; pointerId: number; startClientY: number; startAmount: number } | null = null;
     let dragDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let cursorT: number | null = null;
 
     container.classList.add("pk-sim");
 
@@ -417,7 +429,25 @@ function buildSimUI(container: HTMLElement): void {
     copyParamsBtn.type = "button";
     copyParamsBtn.textContent = COPY_PLAN_LABEL;
 
-    chartHeadingRow.append(chartHeading, startTimeField, copyParamsBtn);
+    const moveToNowBtn = el("button", "pk-copy-params-btn");
+    moveToNowBtn.type = "button";
+    moveToNowBtn.textContent = "Move to now";
+    chartHeadingRow.append(chartHeading, startTimeField, moveToNowBtn, copyParamsBtn);
+
+    const missingStartTimeDialog = el("dialog", "pk-modal");
+    const modalTitle = el("h3", "pk-modal-title");
+    modalTitle.textContent = "⚠ Time not set";
+    const modalMessage = el("p");
+    modalMessage.textContent = "Set \"Ergine admin. time\" first. Moving to now needs to know when you took the ergine.";
+    const modalClose = el("button", "pk-copy-params-btn");
+    modalClose.type = "button";
+    modalClose.textContent = "OK";
+    modalClose.addEventListener("click", () => {
+        missingStartTimeDialog.close();
+        startTimeInput.focus();
+    });
+    missingStartTimeDialog.append(modalTitle, modalMessage, modalClose);
+    container.appendChild(missingStartTimeDialog);
 
     const chartWrap = el("div", "pk-chart-wrap");
     const svg = svgEl("svg");
@@ -538,7 +568,54 @@ function buildSimUI(container: HTMLElement): void {
         }
         startTimeInput.classList.remove("pk-input-invalid");
         state.startTime = raw;
+        moveCursorToNow();
         run();
+    });
+
+    function moveCursorToNow(): boolean {
+        const startMins = state.startTime ? parseClockTime(state.startTime) : null;
+        if (startMins === null) return false;
+        const elapsed = minutesSinceClock(startMins);
+        if (elapsed > T_END) return false;
+        const alreadySelected = cursorT !== null && Math.round(cursorT / DT) === Math.round(elapsed / DT);
+        cursorT = elapsed;
+        return alreadySelected;
+    }
+
+    function pulseCursorLine(): void {
+        const cursorLine = svg.querySelector(".pk-cursor-line");
+        if (!cursorLine) return;
+        const top = Number(cursorLine.getAttribute("y1"));
+        const bottom = Number(cursorLine.getAttribute("y2"));
+        const mid = (top + bottom) / 2;
+        const halves = [top, bottom].map((tip) => {
+            const half = cursorLine.cloneNode() as SVGLineElement;
+            half.setAttribute("class", "pk-cursor-pulse");
+            svg.appendChild(half);
+            return { half, tip };
+        });
+        const start = performance.now();
+        const frame = (now: number) => {
+            const p = Math.min(1, Math.max(0, (now - start) / PULSE_MS));
+            const head = easeOut(Math.min(1, p / PULSE_HEAD_END));
+            const tail = easeOut(Math.max(0, (p - PULSE_TAIL_START) / (1 - PULSE_TAIL_START)));
+            halves.forEach(({ half, tip }) => {
+                half.setAttribute("y1", String(mid + (tip - mid) * tail));
+                half.setAttribute("y2", String(mid + (tip - mid) * head));
+            });
+            if (p < 1) requestAnimationFrame(frame);
+            else halves.forEach(({ half }) => half.remove());
+        };
+        requestAnimationFrame(frame);
+    }
+
+    moveToNowBtn.addEventListener("click", () => {
+        if (!state.startTime) {
+            missingStartTimeDialog.showModal();
+            return;
+        }
+        if (moveCursorToNow()) pulseCursorLine();
+        else run();
     });
 
     copyParamsBtn.addEventListener("click", () => {
@@ -825,6 +902,7 @@ function buildSimUI(container: HTMLElement): void {
 
         function setCursor(idx: number): void {
             const point = series[idx];
+            cursorT = point.t;
             const x = xScale(point.t);
             const yE = yScale(-point.brainErgineMg);
             const yK = yScale(point.brainKykeonMg);
@@ -880,7 +958,7 @@ function buildSimUI(container: HTMLElement): void {
                 peakIdx = i;
             }
         });
-        setCursor(peakIdx);
+        setCursor(cursorT === null ? peakIdx : Math.min(series.length - 1, Math.round(cursorT / DT)));
     }
 
     let buildChart_renderDoseMarkers: (() => void) | null = null;
