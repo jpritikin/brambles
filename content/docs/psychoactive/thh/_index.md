@@ -13,7 +13,9 @@ weight: 1
 
 Almost nothing is known about Tetrahydroharmine (THH). Shulgin reportedly took 300mg.[^tihkal] When sober, I can't tell the difference between 5mg and 300mg.[^novisuals] There is optimism (not quite reaching mild euphoria) and a sense of well-being, but it's barely noticeable. There's also a gentle pressure around the forehead.
 
-Some say THH is a stimulant, but I doubt it. It can prevent sleep, but it doesn't produce the jitteriness of coffee. I think it's more accurate to say that it increases alertness, which can interfere with sleep.
+Some say THH is a stimulant, but I doubt it. It can prevent sleep, but it doesn't produce the jitteriness of coffee. I think it's more accurate to say that it increases alertness, which can interfere with sleep.[^duration]
+
+[^duration]: After a Santo Daime work on Saturday with four servings of Daime, THH kept me awake all of Sunday night. The alertness only faded by Monday evening, about 40 hours after the work ended.
 
 Oh, and if you're hoping it'll spice things up in the bedroom—sorry, it won't. THH is chaste as a monastery.
 
