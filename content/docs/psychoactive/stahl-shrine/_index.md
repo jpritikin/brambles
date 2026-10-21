@@ -176,7 +176,7 @@ Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats
 
 <div class="rite-detail" data-rite-detail="shared-kykeon" hidden>
 
-Ingest the [LSA](#erginelsa-extraction).<span class="quercetin-only"> Take 1g quercetin with peanut butter.</span> Start a timer. Prep barley grass doses with a squeeze of <span class="rite-ingredient" data-ingredient="lemon">lemon</span> juice. Chill in the refrigerator for at least ½ hour. Administer per your planned schedule. Wash it down with seltzer water.[^seltzer]
+<span class="quercetin-only">Take 1g quercetin with peanut butter and wait 15 minutes, giving it time to deactivate the enzyme. </span>Ingest the [LSA](#erginelsa-extraction). Start a timer. Prep barley grass doses with a squeeze of <span class="rite-ingredient" data-ingredient="lemon">lemon</span> juice. Administer per your planned schedule. Wash it down with seltzer water.[^seltzer]
 
 </div>
 
