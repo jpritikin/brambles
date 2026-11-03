@@ -76,7 +76,7 @@ Below are results of testing so far. ❌ means the food interacts with (buffers/
 | ---- | :--------------------: |
 | Pineapple | ❌ |
 | Whole wheat bread | ❌? |
-| Sweet potato | ❌? |
+| Sweet potato | 👍 |
 | Avocado | 👍 |
 | Peanut/almond/sesame butter | 👍 |
 | Bagels (not whole wheat) + toppings like an everything bagel | 👍 |
@@ -100,7 +100,7 @@ Option: Peanut butter and goji berries on a bagel.
 
 Best tested: Combine 700 mL of water, quarter cup of white vinegar, two drops of peppermint oil, and five drops of rosemary oil.
 
-Improved candidate: Combine 700 mL of water with four drops of food-grade peppermint (Mentha piperita) essential oil, ten drops of food-grade copaiba essential oil, and a quarter cup of white vinegar (5% acetic acid).
+Improved candidate: Combine 650 mL of water with four drops of food-grade peppermint (Mentha piperita) essential oil, eight drops of food-grade copaiba essential oil, and a half cup of white vinegar (5% acetic acid).
 
 ### Lyrics
 
