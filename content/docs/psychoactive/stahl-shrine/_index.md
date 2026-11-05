@@ -65,11 +65,11 @@ Even beginning chemists will recognize this as a straightforward LSA extraction.
 
 ## Materials
 
-- {{< tooltip label="25 Hawaiian baby woodrose" >}}Increase seeds to increase the strength of the subjective effects.<br/>Start low and increase with caution.<br/>Stahl has reportedly worked his way to up 100 seeds 🤯.{{< /tooltip >}} (*Argyreia nervosa*) seeds[^min-seeds]
+- {{< tooltip label="25 Hawaiian baby woodrose" >}}Increase seeds to increase the strength of the subjective effects.<br/>Start low and increase with caution.<br/>Next step up from 25 is 50.<br/>Stahl has reportedly worked his way to up 100 seeds 🤯.{{< /tooltip >}} (*Argyreia nervosa*) seeds[^min-seeds]
 - 30mg {{< tooltip label="tartaric acid" >}}Do not substitute another acid. According to Stahl,<br/>"Tartaric acid participates in hydrogen bonding to LSA and<br/>is an important chemical catalyst in the aldehyde condensation."{{< /tooltip >}}
 - 30ml of 95% ethanol (or purer)
 
-[^min-seeds]: Fewer than 25 seeds is not recommended. A low dose can open you emotionally without much euphoria.
+[^min-seeds]: Fewer than 25 seeds is not recommended. A low dose can open you emotionally without much euphoria. Twenty-five seeds is a handshake dose, barely perceptible. Like MDMA, kykeon has a threshold the dose must clear. Below it, the experience is like approaching climax without being able to land it, so 50 seeds is the next step.
 
 **Tools of the Rite**
 
