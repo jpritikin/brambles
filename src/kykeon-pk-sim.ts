@@ -149,8 +149,8 @@ function runSimulation(ergineMg: number, dietOn: boolean, quercetinOn: boolean, 
     return { series, peeEvents };
 }
 
-const CHART_ERGINE_MG_MAX = 20;
-const CHART_KYKEON_MG_MAX = 20;
+const CHART_ERGINE_MG_MAX = 40;
+const CHART_KYKEON_MG_MAX = 40;
 
 // Effects are linear in brain mg, scaled to the chart's y-axis ceilings.
 function effectFraction(amountMg: number, chartMaxMg: number): number {
@@ -685,7 +685,7 @@ function buildSimUI(container: HTMLElement): void {
 
         // horizontal mg gridlines: negative half scaled to ergine's ceiling,
         // positive half to kykeon's
-        const gridSteps = [-20, -15, -10, -5, 0, 5, 10, 15, 20];
+        const gridSteps = [-40, -30, -20, -10, 0, 10, 20, 30, 40];
         gridSteps.forEach((mg) => {
             if (mg < -CHART_ERGINE_MG_MAX || mg > CHART_KYKEON_MG_MAX) return;
             const y = yScale(mg);
@@ -763,7 +763,7 @@ function buildSimUI(container: HTMLElement): void {
         kykeonPath.setAttribute("class", "pk-kykeon-line");
         svg.appendChild(kykeonPath);
 
-        const mdmaEquivalentKykeonMg = 1;
+        const mdmaEquivalentKykeonMg = 12.5;
         const mdmaY = yScale(mdmaEquivalentKykeonMg);
         const mdmaLine = svgEl("line");
         mdmaLine.setAttribute("x1", String(PAD.l));
