@@ -35,6 +35,12 @@ Kykeon can be co-administered with [THH]({{< relref "/docs/psychoactive/thh" >}}
 
 **Do not drink alcohol while aldehydes are in play.** Ethanol is metabolized into acetaldehyde, a carcinogen and the main cause of hangover symptoms. The aldehyde preserving diet suppresses ALDH, the enzyme that clears it, so acetaldehyde would linger. Make sure the extraction ethanol has fully evaporated before you ingest the residue.
 
+## First-Time Dosing Recommendation
+
+1. Start with 25 seeds.
+2. Wait 90 minutes.
+3. If things feel promising, take another 25 seeds' worth (ergine only).
+
 ## Pharmacokinetics
 
 What follows is a guess built from journey reports,[^pk-credit] implemented as a simulator to make specific predictions. Picture the body as three compartments. The **pre-barrier pool** (stomach plus bloodstream) holds ergine and barley grass aldehydes until they reach the blood-brain barrier. The **blood-brain barrier** either leaves ergine untouched or converts it into kykeon, depending on whether aldehydes are present.[^not-liver] The **brain**, behind the barrier, is where the subjective effects happen.
