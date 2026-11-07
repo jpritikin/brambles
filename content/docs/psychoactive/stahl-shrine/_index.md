@@ -29,6 +29,11 @@ Kykeon can be co-administered with [THH]({{< relref "/docs/psychoactive/thh" >}}
 2. Use the pharmacokinetics tool to plan your journey.
 3. Procure <span class="must-be-fresh">fresh</span> young barley grass powder. Each serving should be in an individually sealed packet.
 4. Follow an [aldehyde preserving diet](#aldehydes-tlc) starting at least 22 hours prior to administration.
+   Optional if you instead inhibit ALDH directly with one of these (you don't need both):
+   - Quercetin: take 6g with at least 1 tablespoon of nut butter or a small avocado.
+   - Kudzu extract: take 1 capsule of NPI-031, sold as Alkontrol-Herbal.
+
+   Either one is taken with the first dose of barley grass.
 5. [Extract ergine/LSA](#erginelsa-extraction)
 6. Practice [meditation]({{< relref "/docs/meditation" >}}) to ensure you'll meet the kykeon in the best possible frame of mind. Kykeon isn't like MDMA—indifferent to whatever mood you present.[^mdma] If you only feel buzzing stimulation (without euphoria), consider whether you prepared yourself sufficiently.[^stimulation]
 7. Implement plan from step 2.
@@ -184,7 +189,7 @@ Round out dinner with rolled <span class="rite-ingredient" data-ingredient="oats
 
 <div class="rite-detail" data-rite-detail="shared-kykeon" hidden>
 
-<span class="quercetin-only">Take 6g quercetin with peanut butter and wait 15 minutes, giving it time to deactivate the enzyme. </span>Ingest the [LSA](#erginelsa-extraction). Start a timer. Prep barley grass doses with a squeeze of <span class="rite-ingredient" data-ingredient="lemon">lemon</span> juice. Administer per your planned schedule. Wash it down with seltzer water.[^seltzer]
+<span class="quercetin-only">Take your quercetin or kudzu. </span>Ingest the [LSA](#erginelsa-extraction). Start a timer. Prep barley grass doses with a squeeze of <span class="rite-ingredient" data-ingredient="lemon">lemon</span> juice. Administer per your planned schedule. Wash it down with seltzer water.[^seltzer]
 
 </div>
 

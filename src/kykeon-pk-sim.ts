@@ -262,7 +262,7 @@ function describeParams(state: SimState): string {
     const lines = [
         `Ergine: ${state.ergineMg} mg${startMins !== null ? ` at ${fmtClock(startMins, 0)}` : ""}`,
         `Diet: ${state.dietOn ? "on" : "off"}`,
-        `Quercetin: ${state.quercetinOn ? `on, 1 g ${startMins !== null ? `at ${fmtClock(startMins, -QUERCETIN_LEAD_MIN)} (` : "("}${QUERCETIN_LEAD_MIN} min before ergine)` : "off"}`,
+        `Quercetin or kudzu: ${state.quercetinOn ? "on, taken with ergine" : "off"}`,
         `Sipping water: ${state.sippingWater ? "yes" : "no"}`,
         "Barley grass doses:",
         ...doses.map((d, i) => {
@@ -282,7 +282,6 @@ const PLOT_H = VB_H - PAD.t - PAD.b;
 const DOSE_MARKER_R = 14;
 const DOSE_MARKER_HIT_R = 22;
 const DOUBLE_TAP_MS = 400;
-const QUERCETIN_LEAD_MIN = 15;
 const COPY_PLAN_LABEL = "Copy plan";
 const DOSE_ZONE_HALF_HEIGHT = DOSE_MARKER_HIT_R; // band around y=0 reserved for dose-marker interaction
 const DOSE_AMOUNT_MIN = 0;
@@ -382,7 +381,7 @@ function buildSimUI(container: HTMLElement): void {
 
     const quercetinField = el("div", "pk-field");
     const quercetinLabelRow = el("label");
-    quercetinLabelRow.textContent = "Quercetin";
+    quercetinLabelRow.textContent = "Quercetin or kudzu";
     const quercetinToggleRow = el("div", "pk-toggle-row");
     const quercetinSwitch = el("label", "pk-switch");
     const quercetinInput = el("input");
