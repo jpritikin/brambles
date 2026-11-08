@@ -14,7 +14,7 @@ layout: shrine-page
 
 For millennia, what the ancients were brewing for their kykeon rites has stumped alchemists, chemists, and scholars alike. What follows is **not** a historical reconstruction (the ancients had neither coffee grinders nor 95% ethanol). It's Stahl's proposed adaptation for the modern era. Treat it as a strong hypothesis awaiting archaeological proof.
 
-Kykeon is similar in effect to MDMA, but the lowest dose of kykeon is like the maximum dose of MDMA. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
+Kykeon is similar in effect to MDMA, but the euphoria extends far beyond the MDMA ceiling. <span class="psych-scale" data-pattern="🛶1️⃣❤️🍃"></span>
 
 Kykeon tolerance is similar to ergine tolerance. It resets in about 4 days (X is a day of use, O is a day without): X O O O O X
 
