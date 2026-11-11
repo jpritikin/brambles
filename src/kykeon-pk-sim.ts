@@ -34,6 +34,7 @@ const ALDEHYDE_OTHER_CLEARANCE_RATE = 0.006; // per-minute fractional clearance
 const BARLEY_TRANSIT_TAU = 1.2; // min, pre-barrier pool -> barrier time constant for aldehydes
 const ERGINE_NO_ALDEHYDE_RATIO = 0.5; // pre-barrier pool -> brain mass ratio for ergine when no aldehydes are present to convert it
 
+const ERGINE_MG_PER_SEED = 4;
 const ERGINE_ONSET = 30;
 const ERGINE_K = 4;
 const ERGINE_THETA = 40;
@@ -89,6 +90,10 @@ function mulberry32(seed: number): () => number {
 // up front.
 function peeRateAt(baseRate: number, brainErgineMg: number): number {
     return baseRate / (1 + brainErgineMg * ERGINE_KIDNEY_SLOWDOWN);
+}
+
+function formatErgineDose(mg: number): string {
+    return `${mg}mg (${mg / ERGINE_MG_PER_SEED} seeds)`;
 }
 
 function runSimulation(ergineMg: number, dietOn: boolean, quercetinOn: boolean, sippingWater: boolean, doses: BarleyDose[], rngSeed: number): SimResult {
@@ -353,7 +358,7 @@ function buildSimUI(container: HTMLElement): void {
 
     const ergineField = el("div", "pk-field");
     const ergineLabelRow = el("label");
-    ergineLabelRow.textContent = "Ergine weight incl. inert oils ";
+    ergineLabelRow.textContent = "Extract weight ";
     const ergineVal = el("span", "pk-val");
     ergineLabelRow.appendChild(ergineVal);
     const ergineInput = el("input");
@@ -529,7 +534,7 @@ function buildSimUI(container: HTMLElement): void {
 
     function syncControls(): void {
         ergineInput.value = String(state.ergineMg);
-        ergineVal.textContent = `${state.ergineMg}mg`;
+        ergineVal.textContent = formatErgineDose(state.ergineMg);
         dietInput.checked = state.dietOn;
         dietText.textContent = state.dietOn ? "On — ALDH runs slow" : "Off — ALDH runs fast";
         syncQuercetin();
@@ -539,7 +544,7 @@ function buildSimUI(container: HTMLElement): void {
 
     ergineInput.addEventListener("input", () => {
         state.ergineMg = Number(ergineInput.value);
-        ergineVal.textContent = `${state.ergineMg}mg`;
+        ergineVal.textContent = formatErgineDose(state.ergineMg);
         run();
     });
     dietInput.addEventListener("change", () => {

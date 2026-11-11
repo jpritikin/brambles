@@ -74,6 +74,8 @@ Even beginning chemists will recognize this as a straightforward LSA extraction.
 4. Pour only the clear liquid into the baking dish. Discard any cloudy liquid and spent seed matter. Let a dehydrator or hair dryer carry the alcohol away, keeping the temperature below 50°C (122°F).
 5. Once the alcohol has fully evaporated, scrape the residue from the dish into an oily blob with a spatula or razor blade.
 
+The extract's weight includes inert oils, not just ergine.
+
 ## Materials
 
 - {{< tooltip label="25 Hawaiian baby woodrose" >}}Increase seeds to increase the strength of the subjective effects.<br/>Start low and increase with caution.<br/>Next step up from 25 is 50.<br/>Stahl has reportedly worked his way to up 100 seeds 🤯.{{< /tooltip >}} (*Argyreia nervosa*) seeds[^min-seeds]
