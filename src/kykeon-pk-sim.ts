@@ -7,7 +7,7 @@
 // Three compartments: pre-barrier pool (ergine + barley grass aldehydes), barrier
 // (converts ergine to kykeon 1:1 by mass whenever any aldehyde is present,
 // otherwise passes ergine through untouched; ALDH degrades the barrier's
-// aldehyde pool at a diet-dependent rate), and brain (kykeon decays on a
+// aldehyde pool), and brain (kykeon decays on a
 // short half-life; ergine barely decays on its own and is instead knocked
 // down by discrete urination events, a Poisson process whose rate is itself
 // suppressed by how much ergine is currently in the brain).
@@ -22,8 +22,7 @@ const PEE_RATE_BASELINE = 1 / 120; // ordinary incidental water intake, no delib
 const PEE_INTERVAL_SIPPING_LABEL = `~1 pee / ${Math.round(1 / PEE_RATE_SIPPING)} min`;
 const SIPPING_KYKEON_THRESHOLD_MG = 1; // sipping only boosts pee rate while kykeon hasn't built up
 const ERGINE_KIDNEY_SLOWDOWN = 1 / 40; // higher brain ergine suppresses the urge to pee
-const ALDH_RATE_DIET = 0.02; // g/min, zero-order (saturated) ALDH clearance, preserving diet
-const ALDH_RATE_NORMAL = 0.03; // g/min, zero-order (saturated) ALDH clearance, normal diet
+const ALDH_RATE = 0.03; // g/min, zero-order (saturated) ALDH clearance, no diet followed
 const ALDH_QUERCETIN_FACTOR = 0; // quercetin fully inhibits ALDH
 // Glutathione conjugation, AKR/ADH reduction, protein adduction, and pulmonary
 // loss are all first-order (or pseudo-first-order) in aldehyde concentration,
@@ -96,11 +95,11 @@ function formatErgineDose(mg: number): string {
     return `${mg}mg (${mg / ERGINE_MG_PER_SEED} seeds)`;
 }
 
-function runSimulation(ergineMg: number, dietOn: boolean, quercetinOn: boolean, sippingWater: boolean, doses: BarleyDose[], rngSeed: number): SimResult {
+function runSimulation(ergineMg: number, quercetinOn: boolean, sippingWater: boolean, doses: BarleyDose[], rngSeed: number): SimResult {
     const rand = mulberry32(rngSeed);
     const peeEvents: number[] = [];
 
-    const aldhRate = (dietOn ? ALDH_RATE_DIET : ALDH_RATE_NORMAL) * (quercetinOn ? ALDH_QUERCETIN_FACTOR : 1);
+    const aldhRate = ALDH_RATE * (quercetinOn ? ALDH_QUERCETIN_FACTOR : 1);
     const kykeonDecay = Math.log(2) / KYKEON_HALF_LIFE;
     const ergineDecay = Math.log(2) / ERGINE_HALF_LIFE;
 
@@ -266,7 +265,6 @@ function describeParams(state: SimState): string {
     const doses = [...state.doses].sort((a, b) => a.t - b.t);
     const lines = [
         `Ergine: ${state.ergineMg} mg${startMins !== null ? ` at ${fmtClock(startMins, 0)}` : ""}`,
-        `Diet: ${state.dietOn ? "on" : "off"}`,
         `Quercetin or kudzu: ${state.quercetinOn ? "on, taken with ergine" : "off"}`,
         `Sipping water: ${state.sippingWater ? "yes" : "no"}`,
         "Barley grass doses:",
@@ -330,7 +328,6 @@ function svgEl<K extends keyof SVGElementTagNameMap>(tag: K): SVGElementTagNameM
 
 interface SimState {
     ergineMg: number;
-    dietOn: boolean;
     quercetinOn: boolean;
     sippingWater: boolean;
     doses: BarleyDose[];
@@ -339,7 +336,7 @@ interface SimState {
 }
 
 function buildSimUI(container: HTMLElement): void {
-    let state: SimState = { ergineMg: 100, dietOn: false, quercetinOn: true, sippingWater: true, doses: [{ t: 0, amount: 3 }], rngSeed: 1, startTime: "" };
+    let state: SimState = { ergineMg: 100, quercetinOn: true, sippingWater: true, doses: [{ t: 0, amount: 3 }], rngSeed: 1, startTime: "" };
     let dragging: { dose: BarleyDose; pointerId: number; startClientY: number; startAmount: number } | null = null;
     let dragDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     let cursorT: number | null = null;
@@ -368,21 +365,6 @@ function buildSimUI(container: HTMLElement): void {
     ergineInput.step = "4";
     ergineField.append(ergineLabelRow, ergineInput);
     grid.appendChild(ergineField);
-
-    const dietField = el("div", "pk-field");
-    const dietLabelRow = el("label");
-    dietLabelRow.textContent = "Aldehyde-preserving diet";
-    const dietToggleRow = el("div", "pk-toggle-row");
-    const dietSwitch = el("label", "pk-switch");
-    const dietInput = el("input");
-    dietInput.type = "checkbox";
-    const dietTrack = el("span", "pk-track");
-    const dietKnob = el("span", "pk-knob");
-    dietSwitch.append(dietInput, dietTrack, dietKnob);
-    const dietText = el("span");
-    dietToggleRow.append(dietSwitch, dietText);
-    dietField.append(dietLabelRow, dietToggleRow);
-    grid.appendChild(dietField);
 
     const quercetinField = el("div", "pk-field");
     const quercetinLabelRow = el("label");
@@ -535,8 +517,6 @@ function buildSimUI(container: HTMLElement): void {
     function syncControls(): void {
         ergineInput.value = String(state.ergineMg);
         ergineVal.textContent = formatErgineDose(state.ergineMg);
-        dietInput.checked = state.dietOn;
-        dietText.textContent = state.dietOn ? "On — ALDH runs slow" : "Off — ALDH runs fast";
         syncQuercetin();
         waterInput.checked = state.sippingWater;
         waterText.textContent = state.sippingWater ? `Yes — ${PEE_INTERVAL_SIPPING_LABEL}` : "No — ordinary incidental sipping only";
@@ -545,11 +525,6 @@ function buildSimUI(container: HTMLElement): void {
     ergineInput.addEventListener("input", () => {
         state.ergineMg = Number(ergineInput.value);
         ergineVal.textContent = formatErgineDose(state.ergineMg);
-        run();
-    });
-    dietInput.addEventListener("change", () => {
-        state.dietOn = dietInput.checked;
-        dietText.textContent = state.dietOn ? "On — ALDH runs slow" : "Off — ALDH runs fast";
         run();
     });
     quercetinInput.addEventListener("change", () => {
@@ -1041,7 +1016,7 @@ function buildSimUI(container: HTMLElement): void {
 
     function run(): void {
         cancelGlide();
-        const result = runSimulation(state.ergineMg, state.dietOn, state.quercetinOn, state.sippingWater, state.doses, state.rngSeed);
+        const result = runSimulation(state.ergineMg, state.quercetinOn, state.sippingWater, state.doses, state.rngSeed);
         drawChart(result);
     }
 
