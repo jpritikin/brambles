@@ -29,7 +29,7 @@ The steps, in order: [screen for contraindications](#screen-for-contraindication
 
 ## Screen for Contraindications
 
-**This protocol does not risk ergotism.** Ergine belongs to the ergot alkaloids, and ergotism (sustained vasoconstriction, historically from eating rye contaminated with the *Claviceps* fungus) required chronic, heavy exposure far beyond a single dose here. Ergine is also a much weaker vasoconstrictor than the alkaloids behind classic ergotism. Still, vascular sensitivity varies, so screen yourself first.
+**This protocol does not risk ergotism.** Ergine belongs to the ergot alkaloids. But ergotism (a potentially fatal condition) requires chronic, heavy exposure far beyond the mild dose here. Ergine is also a much weaker vasoconstrictor than the alkaloids behind classic ergotism. Still, vascular sensitivity varies, so screen yourself first.
 
 Do not proceed if any of these apply:
 
@@ -113,7 +113,7 @@ We lost this knowledge for a couple of thousand years. Let's not make it a habit
 
 ## Notes
 
-[^stimulation]: Stimulation signals you set the correct conditions for kykeon (the meditation and preparation above). Otherwise you would feel sedation. You're feeling the kykeon but not meeting it fully. Here's how to get it wrong: Set your alarm way too early, like 4am. Roll out of bed groggy and sleep deprived. Don't comb your hair. Proudly keep pristine bed-head. Take ergine before you've fully woken up. Definitely don't practice meditation. Extra credit if, in addition, you've been sleep deprived for the last 3-4 days.
+[^stimulation]: Stimulation signals you set the correct conditions for kykeon. Otherwise you would feel ergine sedation. You're feeling the kykeon but not meeting it fully. Here's how to get it wrong: Set your alarm way too early, like 4am. Roll out of bed groggy and sleep deprived. Don't comb your hair. Proudly keep pristine bed-head. Take ergine before you've fully woken up. Definitely don't practice meditation. Extra credit if, in addition, you've been sleep deprived for the last 3-4 days.
 
 [^mdma]: MDMA is used to treat people struggling with complex PTSD because it is indifferent to their initial condition. Even a deeply distressed person is met with warmth and openness.
 
