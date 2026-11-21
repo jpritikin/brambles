@@ -8,7 +8,7 @@ sitemap:
 
 # Shopping Recommendations
 
-- [HBRW (Hawaiian baby woodrose)](https://www.hawaiianbabywoodrose.com)
+- [HBRW (Hawaiian baby woodrose)](https://www.hawaiianbabywoodrose.com). If out of stock, [O'Neill Seeds](https://oneillseeds.com/collections/flower-seeds/products/hawaiian-baby-woodrose-seeds-organic-and-untreated-hbwr) is another option at 2-3x the cost.
 - [Tartaric acid](https://a.co/d/0cx3Wtmd)
 - [Barley grass](https://www.amazon.com/stores/NIHONYAKKEN/page/3FE7CF55-C548-46A1-9305-EF61C36BD113) \
  ![Original](../plain.webp) **OR** ![Veggie](../veggie.webp)
