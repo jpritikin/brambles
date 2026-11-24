@@ -19,7 +19,7 @@ You don't need both quercetin and kudzu extract. Pick one or the other.
 
 If you also need a grinder then you might consider:
 
-- [OXO Brew Compact Conical Burr Electric Coffee Bean Grinder](https://a.co/d/0eRgyhWw)
+- [OXO Brew Compact Conical Burr Electric Coffee Bean Grinder](https://www.oxo.com/oxo-brew-compact-burr-grinder.html)
 
 Check your state regulations for sourcing ethyl alcohol:
 
