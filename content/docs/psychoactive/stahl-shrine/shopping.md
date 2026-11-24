@@ -12,10 +12,10 @@ sitemap:
 - [Tartaric acid](https://a.co/d/0cx3Wtmd)
 - [Barley grass](https://www.amazon.com/stores/NIHONYAKKEN/page/3FE7CF55-C548-46A1-9305-EF61C36BD113) \
  ![Original](../plain.webp) **OR** ![Veggie](../veggie.webp)
-- [Quercetin](https://a.co/d/08qMpazQ)
 - [Kudzu extract](https://www.naturalpharmacia.com/product-page/alkontrol-herbal)
+- [Quercetin](https://a.co/d/08qMpazQ)
 
-You don't need both quercetin and kudzu extract. Pick one or the other.
+You don't need both kudzu extract and quercetin. Pick one or the other.
 
 If you also need a grinder then you might consider:
 
